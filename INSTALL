@@ -1,0 +1,6 @@
+* install ejabberd (see ejabberd_setup.txt)
+* create apis to your content (see data/*.js for examples)
+* edit index.html and player.html to point to your data and jabber server
+* put index.html in one browser and player.html in another
+
+
