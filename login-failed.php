@@ -127,6 +127,12 @@ function create_buttons(){
    //initialise buttons object and start the link
    buttons = new ButtonsLink({"server":server});
 
+  //SHOW LOGIN FORM
+
+    document.getElementById('formLogin').style.display = 'block';
+    document.getElementById('registration').style.display = 'none';
+    document.getElementById('ask_name').style.left = "35%";
+
 }
 
 //called when buttons link is created
@@ -1407,9 +1413,12 @@ function get_object(id) {
    return object;
 }
 
-
-
-
+<!--REGISTRATION-FORM-->
+  function swap(one, two) {
+      document.getElementById(one).style.display = 'block';
+      document.getElementById(two).style.display = 'none';
+      document.getElementById('ask_name').style.left = "35%";
+}
 </script>
 
 </head>
@@ -1545,30 +1554,65 @@ the internet. <br /> <br />
 
               
             <div id="ask_name" style="display:none;" class="alert">
-              <h2 id="inline1_sub">Registration</h2>
-              <form id="loginForm" name="loginForm" method="post" action="register-exec.php">
-                 First Name<input name="fname" type="text" class="textfield" id="fname" />
-                 Last Name<input name="lname" type="text" class="textfield" id="lname" />
-                 Username<input name="login" type="text" class="textfield" id="login" />
-                 Password<input name="password" type="password" class="textfield" id="password" />
-                 Confirm Password<input name="cpassword" type="password" class="textfield" id="cpassword" />
-                 <br />
-                    Click the Submit button when you are ready
-                 </p>
-                 <input class='bluesubmit' type="submit" name="Submit" value="Register" />
-              </form>
 
-              <h2 id="inline1_sub"> <font color="red"> Login</font></h2> 
+          <div id="registration" class="registration">
+                  <h2 id="inline1_sub">Sign up</h2>
+                  <div class="formRegistration">
+
+                    <form id="loginForm" name="loginForm" method="post" action="register-exec.php">
+                      <div class="input-field">
+                       <input id="fname" name="fname" type="fname" class="textfield" value="" required="required" placeholder="First Name" />
+                      </div>
+                      <div class="input-field">
+                       <input id="lname" name="lname" type="lname" class="textfield" value="" required="required" placeholder="Last Name" />
+                      </div>
+                      <div class="input-field">
+                       <input id="login" name="login" type="login" class="textfield" value="" required="required" placeholder="Username"  />
+                      </div>
+                      <div class="input-field">
+                       <input id="password" name="password" type="password" class="textfield" value="" required="required" placeholder="Password"  />
+                      </div>
+                      <div class="input-field">                
+                       <input id="cpassword" name="cpassword" type="password" class="textfield" value="" required="required" placeholder="Repeat Password"  />
+                      </div>
+                       </p>
+                       <input class='bluesubmit' type="submit" name="Submit" value="Sign up!" />
+                    </form>
+                  </div>
+                  <div class="divider">
+                      <span></span>
+                      <p>
+
+                          or
+
+                      </p>
+                      <span></span>
+
+                  </div>
+
+                  <div class="formFacebook">
+                    <img href="#" id="fbimage" src="images/facebook.jpg" alt="Sign up using Facebook" height="auto" width="250px"/>
+                  </div>
+                  <div id="gotologin"><span id="whatever">Already a user? <span style="font-weight: bold;" id="colorsignin" onclick="swap('formLogin','registration'); return false">Sign in</span></span></div>
+            </div>
+
+            <div id="formLogin" class="formLogin">
               <form id="myname" name="loginForm" method="post" action="login-exec.php">
-                 <font color="red">Username</font><input name="login" type="text" class="textfield" id="login" />
-                 <font color="red">Password</font><input name="password" type="password" class="textfield" id="password" />
+              <h2 id="inline1_sub">Login</h2>
+              <div id="err">Some field was not correct. Please try again</div>
+                <div class="input-field">   
+                 <input id="login" name="login" type="username" class="textfield" value="" required="required" placeholder="Username" />
+                </div>
+                <div class="input-field"> 
+                 <input id="password" name="password" type="password" class="textfield" value="" required="required" placeholder="Password" />
+                </div>
+                 <button class='bluesubmit' type="submit" name="Submit" value="Login">Login!</button>
                  <br />
-                 <button class='bluesubmit' type="submit" name="Submit" value="Login">Login</button>
-                 <p> 
-                   You are joining group <span id="group_name"></span>
-                 </p>
+                 <div id="joining">You are joining group <span id="group_name"></span></div>
+                 
               </form>
-              </div>
+            </div>
+      </div>
   
     
             <div id="disconnected" style="overflow:auto;display: none;" class="alert">

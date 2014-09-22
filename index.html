@@ -1420,6 +1420,7 @@ function get_object(id) {
 <!--REGISTRATION-FORM-->
 
 <?php
+
   if( isset($_SESSION['ERRMSG_ARR']) && is_array($_SESSION['ERRMSG_ARR']) && count($_SESSION['ERRMSG_ARR']) >0 ) {
     echo '<ul class="err">';
     foreach($_SESSION['ERRMSG_ARR'] as $msg) {
@@ -1592,11 +1593,9 @@ the internet. <br /> <br />
               <form id="myname" name="loginForm" method="post" action="login-exec.php">
               <h2 id="inline1_sub">Login</h2>
                 <div class="input-field">   
-                  <img class="input-icon" src="images/form-icon-user.svg"></img>
                  <input id="login" name="login" type="username" class="textfield" value="" required="required" placeholder="Username" />
                 </div>
                 <div class="input-field"> 
-                <img class="input-icon" src="images/form-icon-password.svg"></img>  
                  <input id="password" name="password" type="password" class="textfield" value="" required="required" placeholder="Password" />
                 </div>
                  <button class='bluesubmit' type="submit" name="Submit" value="Login">Login!</button>

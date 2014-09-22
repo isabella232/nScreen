@@ -36,28 +36,28 @@
 	$nick1 = clean($_POST['login']);
 	$password = clean($_POST['password']);
 	
-	//Input Validations
-	if($nick1 == '') {
-		$errmsg_arr[] = 'Login ID missing';
-		$errflag = true;
-	}
-	if($password == '') {
-		$errmsg_arr[] = 'Password missing';
-		$errflag = true;
-	}
+	// //Input Validations
+	// if($nick1 == '') {
+	// 	//$errmsg_arr[] = 'Login ID missing';
+	// 	$errflag = true;
+	// }
+	// if($password == '') {
+	// 	//$errmsg_arr[] = 'Password missing';
+	// 	$errflag = true;
+	// }
 	
-	//If there are input validations, redirect back to the login form
-	if($errflag) {
-		$_SESSION['ERRMSG_ARR'] = $errmsg_arr;
-		session_write_close();
-		header("location: login-failed.php");;
-		exit();
-	}
+	// //If there are input validations, redirect back to the login form
+	// if($errflag) {
+	// 	$_SESSION['ERRMSG_ARR'] = $errmsg_arr;
+	// 	session_write_close();
+	// 	header("location: login-failed.php");;
+	// 	exit();
+	// }
 	
 	//Create query
 	$qry="SELECT * FROM members WHERE login='$nick1' AND passwd='".md5($_POST['password'])."'";
-	$result=mysql_query($qry);
-	
+	$result=mysql_query($qry);   
+
 	//Check whether the query was successful or not
 	if($result) {
 		if(mysql_num_rows($result) == 1) {
@@ -73,7 +73,7 @@
 		}else {
 			//Login failed
 			$errmsg_arr[] = 'Username or password not correct';
-			//$errflag = true;
+			$errflag = true;
 			header("location: login-failed.php");
 			exit();
 		}

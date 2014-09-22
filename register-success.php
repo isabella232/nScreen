@@ -125,6 +125,11 @@ function create_buttons(){
    //initialise buttons object and start the link
    buttons = new ButtonsLink({"server":server});
 
+     //SHOW LOGIN FORM
+
+    document.getElementById('formLogin').style.display = 'block';
+    document.getElementById('ask_name').style.left = "35%";
+
 }
 
 //called when buttons link is created
@@ -1543,17 +1548,22 @@ the internet. <br /> <br />
 
               
             <div id="ask_name" style="display:none;" class="alert">
-              <h2 id="inline1_sub"><font color="#3198C4">Registration Sucessful! Now Login</font></h2>
-              <h2 id="inline1_sub">Login</h2> 
+              <div id="success"><font color="#3198C4">Registration Sucessful! Now Login</font></div>
+              <div id="formLogin" class="formLogin">
               <form id="myname" name="loginForm" method="post" action="login-exec.php">
-                 <font color="#3198C4">Username</font><input name="login" type="text" class="textfield" id="login" />
-                 <font color="#3198C4">Password</font><input name="password" type="password" class="textfield" id="password" />
+              <h2 id="inline1_sub">Login</h2>
+                <div class="input-field">   
+                 <input id="login" name="login" type="username" class="textfield" value="" required="required" placeholder="Username" />
+                </div>
+                <div class="input-field"> 
+                 <input id="password" name="password" type="password" class="textfield" value="" required="required" placeholder="Password" />
+                </div>
+                 <button class='bluesubmit' type="submit" name="Submit" value="Login">Login!</button>
                  <br />
-                 <button class='bluesubmit' type="submit" name="Submit" value="Login">Login</button>
-                 <p> 
-                   You are joining group <span id="group_name"></span>
-                 </p>
+                 <div id="joining">You are joining group <span id="group_name"></span></div>
+                 
               </form>
+            </div>
               </div>
   
     
