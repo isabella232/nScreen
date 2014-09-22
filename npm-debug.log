@@ -1,5 +1,5 @@
 0 info it worked if it ends with ok
-1 verbose cli [ '/usr/bin/node', '/usr/bin/npm', 'install' ]
+1 verbose cli [ '/usr/bin/node', '/usr/bin/npm', 'install', '-d' ]
 2 info using npm@1.4.9
 3 info using node@v0.10.28
 4 verbose node symlink /usr/bin/node
@@ -8,7 +8,7 @@
 6 error package.json This is most likely not a problem with npm itself.
 6 error package.json npm can't find a package.json file in your current directory.
 7 error System Linux 3.2.0-61-generic-pae
-8 error command "/usr/bin/node" "/usr/bin/npm" "install"
+8 error command "/usr/bin/node" "/usr/bin/npm" "install" "-d"
 9 error cwd /opt/lampp/htdocs/N-Screen
 10 error node -v v0.10.28
 11 error npm -v 1.4.9
