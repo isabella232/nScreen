@@ -68,16 +68,20 @@ var interval = null;
 
 function init(){
 
-   var grp = window.location.hash;
-
+   //create_buttons();
+   my_group=tmp_group();
+   //var grp = window.location.hash;
+   window.location.hash=my_group;
+   grp = window.location.hash;
+   console.log("GRP IS!!!! = "+grp);
+   
    if(grp){
      my_group = grp.substring(1);
      $("#header").show();
      $("#roster_wrapper").show();
      $(".about").hide();
-     create_buttons();
    }else{
-     $(".about").show();
+     //$(".about").show();
      my_group=tmp_group();
      $(".alert").hide();
      $("#header").hide();
@@ -126,12 +130,14 @@ function create_buttons(){
 
    //initialise buttons object and start the link
    buttons = new ButtonsLink({"server":server});
+   init();
 
   //SHOW LOGIN FORM
 
     document.getElementById('formLogin').style.display = 'block';
     document.getElementById('registration').style.display = 'none';
     document.getElementById('ask_name').style.left = "35%";
+
 
 }
 

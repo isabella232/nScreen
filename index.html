@@ -74,11 +74,12 @@ function init(){
      $(".about").hide();
      create_buttons();
    }else{
-     $(".about").show();
+     //$(".about").show();
      my_group=tmp_group();
      $(".alert").hide();
      $("#header").hide();
      $("#roster_wrapper").hide();
+     create_buttons();
    }
    $("#group_name").html(my_group);
    $("#grp_link").html(clean_loc+"#"+my_group);
