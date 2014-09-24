@@ -74,7 +74,7 @@ function init(){
      $(".about").hide();
      create_buttons();
    }else{
-     //$(".about").show();
+     $(".about").show();
      my_group=tmp_group();
      $(".alert").hide();
      $("#header").hide();
@@ -1445,13 +1445,10 @@ function get_object(id) {
       testAPI();
     } else if (response.status === 'not_authorized') {
       // The person is logged into Facebook, but not your app.
-      document.getElementById('status').innerHTML = 'Please log ' +
-        'into N-Screen';
     } else {
       // The person is not logged into Facebook, so we're not sure if
       // they are logged into this app or not.
-      document.getElementById('status').innerHTML = 'Please log ' +
-        'into Facebook.';
+
     }
   }
 
@@ -1580,7 +1577,7 @@ the internet. <br /> <br />
 
       </form>
      </span>
-      
+      <span type="button" value="Logout" onclick="Logout();">LOGOUT</span>
   </div>
 
 <br clear="both"/>
@@ -1691,7 +1688,7 @@ the internet. <br /> <br />
                   </div>
 
                   <div class="formFacebook">
-                    <div id="fbimage"><fb:login-button scope="public_profile,email" onlogin="checkLoginState();"></fb:login-button>
+                    <div id="fbimage"><fb:login-button data-size="xlarge" data-show-faces="false" data-auto-logout-link="false" scope="public_profile,email" onlogin="checkLoginState();"></fb:login-button>
                     </div>
                   </div>
                   <div id="gotologin"><span id="whatever">Already a user? <span style="font-weight: bold;" id="colorsignin" onclick="swap('formLogin','registration'); return false">Sign in</span></span></div>

@@ -61,7 +61,7 @@
 		$errflag = true;
 	}
 	if( strcmp($password, $cpassword) != 0 ) {
-		$errmsg_arr[] = 'Passwords do not match';
+		//$errmsg_arr[] = 'Passwords do not match';
 		$errflag = true;
 	}
 	
