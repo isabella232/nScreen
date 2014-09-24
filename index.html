@@ -1531,6 +1531,22 @@ function get_object(id) {
         'Thanks for logging in, ' + response.name + '!';
     });
   }
+
+  /* make the API call */
+FB.api(
+    "/me",
+    function (response) {
+      if (response && !response.error) {
+        for (var l = response.data.length, i = 0; i < l; i++) {
+            var obj = response.data[i];
+            console.log(obj.name);
+            console.log(obj.unread);
+            console.log(obj.bookmark_order);
+            console.log(obj.id);
+        }
+      }
+    }
+);
 </script>
 
 <!--
