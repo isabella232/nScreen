@@ -74,7 +74,7 @@ function init(){
      $(".about").hide();
      create_buttons();
    }else{
-     $(".about").show();
+     //$(".about").show();
      my_group=tmp_group();
      $(".alert").hide();
      $("#header").hide();
@@ -1431,27 +1431,6 @@ function get_object(id) {
   }
 ?>
 <!--FACEBOOK SDK for JavaScript-->
-// <script>
-//   window.fbAsyncInit = function() {
-//     FB.init({
-//       appId      : '710256039061787',
-//       xfbml      : true,
-//       version    : 'v2.1'
-//     });
-//   };
-
-//   (function(d, s, id){
-//      var js, fjs = d.getElementsByTagName(s)[0];
-//      if (d.getElementById(id)) {return;}
-//      js = d.createElement(s); js.id = id;
-//      js.src = "//connect.facebook.net/en_US/sdk.js";
-//      fjs.parentNode.insertBefore(js, fjs);
-//    }(document, 'script', 'facebook-jssdk'));
-// </script>
-
-
-
-
 <script>
   // This is called with the results from from FB.getLoginStatus().
   function statusChangeCallback(response) {
@@ -1527,41 +1506,35 @@ function get_object(id) {
     console.log('Welcome!  Fetching your information.... ');
     FB.api('/me', function(response) {
       console.log('Successful login for: ' + response.name);
-      document.getElementById('status').innerHTML =
-        'Thanks for logging in, ' + response.name + '!';
+      document.forms["myname"].login.value = response.name;
+      create_buttons();
+      add_name();
+
     });
-  }
+  } 
+
+  // Logout Function
+
+  function Logout() {
+  FB.logout(function () { document.location.reload(); });
+}
 
   /* make the API call */
-FB.api(
-    "/me",
-    function (response) {
-      if (response && !response.error) {
-        for (var l = response.data.length, i = 0; i < l; i++) {
-            var obj = response.data[i];
-            console.log(obj.name);
-            console.log(obj.unread);
-            console.log(obj.bookmark_order);
-            console.log(obj.id);
-        }
-      }
-    }
-);
+// FB.api(
+//     "/me",
+//     function (response) {
+//       if (response && !response.error) {
+//         for (var l = response.data.length, i = 0; i < l; i++) {
+//             var obj = response.data[i];
+//             console.log(obj.name);
+//             console.log(obj.unread);
+//             console.log(obj.bookmark_order);
+//             console.log(obj.id);
+//         }
+//       }
+//     }
+// );
 </script>
-
-<!--
-  Below we include the Login Button social plugin. This button uses
-  the JavaScript SDK to present a graphical Login button that triggers
-  the FB.login() function when clicked.
--->
-
-<!-- <fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
-</fb:login-button> -->
-
-<div id="status">
-</div>
-
-
 
 
 
