@@ -1430,6 +1430,24 @@ function get_object(id) {
     unset($_SESSION['ERRMSG_ARR']);
   }
 ?>
+<!--FACEBOOK SDK for JavaScript-->
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '710256039061787',
+      xfbml      : true,
+      version    : 'v2.1'
+    });
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+</script>
 
 <div id="everything" ontouchmove="touchMove(event);">
 
