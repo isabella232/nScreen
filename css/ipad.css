@@ -550,6 +550,9 @@ letter-spacing: 1px;
     text-align: center;
 }
 
+#logoutspan {
+    display: none;
+}
 .divider > span {
   height: 150px;
   border-right: 1px solid #DBD4C1;

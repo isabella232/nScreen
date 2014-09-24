@@ -65,6 +65,9 @@ var interval = null;
 
 function init(){
 
+  var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
+
    var grp = window.location.hash;
 
    if(grp){
@@ -252,6 +255,9 @@ function add_name(){
     });
    
   }
+  $("#logoutspan").show();
+  var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
 }
 
 
@@ -1578,7 +1584,7 @@ the internet. <br /> <br />
 
       </form>
      </span>
-      <span type="button" value="Logout" onclick="Logout();">LOGOUT</span>
+      <div id="logoutspan" type="button" value="Logout" onclick="Logout();">LOGOUT</div>
   </div>
 
 <br clear="both"/>

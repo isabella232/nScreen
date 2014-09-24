@@ -67,33 +67,31 @@ var interval = null;
 //if no group name, show the intro text
 
 function init(){
-   //create_buttons();
-   my_group=tmp_group();
-   //var grp = window.location.hash;
-   window.location.hash=my_group;
-   grp = window.location.hash;
-   console.log("GRP IS!!!! = "+grp);
-   
+
+create_buttons();
+var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
+
+  var grp = window.location.hash;
+
    if(grp){
      my_group = grp.substring(1);
      $("#header").show();
      $("#roster_wrapper").show();
      $(".about").hide();
-     //create_buttons();
+     create_buttons();
    }else{
-     $(".about").show();
      my_group=tmp_group();
-     $(".alert").hide();
-     $("#header").hide();
-     $("#roster_wrapper").hide();
+     $("#header").show();
+     $("#roster_wrapper").show();
+     $(".about").hide();
+     create_buttons();
    }
    $("#group_name").html(my_group);
    $("#grp_link").html(clean_loc+"#"+my_group);
    $("#grp_link").attr("href",clean_loc+"#"+my_group);
    window.location.hash=my_group;
-
 }
-
 // utility function create a temporary group name if none is set
 function tmp_group(){
   //var rand = Math.floor(Math.random()*9999);
@@ -104,6 +102,9 @@ function tmp_group(){
 //creates and initialises the buttons object                              
 
 function create_buttons(){
+
+  var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
    $("#inner").addClass("inner_noscroll");
    $(".slidey").addClass("slidey_noscroll");
    $(".about").hide();
@@ -130,7 +131,7 @@ function create_buttons(){
 
    //initialise buttons object and start the link
    buttons = new ButtonsLink({"server":server});
-   init();
+   
 
 }
 
@@ -258,7 +259,11 @@ function add_name(){
 
     });
    
-  }
+  }  
+  var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
+  window.location.hash=my_group;
+  $("#logoutspan").show();
 }
 
 
@@ -1424,7 +1429,7 @@ function get_object(id) {
 
 </head>
 
-<body onload="create_buttons()">
+<body onload="init()">
 
 <!--REGISTRATION-FORM-->
 

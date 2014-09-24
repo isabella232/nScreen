@@ -63,10 +63,13 @@ var interval = null;
 //handle group names
 //if no group name, show the intro text
 
+
 function init(){
 
+  var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
+
    var grp = window.location.hash;
-   console.log("GRP IS!!!! = "+grp);
 
    if(grp){
      my_group = grp.substring(1);
@@ -75,11 +78,12 @@ function init(){
      $(".about").hide();
      create_buttons();
    }else{
-     $(".about").show();
+     //$(".about").show();
      my_group=tmp_group();
      $(".alert").hide();
      $("#header").hide();
      $("#roster_wrapper").hide();
+     create_buttons();
    }
    $("#group_name").html(my_group);
    $("#grp_link").html(clean_loc+"#"+my_group);
@@ -257,6 +261,10 @@ function add_name(){
     });
    
   }
+  var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
+  window.location.hash=my_group;
+  $("#logoutspan").show();
 }
 
 
@@ -1417,7 +1425,7 @@ function get_object(id) {
 
 </head>
 
-<body onload="create_buttons()">
+<body onload="init()">
 
 <!--REGISTRATION-FORM-->
 

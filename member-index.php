@@ -68,22 +68,25 @@ var interval = null;
 
 function init(){
 
-   var grp = "#1"; //window.location.hash
-   buttons = new ButtonsLink({"server":server});
+create_buttons();
+var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
 
-   /*if(grp){
+  var grp = window.location.hash;
+
+   if(grp){
      my_group = grp.substring(1);
      $("#header").show();
      $("#roster_wrapper").show();
      $(".about").hide();
      create_buttons();
-   }else{*/
-     my_group = grp.substring(1);
+   }else{
+     my_group=tmp_group();
      $("#header").show();
      $("#roster_wrapper").show();
      $(".about").hide();
      create_buttons();
-   //}
+   }
    $("#group_name").html(my_group);
    $("#grp_link").html(clean_loc+"#"+my_group);
    $("#grp_link").attr("href",clean_loc+"#"+my_group);
@@ -255,6 +258,10 @@ function add_name(){
     });
    
   }
+  var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
+  window.location.hash=my_group;
+  $("#logoutspan").show();
 }
 
 
