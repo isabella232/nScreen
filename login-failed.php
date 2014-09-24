@@ -1537,6 +1537,7 @@ the internet. <br /> <br />
 <div id="roster_wrapper" style="display:none;">
 <div id="aboutlink">
 <a target="_blank" href="about.html">About N-Screen</a>
+<a id="logoutspan" href="#" onclick="Logout();">LOGOUT</a>
 </div>
 
   <div class="notifications_red" id="notify"></div>
