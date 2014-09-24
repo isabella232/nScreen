@@ -1467,7 +1467,7 @@ function get_object(id) {
     } else if (response.status === 'not_authorized') {
       // The person is logged into Facebook, but not your app.
       document.getElementById('status').innerHTML = 'Please log ' +
-        'into this app.';
+        'into N-Screen';
     } else {
       // The person is not logged into Facebook, so we're not sure if
       // they are logged into this app or not.
@@ -1539,8 +1539,8 @@ function get_object(id) {
   the FB.login() function when clicked.
 -->
 
-<fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
-</fb:login-button>
+<!-- <fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
+</fb:login-button> -->
 
 <div id="status">
 </div>
@@ -1702,7 +1702,8 @@ the internet. <br /> <br />
                   </div>
 
                   <div class="formFacebook">
-                    <img href="#" id="fbimage" src="images/facebook.jpg" alt="Sign up using Facebook" height="auto" width="250px"/>
+                    <div id="fbimage"><fb:login-button scope="public_profile,email" onlogin="checkLoginState();"></fb:login-button>
+                    </div>
                   </div>
                   <div id="gotologin"><span id="whatever">Already a user? <span style="font-weight: bold;" id="colorsignin" onclick="swap('formLogin','registration'); return false">Sign in</span></span></div>
             </div>
