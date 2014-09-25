@@ -565,7 +565,12 @@ width: 1px;
 
 #fbimage{
 padding-top: 170px;
-width: 250px;
+
+}
+
+#fbicon{
+  cursor: pointer;
+  width: 250px;
 }
 
 #err{
