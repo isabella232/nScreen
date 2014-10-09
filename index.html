@@ -196,10 +196,22 @@ function retrieve_channels(result){
 
   var se = {"id":"se","pid":"se","title":"Search Results","description":"Results of last search","image":"images/search_results.png","classes":"ui-widget-content button nondrag_programme snaptarget_search"};
 
+//My NEW CHANNELS
+  var later = {"id":"later","pid":"later","title":"Watch Later","description":"Selection of programmes to remind me to watch later","image":"images/watch_later.png","classes":"ui-widget-content button nondrag_programme snaptarget_later"};
+
+
+  var ld = {"id":"ld","pid":"ld","title":"Like/Dislike","description":"My Personal Likes & Dislikes","image":"images/likes_dislikes.png","classes":"ui-widget-content button nondrag_programme snaptarget_likedislike"};
+  
+
   html.push(generate_html_for_programme(gg,false,"grp").join("\n"));
   html.push(generate_html_for_programme(rr,false,"recos").join("\n"));
   html.push(generate_html_for_programme(hh,false,"hist").join("\n"));
   html.push(generate_html_for_programme(se,false,"se").join("\n"));
+
+
+//PUSH My NEW CHANNELS
+  html.push(generate_html_for_programme(later,false,"later").join("\n"));
+  html.push(generate_html_for_programme(ld,false,"ld").join("\n"));
 
 
   $("#progs").html(html.join("\n"));
