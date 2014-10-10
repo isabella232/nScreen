@@ -380,7 +380,7 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
 
 //Function to insert in the correct place the program in the list 'WATCH LATER'
 
-$(document).bind('add_watchlater', function (e,programme,name,msg_type) {
+$(document).bind('watch_later', function (e,programme,name) {
 
   var id = generate_new_id(programme,name);
 
@@ -1190,6 +1190,7 @@ function generate_large_html_for_programme(j,n,id){
       var is_live=j["is_live"];
       var desc=j["description"];
       var explanation=j["explanation"];
+      var later = "Watch later";
 
       html2 = [];
 
@@ -1215,6 +1216,9 @@ function generate_large_html_for_programme(j,n,id){
       html2.push("<div class=\"play_button\"><img src=\"images/play.png\"></div>");
       html2.push("<div style='width:300px;float:left;padding-left:10px;'>");
       html2.push("<div class=\"p_title_large\">"+title+"</div>");
+      html2.push("<div class=\"p_title_large\">"+later+"</div>");
+
+
 //    html2.push("<p class=\"shared_by\">"+n+"</p>");
 
 
