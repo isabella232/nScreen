@@ -229,8 +229,8 @@ function retrieve_channels(result){
   $(document).trigger('refresh_search');
 
   //my new channels
-  $(document).trigger('refresh_search');
-  $(document).trigger('refresh_search');
+  $(document).trigger('refresh_later');
+  $(document).trigger('refresh_ld');
 }
 
 
@@ -322,8 +322,8 @@ $(document).bind('items_changed',function(ev,blink){
     $(document).trigger('refresh_recs');
     $(document).trigger('refresh_search');
     //my new channels
-    $(document).trigger('refresh_search');
-    $(document).trigger('refresh_search');
+    $(document).trigger('refresh_later');
+    $(document).trigger('refresh_ld');
 
 });
 
@@ -372,8 +372,8 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
   $(document).trigger('refresh_search');
 
   //my new channels
-  $(document).trigger('refresh_search');
-  $(document).trigger('refresh_search');
+  $(document).trigger('refresh_later');
+  $(document).trigger('refresh_ld');
 
 });
 
@@ -751,8 +751,8 @@ function recommendations(result,el){
             $(document).trigger('refresh_recs');
             $(document).trigger('refresh_search');
             //my new channels
-            $(document).trigger('refresh_search');
-            $(document).trigger('refresh_search');
+            $(document).trigger('refresh_later');
+            $(document).trigger('refresh_ld');
 
           }
     }else{
@@ -1435,6 +1435,9 @@ function search_results(result,current_query){
   $(document).trigger('refresh_buttons');
   $(document).trigger('refresh_group');
   $(document).trigger('refresh_search');
+  //my new channels
+  $(document).trigger('refresh_later');
+  $(document).trigger('refresh_ld');
 
 }
 
@@ -1912,6 +1915,44 @@ the internet. <br /> <br />
                <div class="p_title_large">Search results</div>
                <p class="description">
                  Last search.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="search_items"></div>
+        </div>
+
+        <!-- MY NEW CHANNELS -->
+
+        <div id="watch_later" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/watch_later.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Watch Later</div>
+               <p class="description">
+                 y personal list of programmes that I would like to watch.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="search_items"></div>
+        </div>
+
+        <div id="like_dislike" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/likes_dislikes.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Likes & Dislikes</div>
+               <p class="description">
+                 My personal list of Likes & Dislikes.
                </p>
            </div>
 
