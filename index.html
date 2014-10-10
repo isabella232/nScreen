@@ -200,7 +200,7 @@ function retrieve_channels(result){
   var later = {"id":"later","pid":"later","title":"Watch Later","description":"Selection of programmes to remind me to watch later","image":"images/watch_later.png","classes":"ui-widget-content button nondrag_programme snaptarget_later"};
 
 
-  var ld = {"id":"ld","pid":"ld","title":"Like/Dislike","description":"My Personal Likes & Dislikes","image":"images/likes_dislikes.png","classes":"ui-widget-content button nondrag_programme snaptarget_likedislike"};
+  var ld = {"id":"ld","pid":"ld","title":"Like/Dislike","description":"My Personal Likes & Dislikes","image":"images/likes_dislikes.png","classes":"ui-widget-content button nondrag_programme snaptarget_ld"};
   
 
   html.push(generate_html_for_programme(gg,false,"grp").join("\n"));
@@ -1057,6 +1057,47 @@ $(document).bind('refresh_search', function () {
                         $('#ssee').addClass("new_overlay");
 
                         $('#ssee').show();
+                        show_grey_bg();
+                        return false;
+
+                });
+
+});
+
+
+// REFRESH FUNCTIONS OF MY NEW ADDITIONAL CHAANNELS:
+
+// WATCH LATER , LIKE & DISLIKE 
+
+$(document).bind('refresh_later', function () {
+
+                $(".snaptarget_later").unbind('click');
+                $( ".snaptarget_later" ).click(function() {
+//open a new overlay containing search
+
+//apply class here
+                        $('.new_overlay').hide();
+                        $('#watch_later').addClass("new_overlay");
+
+                        $('#watch_later').show();
+                        show_grey_bg();
+                        return false;
+
+                });
+
+});
+
+$(document).bind('refresh_ld', function () {
+
+                $(".snaptarget_ld").unbind('click');
+                $( ".snaptarget_ld" ).click(function() {
+//open a new overlay containing search
+
+//apply class here
+                        $('.new_overlay').hide();
+                        $('#like_dislike').addClass("new_overlay");
+
+                        $('#like_dislike').show();
                         show_grey_bg();
                         return false;
 
