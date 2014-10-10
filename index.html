@@ -87,6 +87,7 @@ function init(){
    $("#group_name").html(my_group);
    $("#grp_link").html(clean_loc+"#"+my_group);
    $("#grp_link").attr("href",clean_loc+"#"+my_group);
+
    window.location.hash=my_group;
 
 }
@@ -377,34 +378,6 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
 
 });
 
-
-//Function to insert in the correct place the program in the list 'WATCH LATER'
-
-$(document).bind('watch_later', function (e,programme,name) {
-
-  var id = generate_new_id(programme,name);
-
-  var msg_text = "";
-  var html = null
-  html = generate_html_for_webpage(programme,name,id);
-
-  $('#list_later').append(html.join(''));
-
-//notifications 
-  build_notification(msg_text,programme,name);
-
-  $(document).trigger('refresh_group');
-  $(document).trigger('refresh_buttons');
-  $(document).trigger('refresh_history');
-  $(document).trigger('refresh_recs');
-  $(document).trigger('refresh_search');
-
-  //my new channels
-  $(document).trigger('refresh_later');
-  $(document).trigger('refresh_ld');
-
-});
-
 //we can play some video locally
 
 function show_video(mp4){
@@ -619,6 +592,15 @@ function insert_suggest(j,get_more) {
       html = generate_html_for_programme(j,null,id);
 
       $('#history_items').prepend(html.join(''));
+      //$("#addtowatchlater").unbind('click');
+      $("#addtowatchlater").live( "click", function() {
+
+          //$('#list_later').append(html.join(''));
+          html3 = generate_html_for_programme(j,null,id);
+          $('#list_later').html(html3.join(''));
+          console.log("added to list watch later");
+          return false;
+      });
 
       html2 = generate_large_html_for_programme(j,"",id);//---
       $('#new_overlay').html(html2.join(''));
@@ -1216,7 +1198,9 @@ function generate_large_html_for_programme(j,n,id){
       html2.push("<div class=\"play_button\"><img src=\"images/play.png\"></div>");
       html2.push("<div style='width:300px;float:left;padding-left:10px;'>");
       html2.push("<div class=\"p_title_large\">"+title+"</div>");
-      html2.push("<div class=\"p_title_large\">"+later+"</div>");
+
+      //HTML to make the possibility to add later
+      html2.push("<div id=\"addtowatchlater\"><img src=\"images/play.png\"></div>");
 
 
 //    html2.push("<p class=\"shared_by\">"+n+"</p>");
