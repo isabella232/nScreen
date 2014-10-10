@@ -377,6 +377,34 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
 
 });
 
+
+//Function to insert in the correct place the program in the list 'WATCH LATER'
+
+$(document).bind('shared_changed', function (e,programme,name,msg_type) {
+
+  var id = generate_new_id(programme,name);
+
+  var msg_text = "";
+  var html = null
+  html = generate_html_for_webpage(programme,name,id);
+
+  $('#list_later').append(html.join(''));
+
+//notifications 
+  build_notification(msg_text,programme,name);
+
+  $(document).trigger('refresh_group');
+  $(document).trigger('refresh_buttons');
+  $(document).trigger('refresh_history');
+  $(document).trigger('refresh_recs');
+  $(document).trigger('refresh_search');
+
+  //my new channels
+  $(document).trigger('refresh_later');
+  $(document).trigger('refresh_ld');
+
+});
+
 //we can play some video locally
 
 function show_video(mp4){
