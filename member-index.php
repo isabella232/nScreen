@@ -70,7 +70,7 @@ function init(){
 
 create_buttons();
 var state = {"canBeAnything": true};
-  history.pushState(state, "N-Screen", "/N-Screen/");
+  //history.pushState(state, "N-Screen", "/N-Screen/");
 
   var grp = window.location.hash;
 
@@ -259,7 +259,7 @@ function add_name(){
    
   }
   var state = {"canBeAnything": true};
-  history.pushState(state, "N-Screen", "/N-Screen/");
+  //history.pushState(state, "N-Screen", "/N-Screen/");
   window.location.hash=my_group;
   $("#logoutspan").show();
 }

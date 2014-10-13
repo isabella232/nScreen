@@ -592,15 +592,16 @@ function insert_suggest(j,get_more) {
       html = generate_html_for_programme(j,null,id);
 
       $('#history_items').prepend(html.join(''));
-      //$("#addtowatchlater").unbind('click');
-      $("#addtowatchlater").live( "click", function() {
 
-          //$('#list_later').append(html.join(''));
+
+      // CLICK FUNCTION TO ADD A PROGRAM TO A LIST "WATCH LATER"
+      $("#addtowatchlater").live( "click", function() {
           html3 = generate_html_for_programme(j,null,id);
           $('#list_later').html(html3.join(''));
           console.log("added to list watch later");
           return false;
       });
+
 
       html2 = generate_large_html_for_programme(j,"",id);//---
       $('#new_overlay').html(html2.join(''));
@@ -1538,10 +1539,12 @@ function userLogin(){
            if (response.authResponse){
              console.log('Welcome!  Fetching your information.... ');
               FB.api('/me', function(response) {
+
+              console.log('YEAH YEAH MARACUYEAH');
               console.log('Successful login for: ' + response.name);
               document.forms["myname"].login.value = response.name;
-              create_buttons();
-              add_name();
+              var id = 99999999;
+              register(name);
 
               });
             } 
@@ -1550,6 +1553,22 @@ function userLogin(){
            }
          });
     };
+
+  function register(id) {
+
+    console.log('YEAH YEAH MARACUYEAH');
+
+    $.ajax({
+        url: "facebook_register.php",
+        type: "POST",
+        data: {facebook_id: id },
+        success: function (response) {
+            create_buttons();
+            add_name();
+        }
+      });
+
+  }
 
 
 
@@ -1626,16 +1645,19 @@ function userLogin(){
 
   // Here we run a very simple test of the Graph API after login is
   // successful.  See statusChangeCallback() for when this call is made.
-  function testAPI() {
-    console.log('Welcome!  Fetching your information.... ');
-    FB.api('/me', function(response) {
-      console.log('Successful login for: ' + response.name);
-      document.forms["myname"].login.value = response.name;
-      create_buttons();
-      add_name();
+  // function testAPI() {
+  //   console.log('Welcome!  Fetching your information.... ');
+  //   FB.api('/me', function(response) {
+  //     console.log('Successful login for: ' + response.name);
+  //     document.forms["myname"].login.value = response.name;
+  //     register(response.name);
 
-    });
-  } 
+  //     create_buttons();
+  //     add_name();
+
+  //   });
+  // } 
+
 
   // Logout Function
 
