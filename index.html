@@ -590,15 +590,17 @@ function insert_suggest(j,get_more) {
       console.log(j);
       console.log("mm");
       html = generate_html_for_programme(j,null,id);
-
       $('#history_items').prepend(html.join(''));
-
 
       // CLICK FUNCTION TO ADD A PROGRAM TO A LIST "WATCH LATER"
       $("#addtowatchlater").live( "click", function() {
-          html3 = generate_html_for_programme(j,null,id);
-          $('#list_later').html(html3.join(''));
+          html_later = generate_html_for_programme(j,null,id);         
+          $('#list_later').prepend(html_later.join(''));
+          //$('#list_later').append(html_later.join('')); 
           console.log("added to list watch later");
+          // var div = $("#list_later");
+          // var json_watchlater = get_data_from_programme_html(div);
+          // console.log(json_watchlater);
           return false;
       });
 
@@ -1533,7 +1535,6 @@ function get_object(id) {
 <!--FACEBOOK SDK for JavaScript-->
 <script>
 
-
 function userLogin(){
         FB.login(function(response){
            if (response.authResponse){
@@ -1544,14 +1545,13 @@ function userLogin(){
               var id = response.id;
               console.log('Your id is  ' + id);
               register(id);
-
               });
             } 
            else{
              console.log('User cancelled login or did not fully authorize.');
            }
          });
-    };
+  };
 
   function register(id) {
     $.ajax({
@@ -1568,34 +1568,6 @@ function userLogin(){
       });
 
   }
-  // // This is called with the results from from FB.getLoginStatus().
-  // function statusChangeCallback(response) {
-  //   console.log('statusChangeCallback');
-  //   console.log(response);
-  //   // The response object is returned with a status field that lets the
-  //   // app know the current login status of the person.
-  //   // Full docs on the response object can be found in the documentation
-  //   // for FB.getLoginStatus().
-  //   if (response.status === 'connected') {
-  //     // Logged into your app and Facebook.
-  //     testAPI();
-  //   } else if (response.status === 'not_authorized') {
-  //     // The person is logged into Facebook, but not your app.
-  //   } else {
-  //     // The person is not logged into Facebook, so we're not sure if
-  //     // they are logged into this app or not.
-
-  //   }
-  // }
-
-  // // This function is called when someone finishes with the Login
-  // // Button.  See the onlogin handler attached to it in the sample
-  // // code below.
-  // function checkLoginState() {
-  //   FB.getLoginStatus(function(response) {
-  //     statusChangeCallback(response);
-  //   });
-  // }
 
   window.fbAsyncInit = function() {
   FB.init({
@@ -1633,59 +1605,11 @@ function userLogin(){
     fjs.parentNode.insertBefore(js, fjs);
   }(document, 'script', 'facebook-jssdk'));
 
-  // Here we run a very simple test of the Graph API after login is
-  // successful.  See statusChangeCallback() for when this call is made.
-  // function testAPI() {
-  //   console.log('Welcome!  Fetching your information.... ');
-  //   FB.api('/me', function(response) {
-  //     console.log('Successful login for: ' + response.name);
-  //     document.forms["myname"].login.value = response.name;
-  //     register(response.name);
-
-  //     create_buttons();
-  //     add_name();
-
-  //   });
-  // } 
-
-
   // Logout Function
 
   function Logout() {
-  FB.logout(function () { document.location.reload(); });
-}
-
-
-
-function fbAuth() {
-    FB.login(function(response) {
-      if (response.authResponse) {
-        alert('User fully authorize the app.');
-      } else {
-        alert('User canceled login or did not fully authorize the app.');
-      }
-    }, { scope: 'friend_likes' });
-}
-
-
-  /* make the API call */
-// FB.api(
-//     "/me",
-//     function (response) {
-//       if (response && !response.error) {
-//         for (var l = response.data.length, i = 0; i < l; i++) {
-//             var obj = response.data[i];
-//             console.log(obj.name);
-//             console.log(obj.unread);
-//             console.log(obj.bookmark_order);
-//             console.log(obj.id);
-//         }
-//       }
-//     }
-// );
-
-
-
+    FB.logout(function () { document.location.reload(); });
+  }
 </script>
 
 

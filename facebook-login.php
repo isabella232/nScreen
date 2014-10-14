@@ -20,17 +20,6 @@
 	if(!$db) {
 		die("Unable to select database");
 	}
-	
-	// //Function to sanitize values received from the form. Prevents SQL injection
-	// function clean($str) {
-	// 	$str = @trim($str);
-	// 	if(get_magic_quotes_gpc()) {
-	// 		$str = stripslashes($str);
-	// 	}
-	// 	return mysql_real_escape_string($str);
-	// }
-	
-
 	// ### LOGIN ###
 	$qry="SELECT * FROM members WHERE facebook_id='$facebook_id'";
 	$result=mysql_query($qry);
@@ -48,8 +37,6 @@
 			exit();
 		}else {
 			//Login failed
-			// $errmsg_arr[] = 'Username or password not correct';
-			// $errflag = true;
 			header("location: login-failed.php");
 			exit();
 		}
