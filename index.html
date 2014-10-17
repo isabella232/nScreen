@@ -579,8 +579,45 @@ function test_for_playability(formats, provider){
   }
 }
 
+//ON CLICK LISTENER TO ADD TO WATCH LATER
 
-//display suggestions based on id
+$("#addtowatchlater").live( "click", function() {
+          var father = $(this).parents().eq(2);
+          var this_div = $(this).attr('id');
+          var the_program= $(this).parents().eq(2).attr('id');
+          console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
+         insert_watchlater_from_div(the_program);
+         console.log("added to list watch later");
+         return false;
+});
+
+var list = new Array();
+
+function insert_watchlater_from_div(id){
+  var div = $("#"+id);
+  var j = get_data_from_programme_html(div);
+  var not_in_the_list = true;
+  for (var i = 0; i < list.length; i++){
+    if(list[i] == id) not_in_the_list = false;
+  }
+  if(not_in_the_list){ 
+    list.push(id);
+    insert_watchlater(j);
+  }
+}
+
+function insert_watchlater(j){
+  //$('#list_later').html('');
+  var id = j["id"];
+  //var pid_later = j["pid"];
+  //var more = j["more"];
+  console.log("passing to addlater");
+  console.log(j);
+  console.log("passing to addlater");
+  var html3 = generate_html_for_programme(j,null,id);
+  $('#list_later').append(html3.join(''));
+
+}
 
 function insert_suggest(j,get_more) {
       var id = j["id"];
@@ -590,20 +627,7 @@ function insert_suggest(j,get_more) {
       console.log(j);
       console.log("mm");
       html = generate_html_for_programme(j,null,id);
-      $('#history_items').prepend(html.join(''));
-
-      // CLICK FUNCTION TO ADD A PROGRAM TO A LIST "WATCH LATER"
-      $("#addtowatchlater").live( "click", function() {
-          html_later = generate_html_for_programme(j,null,id);         
-          $('#list_later').prepend(html_later.join(''));
-          //$('#list_later').append(html_later.join('')); 
-          console.log("added to list watch later");
-          // var div = $("#list_later");
-          // var json_watchlater = get_data_from_programme_html(div);
-          // console.log(json_watchlater);
-          return false;
-      });
-
+      $('#history_items').prepend(html.join(''));      
 
       html2 = generate_large_html_for_programme(j,"",id);//---
       $('#new_overlay').html(html2.join(''));
