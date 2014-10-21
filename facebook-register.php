@@ -11,7 +11,7 @@
 		die('Failed to connect to server: ' . mysql_error());
 	}
 	
-	//Select database
+	//Selecting database for the user
 	$db = mysql_select_db(DB_DATABASE);
 	if(!$db) {
 		die("Unable to select database");
@@ -58,6 +58,12 @@
 	
 	//Check whether the query was successful or not
 	if($result) {
+
+		//Insert personal suggestions
+		$recommendations = file_get_contents("data/recommendations.js");
+		$sql = "INSERT INTO content(recommendations) VALUES ('$recommendations')"; //Insert every read line from txt to mysql database
+		mysql_query($sql);
+
 		$_SESSION['FACEBOOKID'] = $facebook_id;
 		header("location: facebook-login.php");
 		exit();
@@ -65,6 +71,4 @@
 	else {
 		die("Query failed");
 	}
-
-
 ?>

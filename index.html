@@ -50,7 +50,7 @@ var my_group=null;
 //could be a web service
 var api_root = "data/";
 
-var recommendations_url=api_root+"recommendations.js"
+var recommendations_url=api_root+"recommendations.js";
 var channels_url=api_root+"channels.js";
 var search_url = api_root+"search.js";
 
@@ -264,9 +264,11 @@ function add_name(){
 //get some 'personalised recommendations' 
 
     $.ajax({
-      url: recommendations_url,
+      type: "GET",
+      url: "get_suggestions.php",
       dataType: "json",
       success: function(data){
+        console.log(data);
         recommendations(data,"recs_items");
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -591,12 +593,15 @@ $("#addtowatchlater").live( "click", function() {
          return false;
 });
 
+// list of movies ---- > HAVE TO CHANGE IT TO MAKE IT BETTER
 var list = new Array();
 
 function insert_watchlater_from_div(id){
   var div = $("#"+id);
   var j = get_data_from_programme_html(div);
   var not_in_the_list = true;
+
+  //checking wheter is already in the list or not
   for (var i = 0; i < list.length; i++){
     if(list[i] == id) not_in_the_list = false;
   }
@@ -607,10 +612,7 @@ function insert_watchlater_from_div(id){
 }
 
 function insert_watchlater(j){
-  //$('#list_later').html('');
   var id = j["id"];
-  //var pid_later = j["pid"];
-  //var more = j["more"];
   console.log("passing to addlater");
   console.log(j);
   console.log("passing to addlater");

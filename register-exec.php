@@ -97,6 +97,11 @@
 	
 	//Check whether the query was successful or not
 	if($result) {
+
+		//Insert personal suggestions
+		$recommendations = file_get_contents("data/recommendations.js");
+		$sql = "INSERT INTO content(recommendations) VALUES ('$recommendations')"; //Insert every read line from txt to mysql database
+		mysql_query($sql);
 		header("location: register-success.php");
 		exit();
 	}else {
