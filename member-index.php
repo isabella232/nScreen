@@ -42,7 +42,6 @@ var buttons = null;
 
 //if there's more than one TV you'll get more than one message so this is to limit the duplication
 var lastmsg="";
-
 //this is so we can link to the TV and perhaps the api easily
 var clean_loc = String(window.location).replace(/\#.*/,"");
 
@@ -81,18 +80,20 @@ create_buttons();
    }else{
      $.ajax({
         url: "get_group.php",
+        async: false,
         success: function (response) {
             console.log("Th group is = " + response);
             my_group = response;
         }
       });
    }
+   history.pushState(state, "N-Screen", "/N-Screen/");
+   clean_loc = String(window.location);
+   window.location.hash=my_group;
    $("#group_name").html(my_group);
    $("#grp_link").html(clean_loc+"#"+my_group);
    $("#grp_link").attr("href",clean_loc+"#"+my_group);
    var state = {"canBeAnything": true};
-   history.pushState(state, "N-Screen", "/N-Screen/");
-   window.location.hash=my_group;
    add_name();
 
 }
