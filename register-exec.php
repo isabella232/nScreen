@@ -33,11 +33,11 @@
 	}
 	
 	//Sanitize the POST values
-	$fname = clean($_POST['fname']);
-	$lname = clean($_POST['lname']);
-	$login = clean($_POST['login']);
-	$password = clean($_POST['password']);
-	$cpassword = clean($_POST['cpassword']);
+	$fname = utf8_encode($_POST['fname']);
+	$lname = utf8_encode($_POST['lname']);
+	$login = utf8_encode($_POST['login']);
+	$password = utf8_encode($_POST['password']);
+	$cpassword = utf8_encode($_POST['cpassword']);
 	
 	//Input Validations
 	if($fname == '') {

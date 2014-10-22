@@ -27,8 +27,8 @@
 	}
 	
 	//Sanitize the POST values
-	$nick1 = clean($_POST['login']);
-	$password = clean($_POST['password']);
+	$nick1 = utf8_encode($_POST['login']);
+	$password = utf8_encode($_POST['password']);
 	
 	// //Input Validations
 	// if($nick1 == '') {
@@ -59,7 +59,7 @@
 			session_regenerate_id();
 			$member = mysql_fetch_assoc($result);
 			$_SESSION['SESS_MEMBER_ID'] = $member['member_id'];
-			$_SESSION['SESS_FIRST_NAME'] = $member['firstname'];
+			$_SESSION['SESS_FIRST_NAME'] = utf8_encode($member['firstname']);
 			$_SESSION['SESS_LAST_NAME'] = $member['lastname'];
 			session_write_close();
 			header("location: member-index.php");

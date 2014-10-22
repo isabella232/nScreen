@@ -1,6 +1,7 @@
 <?php
 	//Start session
 	session_start();
+	ini_set( 'default_charset', 'UTF-8' );
 	
 	//Include database connection details
 	require_once('config.php');

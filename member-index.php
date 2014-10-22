@@ -263,7 +263,7 @@ function get_name() {
             name = response;
         }
     });
-    console.log(name);
+    console.log('The name retrieved from session variable is ' + name);
     return name;
 }
 
@@ -1644,7 +1644,7 @@ function userLogin(){
     $.ajax({
        url: 'logout.php',
        async : false,
-         success: function(response){
+         success: function(){
            window.location.href= "http://localhost/N-Screen/index.html";
          }
       });
