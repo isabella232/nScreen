@@ -150,6 +150,10 @@ function blink_callback(blink){
   $(document).trigger('refresh_history');
   $(document).trigger('refresh_recs');
   $(document).trigger('refresh_search');
+
+  //my new channels
+  $(document).trigger('refresh_later');
+  $(document).trigger('refresh_ld');
 }
 
 
@@ -187,7 +191,7 @@ function retrieve_channels(result){
                   }
                   //in this case (since these are channels) for top level, don't make draggable
                   suggestions[r]["classes"]="ui-widget-content button nondrag_programme open_win";
-                  html.push(generate_html_for_programme(suggestions[r],false,id,false).join("\n"));    
+                  //html.push(generate_html_for_programme(suggestions[r],false,id,false).join("\n"));    
   }
 
   //our special channels
@@ -200,10 +204,22 @@ function retrieve_channels(result){
 
   var se = {"id":"se","pid":"se","title":"Search Results","description":"Results of last search","image":"images/search_results.png","classes":"ui-widget-content button nondrag_programme snaptarget_search"};
 
+//My NEW CHANNELS
+  var later = {"id":"later","pid":"later","title":"Watch Later","description":"Selection of programmes to remind me to watch later","image":"images/watch_later.png","classes":"ui-widget-content button nondrag_programme snaptarget_later"};
+
+
+  var ld = {"id":"ld","pid":"ld","title":"Like/Dislike","description":"My Personal Likes & Dislikes","image":"images/likes_dislikes.png","classes":"ui-widget-content button nondrag_programme snaptarget_ld"};
+  
+
   html.push(generate_html_for_programme(gg,false,"grp").join("\n"));
   html.push(generate_html_for_programme(rr,false,"recos").join("\n"));
   html.push(generate_html_for_programme(hh,false,"hist").join("\n"));
   html.push(generate_html_for_programme(se,false,"se").join("\n"));
+
+
+//PUSH My NEW CHANNELS
+  html.push(generate_html_for_programme(later,false,"later").join("\n"));
+  html.push(generate_html_for_programme(ld,false,"ld").join("\n"));
 
 
   $("#progs").html(html.join("\n"));
@@ -215,6 +231,10 @@ function retrieve_channels(result){
   $(document).trigger('refresh_history');
   $(document).trigger('refresh_recs');
   $(document).trigger('refresh_search');
+
+  //my new channels
+  $(document).trigger('refresh_later');
+  $(document).trigger('refresh_ld');
 }
 
 
@@ -260,10 +280,14 @@ function add_name(){
 
 //get some 'personalised recommendations' 
 
+    //get some 'personalised recommendations' 
+
     $.ajax({
-      url: recommendations_url,
+      type: "GET",
+      url: "get_suggestions.php",
       dataType: "json",
       success: function(data){
+        console.log(data);
         recommendations(data,"recs_items");
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -271,7 +295,6 @@ function add_name(){
       }
 
     });
-   
   }
   var state = {"canBeAnything": true};
   //history.pushState(state, "N-Screen", "/N-Screen/");
@@ -319,6 +342,10 @@ $(document).bind('items_changed',function(ev,blink){
     $(document).trigger('refresh_history');
     $(document).trigger('refresh_recs');
     $(document).trigger('refresh_search');
+    //my new channels
+    $(document).trigger('refresh_later');
+    $(document).trigger('refresh_ld');
+
 });
 
 //when someone shares something, put a copy of it in the right place
@@ -364,6 +391,10 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
   $(document).trigger('refresh_history');
   $(document).trigger('refresh_recs');
   $(document).trigger('refresh_search');
+
+  //my new channels
+  $(document).trigger('refresh_later');
+  $(document).trigger('refresh_ld');
 
 });
 
@@ -568,8 +599,45 @@ function test_for_playability(formats, provider){
   }
 }
 
+//ON CLICK LISTENER TO ADD TO WATCH LATER
 
-//display suggestions based on id
+$("#addtowatchlater").live( "click", function() {
+          var father = $(this).parents().eq(2);
+          var this_div = $(this).attr('id');
+          var the_program= $(this).parents().eq(2).attr('id');
+          console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
+         insert_watchlater_from_div(the_program);
+         console.log("added to list watch later");
+         return false;
+});
+
+// list of movies ---- > HAVE TO CHANGE IT TO MAKE IT BETTER
+var list = new Array();
+
+function insert_watchlater_from_div(id){
+  var div = $("#"+id);
+  var j = get_data_from_programme_html(div);
+  var not_in_the_list = true;
+
+  //checking wheter is already in the list or not
+  for (var i = 0; i < list.length; i++){
+    if(list[i] == id) not_in_the_list = false;
+  }
+  if(not_in_the_list){ 
+    list.push(id);
+    insert_watchlater(j);
+  }
+}
+
+function insert_watchlater(j){
+  var id = j["id"];
+  console.log("passing to addlater");
+  console.log(j);
+  console.log("passing to addlater");
+  var html3 = generate_html_for_programme(j,null,id);
+  $('#list_later').append(html3.join(''));
+
+}
 
 function insert_suggest(j,get_more) {
       var id = j["id"];
@@ -579,8 +647,7 @@ function insert_suggest(j,get_more) {
       console.log(j);
       console.log("mm");
       html = generate_html_for_programme(j,null,id);
-
-      $('#history_items').prepend(html.join(''));
+      $('#history_items').prepend(html.join(''));      
 
       html2 = generate_large_html_for_programme(j,"",id);//---
       $('#new_overlay').html(html2.join(''));
@@ -740,6 +807,9 @@ function recommendations(result,el){
             $(document).trigger('refresh_history');
             $(document).trigger('refresh_recs');
             $(document).trigger('refresh_search');
+            //my new channels
+            $(document).trigger('refresh_later');
+            $(document).trigger('refresh_ld');
 
           }
     }else{
@@ -782,24 +852,24 @@ $(document).bind('refresh', function () {
                         opacity: 0.7,
                         helper: "clone",
                         zIndex: 2700,
-			start: function() {
+      start: function() {
                           $(".snaptarget").addClass( "dd_highlight"); 
                           $(".snaptarget_tv").addClass( "dd_highlight"); 
                           $(".snaptarget_group").addClass( "dd_highlight"); 
                           $(".snaptarget_bot").addClass( "dd_highlight"); 
-			},
-			drag: function() {
+      },
+      drag: function() {
                           $(".snaptarget").addClass( "dd_highlight"); 
                           $(".snaptarget_tv").addClass( "dd_highlight"); 
                           $(".snaptarget_group").addClass( "dd_highlight"); 
                           $(".snaptarget_bot").addClass( "dd_highlight"); 
-			},
-			stop: function() {
+      },
+      stop: function() {
                           $(".snaptarget").removeClass( "dd_highlight"); 
                           $(".snaptarget_tv").removeClass( "dd_highlight"); 
                           $(".snaptarget_group").removeClass( "dd_highlight"); 
                           $(".snaptarget_bot").removeClass( "dd_highlight"); 
-			}
+      }
 
                 }).addTouch();
                 $( ".large_prog" ).draggable(
@@ -1071,6 +1141,47 @@ $(document).bind('refresh_search', function () {
 });
 
 
+// REFRESH FUNCTIONS OF MY NEW ADDITIONAL CHAANNELS:
+
+// WATCH LATER , LIKE & DISLIKE 
+
+$(document).bind('refresh_later', function () {
+
+                $(".snaptarget_later").unbind('click');
+                $( ".snaptarget_later" ).click(function() {
+//open a new overlay containing search
+
+//apply class here
+                        $('.new_overlay').hide();
+                        $('#watch_later').addClass("new_overlay");
+
+                        $('#watch_later').show();
+                        show_grey_bg();
+                        return false;
+
+                });
+
+});
+
+$(document).bind('refresh_ld', function () {
+
+                $(".snaptarget_ld").unbind('click');
+                $( ".snaptarget_ld" ).click(function() {
+//open a new overlay containing search
+
+//apply class here
+                        $('.new_overlay').hide();
+                        $('#like_dislike').addClass("new_overlay");
+
+                        $('#like_dislike').show();
+                        show_grey_bg();
+                        return false;
+
+                });
+
+});
+
+
 ///touch events stuff for ipad etc
 
 $.extend($.support, {
@@ -1108,6 +1219,7 @@ function generate_large_html_for_programme(j,n,id){
       var is_live=j["is_live"];
       var desc=j["description"];
       var explanation=j["explanation"];
+      var later = "Watch later";
 
       html2 = [];
 
@@ -1133,6 +1245,11 @@ function generate_large_html_for_programme(j,n,id){
       html2.push("<div class=\"play_button\"><img src=\"images/play.png\"></div>");
       html2.push("<div style='width:300px;float:left;padding-left:10px;'>");
       html2.push("<div class=\"p_title_large\">"+title+"</div>");
+
+      //HTML to make the possibility to add later
+      html2.push("<div id=\"addtowatchlater\"><img src=\"images/play.png\"></div>");
+
+
 //    html2.push("<p class=\"shared_by\">"+n+"</p>");
 
 
@@ -1381,6 +1498,9 @@ function search_results(result,current_query){
   $(document).trigger('refresh_buttons');
   $(document).trigger('refresh_group');
   $(document).trigger('refresh_search');
+  //my new channels
+  $(document).trigger('refresh_later');
+  $(document).trigger('refresh_ld');
 
 }
 
@@ -1429,8 +1549,12 @@ function get_object(id) {
    }
    return object;
 }
-
-
+<!--REGISTRATION-FORM-->
+  function swap(one, two) {
+      document.getElementById(one).style.display = 'block';
+      document.getElementById(two).style.display = 'none';
+      document.getElementById('ask_name').style.left = "35%";
+}
 
 
 </script>
@@ -1439,22 +1563,8 @@ function get_object(id) {
 
 <body onload="init()">
 
-<!--REGISTRATION-FORM-->
-
-<?php
-  if( isset($_SESSION['ERRMSG_ARR']) && is_array($_SESSION['ERRMSG_ARR']) && count($_SESSION['ERRMSG_ARR']) >0 ) {
-    echo '<ul class="err">';
-    foreach($_SESSION['ERRMSG_ARR'] as $msg) {
-      echo '<li>',$msg,'</li>'; 
-    }
-    echo '</ul>';
-    unset($_SESSION['ERRMSG_ARR']);
-  }
-?>
-
 <!--FACEBOOK SDK for JavaScript-->
 <script>
-
 
 function userLogin(){
         FB.login(function(response){
@@ -1463,53 +1573,33 @@ function userLogin(){
               FB.api('/me', function(response) {
               console.log('Successful login for: ' + response.name);
               document.forms["myname"].login.value = response.name;
-              create_buttons();
-              add_name();
-
+              var id = response.id;
+              var name = response.name;
+              console.log('Your id is  ' + id);
+              register(id,name);
               });
             } 
            else{
              console.log('User cancelled login or did not fully authorize.');
            }
          });
-    };
+  };
 
+  function register(id, name) {
+    $.ajax({
+        url: "facebook-register.php",
+        type: "POST",
+        data: "facebook_id="+id+"&firstname="+name,
+        dataType: "json",
+        success: function (response) {
+            create_buttons();
+            //add_name();
+            //SHOULD REDIRECT TO US ONLY AREA---HAVE TO WORK ON IT
+            window.location.href= "http://localhost/N-Screen/member-index.php";
+        }
+      });
 
-
-
-
-
-
-
-
-  // // This is called with the results from from FB.getLoginStatus().
-  // function statusChangeCallback(response) {
-  //   console.log('statusChangeCallback');
-  //   console.log(response);
-  //   // The response object is returned with a status field that lets the
-  //   // app know the current login status of the person.
-  //   // Full docs on the response object can be found in the documentation
-  //   // for FB.getLoginStatus().
-  //   if (response.status === 'connected') {
-  //     // Logged into your app and Facebook.
-  //     testAPI();
-  //   } else if (response.status === 'not_authorized') {
-  //     // The person is logged into Facebook, but not your app.
-  //   } else {
-  //     // The person is not logged into Facebook, so we're not sure if
-  //     // they are logged into this app or not.
-
-  //   }
-  // }
-
-  // // This function is called when someone finishes with the Login
-  // // Button.  See the onlogin handler attached to it in the sample
-  // // code below.
-  // function checkLoginState() {
-  //   FB.getLoginStatus(function(response) {
-  //     statusChangeCallback(response);
-  //   });
-  // }
+  }
 
   window.fbAsyncInit = function() {
   FB.init({
@@ -1547,57 +1637,23 @@ function userLogin(){
     fjs.parentNode.insertBefore(js, fjs);
   }(document, 'script', 'facebook-jssdk'));
 
-  // Here we run a very simple test of the Graph API after login is
-  // successful.  See statusChangeCallback() for when this call is made.
-  function testAPI() {
-    console.log('Welcome!  Fetching your information.... ');
-    FB.api('/me', function(response) {
-      console.log('Successful login for: ' + response.name);
-      document.forms["myname"].login.value = response.name;
-      create_buttons();
-      add_name();
-
-    });
-  } 
-
   // Logout Function
-
   function Logout() {
-  FB.logout(function () { document.location.reload(); });
-}
 
-
-
-function fbAuth() {
-    FB.login(function(response) {
-      if (response.authResponse) {
-        alert('User fully authorize the app.');
-      } else {
-        alert('User canceled login or did not fully authorize the app.');
-      }
-    }, { scope: 'friend_likes' });
-}
-
-
-  /* make the API call */
-// FB.api(
-//     "/me",
-//     function (response) {
-//       if (response && !response.error) {
-//         for (var l = response.data.length, i = 0; i < l; i++) {
-//             var obj = response.data[i];
-//             console.log(obj.name);
-//             console.log(obj.unread);
-//             console.log(obj.bookmark_order);
-//             console.log(obj.id);
-//         }
-//       }
-//     }
-// );
-
-
-
+    var lalala = 'whatever';
+    $.ajax({
+       url: 'logout.php',
+       async : false,
+         success: function(response){
+           window.location.href= "http://localhost/N-Screen/index.html";
+         }
+      });
+    //console.log("RESPUESTA  "+ lalala):
+    //FB.logout(function () { document.location.reload(); });
+  }
 </script>
+
+
 
 <div id="everything" ontouchmove="touchMove(event);">
 
@@ -1641,7 +1697,6 @@ the internet. <br /> <br />
 
       </form>
      </span>
-      
   </div>
 
 <br clear="both"/>
@@ -1715,7 +1770,7 @@ the internet. <br /> <br />
     
 
               
-            <div id="ask_name" style="display:none;" class="alert">
+      <div id="ask_name" style="display:none;" class="alert">
 
           <div id="registration" class="registration">
                   <h2 id="inline1_sub">Sign up</h2>
@@ -1859,6 +1914,45 @@ the internet. <br /> <br />
            <br clear="both"></div>
            <div class='dotted_spacer2'></div>
            <div id="search_items"></div>
+        </div>
+
+        <!-- MY NEW CHANNELS -->
+
+        <div id="watch_later" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/watch_later.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Watch Later</div>
+               <p class="description">
+                 y personal list of programmes that I would like to watch.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="list_later"></div>
+        </div>
+
+        <div id="like_dislike" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/likes_dislikes.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Likes & Dislikes</div>
+               <p class="description">
+                 My personal list of Likes & Dislikes.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="list_likes"></div>
+           <div id="list_dislikes"></div>
         </div>
 
 
