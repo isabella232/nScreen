@@ -69,8 +69,6 @@ var interval = null;
 function init(){
 
 create_buttons();
-var state = {"canBeAnything": true};
-  //history.pushState(state, "N-Screen", "/N-Screen/");
 
   var grp = window.location.hash;
 
@@ -81,15 +79,19 @@ var state = {"canBeAnything": true};
      $(".about").hide();
      create_buttons();
    }else{
-     my_group=tmp_group();
-     $("#header").show();
-     $("#roster_wrapper").show();
-     $(".about").hide();
-     create_buttons();
+     $.ajax({
+        url: "get_group.php",
+        success: function (response) {
+            console.log("Th group is = " + response);
+            my_group = response;
+        }
+      });
    }
    $("#group_name").html(my_group);
    $("#grp_link").html(clean_loc+"#"+my_group);
    $("#grp_link").attr("href",clean_loc+"#"+my_group);
+   var state = {"canBeAnything": true};
+   history.pushState(state, "N-Screen", "/N-Screen/");
    window.location.hash=my_group;
    add_name();
 
@@ -1741,7 +1743,7 @@ the internet. <br /> <br />
         
 <div id="roster_wrapper" style="display:none;">
 <div id="aboutlink">
-<a target="_blank" href="about.html">About N-Screen</a>
+
 <a id="logoutspan" href="#" onclick="Logout();">LOGOUT</a>
 </div>
 

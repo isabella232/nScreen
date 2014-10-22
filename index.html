@@ -65,10 +65,11 @@ var interval = null;
 
 function init(){
 
-  var state = {"canBeAnything": true};
-  history.pushState(state, "N-Screen", "/N-Screen/");
+  
 
    var grp = window.location.hash;
+   var state = {"canBeAnything": true};
+  history.pushState(state, "N-Screen", "/N-Screen/");
 
    if(grp){
      my_group = grp.substring(1);
@@ -89,13 +90,21 @@ function init(){
    $("#grp_link").attr("href",clean_loc+"#"+my_group);
 
    window.location.hash=my_group;
-
+       $.ajax({
+        url: "set_group.php",
+        type: "POST",
+        data: "group="+my_group,
+        dataType: "json",
+        success: function (response) {
+            console.log("Th group is = " + response);
+        }
+      });
 }
 
 // utility function create a temporary group name if none is set
 function tmp_group(){
-  //var rand = Math.floor(Math.random()*9999);
-  var rand = 1;
+  var rand = Math.floor(Math.random()*9999);
+  //var rand = 1;
   return String(rand);
 }
 
