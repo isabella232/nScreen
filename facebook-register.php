@@ -27,7 +27,7 @@
 	}
 	
 	//Sanitize the POST values
-	$fname = '';
+	$fname = mysql_real_escape_string($_POST['firstname']);
 	$lname = '';
 	$login = null;
 	$password = null;

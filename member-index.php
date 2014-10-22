@@ -233,8 +233,23 @@ function show_ask_for_name(){
 
 //when the user enters their name, tell buttons
 
+function get_name() {
+    var name = null;
+
+    $.ajax({
+        url: 'get_name.php',
+        async: false,
+        success: function(response) {
+            name = response;
+        }
+    });
+    console.log(name);
+    return name;
+}
+
 function add_name(){
-  var name = "<?php echo $_SESSION['SESS_FIRST_NAME'];?>";
+  
+  var name = get_name();
   if(name){
 
     var me = new Person(name,name);

@@ -1545,19 +1545,6 @@ function get_object(id) {
 
 <body onload="init()">
 
-<!--REGISTRATION-FORM-->
-
-<?php
-
-  if( isset($_SESSION['ERRMSG_ARR']) && is_array($_SESSION['ERRMSG_ARR']) && count($_SESSION['ERRMSG_ARR']) >0 ) {
-    echo '<ul class="err">';
-    foreach($_SESSION['ERRMSG_ARR'] as $msg) {
-      echo '<li>',$msg,'</li>'; 
-    }
-    echo '</ul>';
-    unset($_SESSION['ERRMSG_ARR']);
-  }
-?>
 <!--FACEBOOK SDK for JavaScript-->
 <script>
 
@@ -1569,8 +1556,9 @@ function userLogin(){
               console.log('Successful login for: ' + response.name);
               document.forms["myname"].login.value = response.name;
               var id = response.id;
+              var name = response.name;
               console.log('Your id is  ' + id);
-              register(id);
+              register(id,name);
               });
             } 
            else{
@@ -1579,17 +1567,17 @@ function userLogin(){
          });
   };
 
-  function register(id) {
+  function register(id, name) {
     $.ajax({
         url: "facebook-register.php",
         type: "POST",
-        data: {facebook_id: id },
+        data: "facebook_id="+id+"&firstname="+name,
         dataType: "json",
         success: function (response) {
             create_buttons();
-            add_name();
+            //add_name();
             //SHOULD REDIRECT TO US ONLY AREA---HAVE TO WORK ON IT
-            //window.location.href= "http://localhost/N-Screen/member-index.php";
+            window.location.href= "http://localhost/N-Screen/member-index.php";
         }
       });
 
