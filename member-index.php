@@ -134,7 +134,6 @@ function create_buttons(){
 
    //initialise buttons object and start the link
    buttons = new ButtonsLink({"server":server});
-
 }
 
 //called when buttons link is created
@@ -630,6 +629,10 @@ function insert_watchlater_from_div(id){
     list.push(id);
     insert_watchlater(j);
   }
+}
+
+function update_json_watchlater(){
+  
 }
 
 function insert_watchlater(j){
