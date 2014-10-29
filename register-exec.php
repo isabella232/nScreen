@@ -39,27 +39,7 @@
 	$password = utf8_encode($_POST['password']);
 	$cpassword = utf8_encode($_POST['cpassword']);
 	
-	//Input Validations
-	if($fname == '') {
-		$errmsg_arr[] = 'First name missing';
-		$errflag = true;
-	}
-	if($lname == '') {
-		$errmsg_arr[] = 'Last name missing';
-		$errflag = true;
-	}
-	if($login == '') {
-		$errmsg_arr[] = 'Login ID missing';
-		$errflag = true;
-	}
-	if($password == '') {
-		$errmsg_arr[] = 'Password missing';
-		$errflag = true;
-	}
-	if($cpassword == '') {
-		$errmsg_arr[] = 'Confirm password missing';
-		$errflag = true;
-	}
+
 	if( strcmp($password, $cpassword) != 0 ) {
 		//$errmsg_arr[] = 'Passwords do not match';
 		$errflag = true;
@@ -97,14 +77,15 @@
 	
 	//Check whether the query was successful or not
 	if($result) {
-
+		$_SESSION['SESS_MEMBER_ID'] = $login; //set for login
 		//Insert personal suggestions
 		$recommendations = file_get_contents("data/recommendations.js");
 		$sql = "INSERT INTO content(recommendations) VALUES ('$recommendations')"; //Insert every read line from txt to mysql database
 		mysql_query($sql);
-		header("location: register-success.php");
+		header("location: login-exec.php");
 		exit();
 	}else {
 		die("Query failed");
+		header("location: registration-failed.php");
 	}
 ?>

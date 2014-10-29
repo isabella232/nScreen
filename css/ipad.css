@@ -482,7 +482,7 @@ h2{
 
 /* Registration Form */
 
-#inline1_sub{
+.inline1_sub{
 
 text-align: center;
 font-size:40px;
@@ -491,6 +491,8 @@ margin-bottom: 10px;
 letter-spacing: 1px;
   line-height: 1;
 }
+
+
 #gotologin{
   bottom: 10px;
   position:absolute;
@@ -517,19 +519,23 @@ letter-spacing: 1px;
     border-radius: 5px;
 }
 
-.registration{
+.registration, .login{
   text-align: center;
 }
 
-.formRegistration,.formFacebook,.divider{
+.formRegistration,.formFacebook,.divider, .login{
  float:left;
  margin-right: 60px;
  margin-left:30px;
 }
-.formLogin{
-  margin-right: 30px;
- margin-left:30px;
+
+.login{
+  margin-top:80px;
 }
+/*.formLogin{
+margin-right: 30px;
+ margin-left:30px;
+}*/
 .formLogin{
   display:none;
 }
@@ -589,10 +595,12 @@ padding-top: 170px;
     font-family: 'Montserrat',sans-serif !important;
     font-size: 12px;
     font-weight: 400;
-    margin-top: 7px;
-    margin-bottom: 5px;
-    line-height: 20px;
-    float: bottom;
+    text-align: center;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
 }
 
 .dotted_spacer{
@@ -633,6 +641,8 @@ padding-top: 170px;
     margin: 0 auto;
     margin-bottom: 20px;
     margin-top: 23px;
+    margin-right: 50px;
+    margin-left: 50px;
     width: auto;
     text-align: left;
     padding: 10px 30px;

@@ -1,6 +1,3 @@
-<?php
-  require_once('auth.php');
-?>
 <!DOCTYPE html>
 <!--
  --------------------------------------------------------------------------
@@ -53,7 +50,7 @@ var my_group=null;
 //could be a web service
 var api_root = "data/";
 
-var recommendations_url=api_root+"recommendations.js"
+var recommendations_url=api_root+"recommendations.js";
 var channels_url=api_root+"channels.js";
 var search_url = api_root+"search.js";
 
@@ -68,45 +65,46 @@ var interval = null;
 
 function init(){
 
-create_buttons();
-var state = {"canBeAnything": true};
+  var grp = window.location.hash;
+  var state = {"canBeAnything": true};
   history.pushState(state, "N-Screen", "/N-Screen/");
 
-  var grp = window.location.hash;
-
-   if(grp){
+  if(grp){
      my_group = grp.substring(1);
      $("#header").show();
      $("#roster_wrapper").show();
      $(".about").hide();
      create_buttons();
    }else{
-     my_group=tmp_group();
-     $("#header").show();
-     $("#roster_wrapper").show();
-     $(".about").hide();
-     create_buttons();
+     $.ajax({
+        url: "get_group.php",
+        async: false,
+        success: function (response) {
+            console.log("Th group is = " + response);
+            my_group = response;
+        }
+      });create_buttons();
    }
+   history.pushState(state, "N-Screen", "/N-Screen/");
+   clean_loc = String(window.location);
+   window.location.hash=my_group;
    $("#group_name").html(my_group);
    $("#grp_link").html(clean_loc+"#"+my_group);
    $("#grp_link").attr("href",clean_loc+"#"+my_group);
-   window.location.hash=my_group;
-   add_name();
-
+   var state = {"canBeAnything": true};
 }
+
 
 // utility function create a temporary group name if none is set
 function tmp_group(){
-  //var rand = Math.floor(Math.random()*9999);
-  var rand = 1;
+  var rand = Math.floor(Math.random()*9999);
+  //var rand = 1;
   return String(rand);
 }
 
 //creates and initialises the buttons object                              
 
 function create_buttons(){
-  var state = {"canBeAnything": true};
-  history.pushState(state, "N-Screen", "/N-Screen/");
    $("#inner").addClass("inner_noscroll");
    $(".slidey").addClass("slidey_noscroll");
    $(".about").hide();
@@ -133,99 +131,10 @@ function create_buttons(){
 
    //initialise buttons object and start the link
    buttons = new ButtonsLink({"server":server});
-  //SHOW LOGIN FORM
-
-    document.getElementById('formLogin').style.display = 'block';
-    document.getElementById('registration').style.display = 'none';
-    document.getElementById('ask_name').style.left = "35%";
-
+   document.getElementById('formLogin').style.display = 'block';
+   document.getElementById('registration').style.display = 'none';
 
 }
-
-//called when buttons link is created
-
-function blink_callback(blink){
-  get_channels();
-  var delay = 60000;
-
-  interval = setInterval(get_channels, delay);
-
-  get_roster(blink);
-
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-  $(document).trigger('refresh_group');
-  $(document).trigger('refresh_history');
-  $(document).trigger('refresh_recs');
-  $(document).trigger('refresh_search');
-}
-
-
-//get the initial channels
-//calls retrieve_channels
-function get_channels(){
-console.log("channels_url");
-console.log(channels_url);
-    $.ajax({
-      url: channels_url,
-      dataType: "json",
-      success: function(data){
-         retrieve_channels(data);
-      },
-      error: function(jqXHR, textStatus, errorThrown){
-      //console.log("nok "+textStatus);
-      }
-
-    });
-
-
-}
-
-
-//do something with the initial channels information
-//in this case, print them out
-
-function retrieve_channels(result){
-  var html = [];
-  var suggestions = result["suggestions"];
-  for(var r in suggestions){
-                  var id = suggestions[r]["id"];
-                  if(!id){
-                    id = suggestions[r]["pid"];
-                  }
-                  //in this case (since these are channels) for top level, don't make draggable
-                  suggestions[r]["classes"]="ui-widget-content button nondrag_programme open_win";
-                  html.push(generate_html_for_programme(suggestions[r],false,id,false).join("\n"));    
-  }
-
-  //our special channels
-
-  var hh = {"id":"hist","pid":"hist", "title":"Recently Viewed", "description":"Programmes you've looked at.","image":"images/history_wide.png","classes":"ui-widget-content nondrag_programme snaptarget_history"};
-
-  var gg = {"id":"grp","pid":"grp","title":"Shared by friends","description":"Shared by friends","image":"images/group_wide.png","classes":"ui-widget-content button nondrag_programme"};
-
-  var rr = {"id":"recos","pid":"recos","title":"Recommendations for you","description":"Recommendations for you.","image":"images/recs_wide.png","classes":"ui-widget-content button nondrag_programme snaptarget_recs"};
-
-  var se = {"id":"se","pid":"se","title":"Search Results","description":"Results of last search","image":"images/search_results.png","classes":"ui-widget-content button nondrag_programme snaptarget_search"};
-
-  html.push(generate_html_for_programme(gg,false,"grp").join("\n"));
-  html.push(generate_html_for_programme(rr,false,"recos").join("\n"));
-  html.push(generate_html_for_programme(hh,false,"hist").join("\n"));
-  html.push(generate_html_for_programme(se,false,"se").join("\n"));
-
-
-  $("#progs").html(html.join("\n"));
-
-  //make sure all the drag and drop works
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-  $(document).trigger('refresh_group');
-  $(document).trigger('refresh_history');
-  $(document).trigger('refresh_recs');
-  $(document).trigger('refresh_search');
-}
-
-
 
 //ask the user for their name
 
@@ -237,519 +146,6 @@ function show_ask_for_name(){
    show_grey_bg();
    $("#login").focus();
   
-}
-
-//when the user enters their name, tell buttons
-
-function add_name(){
-  var name = document.forms["myname"].login.value;
-  console.log("NAME IS = " + name);
-  if(name){
-
-    var me = new Person(name,name);
-    buttons.me = me;
-    $(document).trigger('send_name');
-    $("#ask_name").hide();
-    $("#bg").hide();
-
-//get some 'personalised recommendations' 
-
-    $.ajax({
-      url: recommendations_url,
-      dataType: "json",
-      success: function(data){
-        recommendations(data,"recs_items");
-      },
-      error: function(jqXHR, textStatus, errorThrown){
-        console.log("!!nok "+textStatus);
-      }
-
-    });
-   
-  }
-  var state = {"canBeAnything": true};
-  history.pushState(state, "N-Screen", "/N-Screen/");
-  window.location.hash=my_group;
-  $("#logoutspan").show();
-}
-
-
-// various triggered things
-
-// Connect to the service as me
-
-$(document).bind('send_name', function () {
-  console.log("sending name and connecting "+buttons.me.name);
-  buttons.connect(buttons.me,my_group,false); // third arg is debugging
-});
-
-
-//when connection is confirmed
-$(document).bind('connected', function (ev,blink) {
-  //get the initial stuff
-  blink_callback(blink);
-});
-
-//what to do when disconnected
-
-$(document).bind('disconnected',function(){
-   console.log("disconnecting");
-   if(interval){
-     clearInterval(interval);//stop polling
-   }
-   $('#disconnected').show();
-   show_grey_bg();
-   $("#login").focus();
-
-});
-
-//when the group changes, update the roster
-
-$(document).bind('items_changed',function(ev,blink){
-    get_roster(blink);
-    $(document).trigger('refresh');
-    $(document).trigger('refresh_buttons');
-    $(document).trigger('refresh_group');
-    $(document).trigger('refresh_history');
-    $(document).trigger('refresh_recs');
-    $(document).trigger('refresh_search');
-});
-
-//when someone shares something, put a copy of it in the right place
-
-$(document).bind('shared_changed', function (e,programme,name,msg_type) {
-  var a = get_object("a2");
-  a.play();
-
-  var id = generate_new_id(programme,name);
-
-  var msg_text = "";
-  var html = null
-
-  if(programme.item_type=="webpage"){
-    html = generate_html_for_webpage(programme,name,id);
-    msg_text = name+" shared <a onclick='show_webpage(\""+programme["link"]+")'>"+programme["title"]+"</a> with you";
-    if(msg_type=="groupchat"){
-      msg_text = name+" shared <a onclick='show_webpage(\""+programme["link"]+")'>"+programme["title"]+"</a> with the group";
-    }
-  }else{
-    if(programme.item_type=="video"){
-      html = generate_html_for_video(programme,name,id);
-      msg_text = name+" shared <a onclick='show_video(\""+programme["link"]+"\")'>"+programme["title"]+"</a> with you";
-      if(msg_type=="groupchat"){
-        msg_text = name+" shared <a onclick='show_video(\""+programme["link"]+"\")'>"+programme["title"]+"</a> with the group";
-      }
-    }else{
-      html = generate_html_for_programme(programme,name,id);
-      msg_text = name+" shared "+programme["title"]+" with you";
-      if(msg_type=="groupchat"){
-        msg_text = name+" shared "+programme["title"]+" with the group";
-      }
-    }
-  }
-
-  $('#shared').append(html.join(''));
-
-//notifications 
-  build_notification(msg_text,programme,name);
-
-  $(document).trigger('refresh_group');
-  $(document).trigger('refresh_buttons');
-  $(document).trigger('refresh_history');
-  $(document).trigger('refresh_recs');
-  $(document).trigger('refresh_search');
-
-});
-
-//we can play some video locally
-
-function show_video(mp4){
-
-      $('#new_overlay').html("<video id='myvid' width=\"100%\" controls autoplay><source src=\""+mp4+"\"></video>");
-      $('.new_overlay').hide();
-      $('#new_overlay').show();
-      show_grey_bg();
-
-}
-
-//webpage anntations reult in a new window
-
-function show_webpage(url){
-        window.open(url);
-}
-
-
-//when the TV changes, print out what's being watched
-
-$(document).bind('tv_changed', function (ev,item) {
-  var ct,cid;
-  var ot = item.obj_type;
-  var id = "tv";
-  if(ot=="tv"){
-      ct = item.nowp["title"];
-      cid = item.nowp["id"];
-  }
-  var pid = item.nowp["pid"];
-
-  $("#tv").find(".dotted_spacer").html(ct)
-  $("#tv").attr("pid",pid);
-
-//notifications
-
-  $("#tv").find(".dotted_spacer").html(item.nowp["title"]);
-  
-  var msg_text = "TV started playing "+item.nowp["title"];
-  if(item["nowp"]["state"]=="pause"){
-    msg_text = "TV paused "+item.nowp["title"];
-  }
-  build_notification(msg_text,item.nowp, item.name);
-
-});
-
-
-
-//html interactions
-
-//create the notifications
-
-function build_notification(msg_text,programme,name){
-
-  if(lastmsg!=msg_text){
-    var p = $("#notify").text();
-    var num = parseInt(p);
-
-    if(!num){
-      num=1;
-    }else{
-      num = num+1;
-    }
-
-    lastmsg = msg_text;
-    var nid = generate_new_id(programme,name)+"_notification";
-    $("#notify").html(num);
-    $("#notify").show();
-    $("#notify_large").prepend("<div id='"+nid+"' class='dotty_bottom'>"+msg_text+" </div>");//not sure if append / prepend makes most sense
-
-  }            
-}
-
-
-//print out who is in the group and what sort of thing they are
-
-function get_roster(blink){
-  var roster = blink.look();
-
-  if(roster["me"]){
-    $("#title").html("hi, "+roster["me"].name+", here's what's on <a href='player.html#"+my_group+"' target='_blank'>TV</a>");
-  }
-  $("#roster").empty();
-
-  var html=[];
-
-  if(roster){
-
-    html.push("<h3 class=\"contrast\">SHARE WITH</h3>");
-
-    html.push("<div class='snaptarget_group person' id='group'>");
-    html.push("<img class='img_person' src='images/group.png'  />");
-    html.push("<div class='friend_name' id='grp'>Group #"+my_group+"</div>");
-    html.push("</div>");
-
-    html.push("<br clear=\"both\" />");
-
-    for(r in roster){
-      item = roster[r];
-
-       //i.e. not me
-      if(item && item.name!=buttons.me.name){
-
-        // if a person
-        if(item.obj_type=="person"){
-          html.push("<div class='snaptarget person' id='"+item.name+"'>");
-          html.push("<img class='img_person' src='images/person.png'  />");
-          html.push("<div class='friend_name'>"+item.name+"</div>");
-          html.push("</div>");
-          html.push("<br clear=\"both\" />");
-        }
-
-        // if a bot
-        if(item.obj_type=="bot"){
-          html.push("<div class='snaptarget_bot person' id='"+item.name+"'>");
-          html.push("<img class='img_person' src='images/bot.png'  />");
-          html.push("<div class='friend_name'>"+item.name+"</div>");
-          html.push("</div>");
-          html.push("<br clear=\"both\" />");
-        }
-
-        // if a TV
-
-        if(item && item.obj_type=="tv"){
-            var html_tv = [];
-            html_tv.push("<div class='snaptarget_tv telly' id='tv_title'>");
-            
-            html_tv.push("<div id='tv_name' style='float:right;font-size:16px;padding-top:10px;padding-right:40px;'>My TV</div>");
-            html_tv.push("<div style='float:left'><img class='img_tv' src='images/tiny_tv.png' /></div>");
-            
-            html_tv.push("<br clear=\"both\" />");
-    
-            html_tv.push("<div class='dotted_spacer'>");
-            var nowp = item.nowp;
-            if(nowp && nowp["title"]){
-              html_tv.push(nowp["title"]);
-              $("#tv").attr("pid",nowp["pid"]);
-            }else{
-              html_tv.push("Nothing currently playing");
-              $("#tv").attr("pid","");
-            }
-            html_tv.push("</div>");
-            html_tv.push("</div>");
-            html_tv.push("<br clear=\"both\"></br>");
-            $('#tv').html(html_tv.join(''));
-            $("#tv").unbind('click');
-            $("#tv").click(function() {
-               var pid = $("#tv").attr("pid");
-               if(pid && pid!=""){
-                 insert_suggest_from_prog_id(pid,true);
-               }
-            }).addTouch();
-
-         }
-        }
-      }
-
-    }
-    $('#roster').html(html.join(''));
-
-}
-
-
-//find some related stuff and show it to the user
-
-function insert_suggest_from_prog_id(id,manifest,get_more){
-      $.ajax({
-       url: manifest,
-       dataType: "json",
-         success: function(data){
-           insert_suggest(data,get_more);
-         },
-         error: function(jqXHR, textStatus, errorThrown){
-           alert("oh dear "+textStatus);
-         }
-      });
-}
-
-
-
-function insert_suggest_from_div(id,get_more){
-  var div = $("#"+id);
-  var j = get_data_from_programme_html(div);
-  insert_suggest(j,get_more);
-}
-
-//test if we can play locally
-
-function test_for_playability(formats, provider){
-  //this could be handled better
-  //might want also to exclude some providers
-  if(navigator.platform.indexOf("iPad") != -1 || navigator.platform.indexOf("iPhone") !=-1){
-    if(formats["mp4"]){
-      return true;
-    }else{
-      return false;
-    }
-  }else{
-    return true;
-  }
-}
-
-
-//display suggestions based on id
-
-function insert_suggest(j,get_more) {
-      var id = j["id"];
-      var pid = j["pid"];
-      var more = j["more"];
-      console.log("mm");
-      console.log(j);
-      console.log("mm");
-      html = generate_html_for_programme(j,null,id);
-
-      $('#history_items').prepend(html.join(''));
-
-      html2 = generate_large_html_for_programme(j,"",id);//---
-      $('#new_overlay').html(html2.join(''));
-
-      $('.new_overlay').hide();
-      $('#new_overlay').show();
-      show_grey_bg();
-
-      if(more && more!="undefined" && get_more){
-
-        $('#new_overlay').append("<div class='dotted_spacer2'></div><span class=\"sub_title\">MORE LIKE THIS</span>");
-
-        $('#new_overlay').append("<br clear=\"both\"/>");
-        $('#new_overlay').append("<div id='spinner'></div>");
-        $('#new_overlay').append("<div id='more'></div>");
-        var target = document.getElementById('spinner');//??
-        var spinner = new Spinner(opts).spin(target);
-        console.log("related "+more);
-        $.ajax({
-         url: more,
-         dataType: "json",
-           success: function(data){
-             recommendations(data,"more");
-           },
-           error: function(jqXHR, textStatus, errorThrown){
-           //alert("oh dear "+textStatus);
-           }
-        });
-      }
-
-//finally because this can be slow, see aboutplayability
-  if(j["manifest"]){
-    var manifest = j["manifest"];
-
-      $.ajax({
-       url: j["manifest"],
-       dataType: "json",
-         success: function(data){
-           set_playable(data);
-         },
-         error: function(jqXHR, textStatus, errorThrown){
-           alert("oh dear "+textStatus);
-         }
-      });
-  }
-}
-
-
-function set_playable(manifest_data){
-
-    if(manifest_data && manifest_data["limo"]){
-       //two kinds of manifest - one with events and one not
-       // this is the events one
-
-       if(manifest_data["limo"]["event-resources"][0]["link"]){
-
-         $.ajax({
-           url: manifest_data["limo"]["event-resources"][0]["link"],
-           dataType: "json",
-           success: function(data){
-           process_events(data);
-           },
-           error: function(jqXHR, textStatus, errorThrown){
-           console.log("oh dear2 "+textStatus);
-           }
-         });
-
-       }
-
-       if(manifest_data["limo"]["media-resources"][0]["link"]){
-
-        $.ajax({
-         url: manifest_data["limo"]["media-resources"][0]["link"],
-         dataType: "json",
-           success: function(data){
-             set_playable(data);
-           },
-           error: function(jqXHR, textStatus, errorThrown){
-             alert("oh dear "+textStatus);
-           }
-        });
-          
-       }else{
-         console.log("broken manifest limo file");
-       }
-
-    }else{
-
-      var locally_playable = false;
-
-      if(manifest_data && manifest_data["media"]){
-         var swf = manifest_data["media"]["swf"];
-         var mp4 = manifest_data["media"]["mp4"];
-
-         var provider = manifest_data["provider"];
-         var formats = {"swf":swf,"mp4":mp4};
-         locally_playable = test_for_playability(formats, provider);
-         if(locally_playable){
-           $(".play_button").show();
-           $(".play_button").unbind('click');
-           $( ".play_button" ).click(function() {
-                      //get the prpgramme
-                      var el = $( this ).parent().parent();
-                      var programme = get_data_from_programme_html(el);
-
-                      $("#new_overlay").html("<div class='close_button'><img src='images/close.png' width='30px' onclick='javascript:hide_overlay();'/></div><div id='player'></div>");
-                      process_video(programme,formats,provider);
-                      return false;
-
-           });
-
-
-         }
-      }
-   }
-}
-
-//recommendations
-//called when recommendations are returned
-
-function recommendations(result,el){
-
-   if(result){
-          var suggestions = result["suggestions"];
-          var got_ids = {};
-          if(!suggestions){
-            suggestions = result["results"];
-          }
-          var pid_title = result["title"];
-          if(suggestions.length==0){
-            console.log("no suggestions");
-          }else{
-
-            //order according to number
-            suggestions.sort(sortfunction)
-            $("#spinner").empty();
-
-            //print
-            var html = [];
-            for(var r in suggestions){
-                  var id = suggestions[r]["id"];
-                  if(!id){
-                    id = suggestions[r]["pid"];
-                  }
-                  if(!got_ids[id]){
-                    html.push(generate_html_for_programme(suggestions[r],false,id).join("\n"));    
-                  }
-                  got_ids[id]=id;
-            }
-
-            $("#"+el).html(html.join("\n"));
-
-            //make sure all the drag and drop works
-            $(document).trigger('refresh');
-            $(document).trigger('refresh_buttons');
-            $(document).trigger('refresh_group');
-            $(document).trigger('refresh_history');
-            $(document).trigger('refresh_recs');
-            $(document).trigger('refresh_search');
-
-          }
-    }else{
-
-     console.log("OOPS!");
-
-    }
-}
-
-
-//sorting function - sort by number
-function sortfunction(a, b){
-  //Compare "a" and "b" in some fashion, and return -1, 0, or 1
-  var n1 = a["number"];
-  var n2 = b["number"];
-  return (n2 - n1);
 }
 
 //spinner stuff
@@ -765,624 +161,6 @@ var opts = {
   trail: 100, // Afterglow percentage
   shadow: true // Whether to render a shadow
 };
-
-
-//ensure the drag and drop is working
-
-$(document).bind('refresh', function () {
-                $( "#draggable" ).draggable();
-                $( ".programme" ).draggable(
-                        {
-                        opacity: 0.7,
-                        helper: "clone",
-                        zIndex: 2700,
-			start: function() {
-                          $(".snaptarget").addClass( "dd_highlight"); 
-                          $(".snaptarget_tv").addClass( "dd_highlight"); 
-                          $(".snaptarget_group").addClass( "dd_highlight"); 
-                          $(".snaptarget_bot").addClass( "dd_highlight"); 
-			},
-			drag: function() {
-                          $(".snaptarget").addClass( "dd_highlight"); 
-                          $(".snaptarget_tv").addClass( "dd_highlight"); 
-                          $(".snaptarget_group").addClass( "dd_highlight"); 
-                          $(".snaptarget_bot").addClass( "dd_highlight"); 
-			},
-			stop: function() {
-                          $(".snaptarget").removeClass( "dd_highlight"); 
-                          $(".snaptarget_tv").removeClass( "dd_highlight"); 
-                          $(".snaptarget_group").removeClass( "dd_highlight"); 
-                          $(".snaptarget_bot").removeClass( "dd_highlight"); 
-			}
-
-                }).addTouch();
-                $( ".large_prog" ).draggable(
-                        {
-                        opacity: 0.7,
-                        helper: "clone",
-                        zIndex: 2700
-                }).addTouch();
-
-                $( ".snaptarget" ).droppable({
-           
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-     
-                                var el = $(this);
-                                var jid = el.attr('id');
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-
-                                var res = get_data_from_programme_html(el3);//??
-                                var url = el3.attr('href');
-                                buttons.share(res,new Person(jid,jid));
-
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                        }, 1500 );
-
-                                });
-                        }
-
-                }).addTouch();
-                $( ".snaptarget_group" ).droppable({
-           
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-     
-                                var el = $(this);
-                                var jid = el.attr('id');
- 
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-
-                                var res = get_data_from_programme_html(el3);//??
-                                var url = el3.attr('href');
-                                buttons.share(res);
-
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                        }, 1500 );
-
-                                });
-                        }
-
-                }).addTouch();
-
-
-                $( ".snaptarget_bot" ).droppable({
-           
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-     
-                                var el = $(this);
-                                var jid = el.attr('id');
- 
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-                                var res = get_data_from_programme_html(el3);//??
-
-
-                                html3 = [];
-                                html3.push("<div id=\""+res["id"]+"_favs\" pid=\""+res["pid"]+"\" href=\""+recs["video"]+"\" class=\"ui-widget-content button programme ui-draggable open_win\">");
-                                html3.push("<img class=\"img\" src=\""+res["image"]+"\" />");
-                                html3.push("<span class=\"p_title\">"+res["title"]+"</a>");
-                                html3.push("<p class=\"description large\">"+res["description"]+"</b></p>");
-                                html3.push("</div>");
-                                $('#favs').prepend(html3.join(''));
-                                buttons.share(res,new Person(jid,jid))
-
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                        }, 1500 );
-
-                                });
-                        }
-
-                }).addTouch();
-
-                $( ".snaptarget_tv" ).droppable({  //for tvs
-
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-
-                                var el = $(this);
-                                var jid = el.attr('id');
-                         
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-
-                                var res = get_data_from_programme_html(el3);//??
-                                res["action"]="play";
-                                res["shared_by"] = buttons.me.name;
-                                var url = el3.attr('href');
-                                var name = jid;
-//go throgh the roster and send to all tvs
-                                share_to_tvs(res);
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                
-                                        }, 1500 );
-                                
-                                });
-                        }
-                                
-                }).addTouch();
-
-});
-
-
-function share_to_tvs(res){
-////hm this should be an ajax call
-                                var roster = buttons.blink.look();
-                                if(roster){
-                                  for(r in roster){
-                                    var item = roster[r];
-                                    if(item.obj_type =="tv"){
-                                      var nm = item.name;
-                                      buttons.share(res, new TV(nm,nm));//need to send this to a list of tvs
-
-                                    }
-                                  }
-                                }
-
-}
-
-
-
-$(document).bind('refresh_group', function () {
-
-                $(".snaptarget_group").unbind('click');
-                $( ".snaptarget_group" ).click(function() {
-
-                        $('.new_overlay').hide();
-//open a new overlay containing group shared
-                        $('#results').addClass("new_overlay");
-                        $('#results').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-                $("#grp").unbind('click');
-                $( "#grp" ).click(function() {
-
-                        $('.new_overlay').hide();
-//open a new overlay containing group shared
-                        $('#results').addClass("new_overlay");
-                        $('#results').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-
-//adds an overlay and inserts related stuff
-
-$(document).bind('refresh_buttons', function () {
-
-                $(".open_win").unbind('click');
-                $( ".open_win" ).click(function() {
-                        insert_suggest_from_div($( this ).attr("id"),true);//??
-                        return false;
-
-                });
-
-//for adverts / video
-                $(".open_vid_win").unbind('click');
-                $( ".open_vid_win" ).click(function() {
-                        //show_video($( this ).attr("href"));
-                        insert_suggest_from_div($( this ).attr("id"),true);//??
-
-                        return false;
-
-                });
-//for webpages
-                $(".open_win_web").unbind('click');
-                $( ".open_win_web" ).click(function() {
-                        show_webpage($( this ).attr("href"));
-                        return false;
-
-                });
-
-
-});
-
-
-$(document).bind('refresh_history', function () {
-
-                $(".snaptarget_history").unbind('click');
-                $( ".snaptarget_history" ).click(function() {
-
-//open a new overlay containing history
-
-//apply class here
-                        $('.new_overlay').hide();
-                        $('#history').addClass("new_overlay");
-
-                        $('#history').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-
-$(document).bind('refresh_recs', function () {
-
-                $(".snaptarget_recs").unbind('click');
-                $( ".snaptarget_recs" ).click(function() {
-//open a new overlay containing recs
-
-//apply class here
-                        $('.new_overlay').hide();
-                        $('#recs').addClass("new_overlay");
-
-                        $('#recs').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-
-$(document).bind('refresh_search', function () {
-
-                $(".snaptarget_search").unbind('click');
-                $( ".snaptarget_search" ).click(function() {
-//open a new overlay containing search
-
-//apply class here
-                        $('.new_overlay').hide();
-                        $('#ssee').addClass("new_overlay");
-
-                        $('#ssee').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-
-///touch events stuff for ipad etc
-
-$.extend($.support, {
-        touch: "ontouchend" in document
-});
-                
-
-// Hook up touch events
-$.fn.addTouch = function() {
-        if ($.support.touch) {
-                this.each(function(i,el){
-                        el.addEventListener("touchstart", iPadTouchHandler, false);
-                        el.addEventListener("touchmove", iPadTouchHandler, false);
-                        el.addEventListener("touchend", iPadTouchHandler, false);
-                        el.addEventListener("touchcancel", iPadTouchHandler, false);
-                });
-        }
-};
-
-
-    
-//serialising form html to a programme json and vice versa
-
-function generate_large_html_for_programme(j,n,id){
-      var pid=j["pid"];
-      var video = j["video"];
-      var title=j["title"];
-      var link=j["url"];
-      var img=j["image"];
-      var more=j["more"];
-      var action=j["action"];
-      var state=j["state"];
-      var manifest=j["manifest"];
-      var service=j["service"];
-      var is_live=j["is_live"];
-      var desc=j["description"];
-      var explanation=j["explanation"];
-
-      html2 = [];
-
-      html2.push("<div class='close_button'><img src='images/close.png' width='30px' onclick='javascript:hide_overlay();'/></div>");
-      html2.push("<div id=\""+id+"_overlay\" pid=\""+pid+"\" class=\"ui-widget-content large_prog ui-draggable button "+pid+"\" ");
-      if(more){
-        html2.push(" more=\""+more+"\"");
-      }
-      html2.push(" is_live=\""+is_live+"\"");
-
-      if(video){
-        html2.push("  href=\""+video+"\"");
-      }
-      if(service){
-        html2.push("  service=\""+service+"\"");
-      }
-      if(manifest){
-        html2.push("  manifest=\""+manifest+"\"");
-      }
-      html2.push(">");
-
-      html2.push("<div style='float:left;'> <img class=\"img\" src=\""+img+"\" />");
-      html2.push("<div class=\"play_button\"><img src=\"images/play.png\"></div>");
-      html2.push("<div style='width:300px;float:left;padding-left:10px;'>");
-      html2.push("<div class=\"p_title_large\">"+title+"</div>");
-//    html2.push("<p class=\"shared_by\">"+n+"</p>");
-
-
-
-      if(desc){
-        html2.push("<p class=\"description\">"+desc+"</p>");
-      }
-      if(explanation){
-        html2.push("<p class=\"explain\">"+explanation+"</p>");
-      }
-
-      if(link){
-        html2.push("<p class=\"link\"><a href=\""+link+"\" target=\"_blank\">Link</a></p>");
-      }
-      html2.push("</div></div>");
-      html2.push("<br clear=\"both\"/>");
-      html2.push("</div>");
-      //alert("na "+j["action"]);
-      //$(document).trigger("fix_control_button",[j,state]);
-
-      return html2;
-
-
-}
-
-//create html from a programme
-function generate_html_for_programme(j,n,id){
-
-      var pid=j["pid"];
-      var video = j["video"];
-      var title=j["title"];
-      if(!title){
-         title = j["core_title"];
-      }
-      var img=j["image"];
-      if(!img){
-        img=j["depiction"];
-      }
-      var manifest=j["manifest"];
-      var more=j["more"];
-      var explanation=j["explanation"];
-      var desc=j["description"];
-      var classes= j["classes"];
-      var is_live = false;
-      if(j["live"]==true || j["live"]=="true" || j["is_live"]==true || j["is_live"]=="true"){
-        is_live = true;
-      }
-      var service = j["service"];
-      var channel = j["channel"];
-      if(channel && is_live){
-        img = "channel_images/"+channel.replace(" ","_")+".png";
-      }
-
-
-      var html = [];
-      html.push("<div id=\""+id+"\" pid=\""+pid+"\"");
-      if(more){
-        html.push(" more=\""+more+"\"");
-      }
-      html.push(" is_live=\""+is_live+"\"");
-
-      if(video){
-        html.push("  href=\""+video+"\"");
-      }
-      if(service){
-        html.push("  service=\""+service+"\"");
-      }
-      if(manifest){
-        html.push("  manifest=\""+manifest+"\"");
-      }
-      if(classes){
-        html.push("class=\""+classes+"\">");
-      }else{
-        html.push("class=\"ui-widget-content button programme open_win\">");
-      }
-      html.push("<div class='img_container'><img class=\"img\" src=\""+img+"\" />");
-      html.push("</div>");
-      if(is_live){
-       html.push("Live: ");
-
-      }else{
-      }
-      html.push("<span class=\"p_title p_title_small\">"+title+"</span>");
-      html.push("<div clear=\"both\"></div>");
-      if(n){                    
-        html.push("<span class=\"shared_by\">Shared by "+n+"</span>");
-      }
-      if(desc){
-        html.push("<span class=\"description large\">"+desc+"</span>");
-      }
-/*
-      if(explanation){
-
-        //string.charAt(0).toUpperCase() + string.slice(1);
-        explanation = explanation.replace(/_/g," ");
-        var exp = explanation.replace(/,/g," and ");
-
-        html.push("<span class=\"explain_small\">Matches "+exp+" in your profile</span>");
-      }
-*/
-      html.push("</div>");
-      return html
-}    
-
-
-///webpages - this is early stuff
-function generate_html_for_webpage(j,n,id){
-
-      var title=j["title"];
-      var link=j["link"];
-      var classes = null;
-      var html = [];
-
-      html.push("<div id=\""+id+"\" pid=\""+id+"\" href=\""+link+"\" ");
-      if(classes){
-        html.push("class=\""+classes+"\">");
-      }else{
-        html.push("class=\"ui-widget-content button programme open_win_web\">");
-      }
-      var img = "images/webpage.png";
-//      html.push("<div><a href='"+link+"' target='_blank'><img class=\"img\" src=\""+img+"\" /></a></div>");
-      html.push("<div><img class=\"img\" src=\""+img+"\" /></div>");
-      html.push("<span class=\"p_title p_title_small\"><a href='"+link+"' target='_blank'>"+title+"</a></span>");
-      html.push("<div clear=\"both\"></div>");
-      if(n){                    
-        html.push("<span class=\"shared_by\">Shared by "+n+"</span>");
-      }
-      html.push("</div>");
-      return html
-}    
-
-
-//video on the client - even earlier stuff
-function generate_html_for_video(j,n,id){
-
-      var title=j["title"];
-      var link=j["link"];
-      var classes = null;
-      var html = [];
-
-      html.push("<div id=\""+id+"\" pid=\""+id+"\" href=\""+link+"\"");
-      if(classes){
-        html.push("class=\""+classes+"\">");
-      }else{
-        html.push("class=\"ui-widget-content button programme open_vid_win\">");
-      }
-      var img = "images/video.png";
-      html.push("<div><img class=\"img\" src=\""+img+"\" /></div>");
-
-      html.push("<span class=\"p_title p_title_small\">"+title+"</span>");
-      html.push("<div clear=\"both\"></div>");
-      if(n){                    
-        html.push("<span class=\"shared_by\">Shared by "+n+"</span>");
-      }
-      html.push("</div>");
-      return html
-}    
-
-
-//from a programme html element, get the json
-
-function get_data_from_programme_html(el){
-     var item_type = "programme";
-     var id = el.attr('id');
-     var pid = el.attr('pid');
-     var video = el.attr('href');
-     var more = el.attr('more');
-     var service = el.attr('service');
-     var is_live = el.attr('is_live');
-     var manifest = el.attr('manifest');
-     var img = el.find("img").attr('src');
-     var title=el.find(".p_title").text();
-     if(!title){
-        title=el.find(".p_title_large").text();
-     }
-     var desc=el.find(".description").text();
-     var explain=el.find(".explain").text();
-                                                
-     var res = {};                 
-     res["id"]=id;
-     res["pid"]=pid;
-     res["video"]=video;
-     res["image"]=img;
-     res["title"]=title; 
-     res["more"]=more; 
-     res["service"]=service; 
-     res["item_type"]=item_type; 
-     res["is_live"]=is_live; 
-
-     res["manifest"]=manifest; 
-     res["description"]=desc;
-     res["explanation"]=explain;
-     return res;
-                                
-}
-
-
-//a few utility functions
-
-//search stuff
-
-function remove_search_text(){
-  $("#search_text").attr("value","");
-}
-
-function do_search(txt){
-
-  txt = txt.toLowerCase();
-
-  $("#ssee").find(".description").html("Search for "+txt);
-  $.ajax({
-    url: search_url,
-    dataType: "json",
-    success: function(data){
-      search_results(data,txt);
-    },
-    error: function(jqXHR, textStatus, errorThrown){
-    //console.log("nok "+textStatus);
-    }
-
-  });
-
-}
-
-function search_results(result,current_query){
-  var html = [];
-  var suggestions = result;
-  for(var r in suggestions){
-                  var id = suggestions[r]["id"];
-                  if(!id){
-                    id = suggestions[r]["pid"];
-                  }
-                  html.push(generate_html_for_programme(suggestions[r],false,id).join("\n"));
-  }
-
-  $("#search_items").html(html.join("\n"));
-                        $('.new_overlay').hide();
-                        $('#ssee').addClass("new_overlay");
-
-                        $('#ssee').show();
-                        show_grey_bg();
-
-
-  //make sure all the drag and drop works
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-  $(document).trigger('refresh_group');
-  $(document).trigger('refresh_search');
-
-}
-
-
-function get_search_url(q){
-  var url = buttons.blink.library()["search"].url+""+q;
-  return url;
-}
 
 
 //hides the large notifications bar
@@ -1409,50 +187,22 @@ function generate_new_id(j,n){
   return i;
 }
 
-
-//annoying bloody audio stuff
-//http://codingrecipes.com/documentgetelementbyid-on-all-browsers-cross-browser-getelementbyid
-function get_object(id) {
-   var object = null;
-   if (document.layers) {       
-    object = document.layers[id];
-   } else if (document.all) {
-    object = document.all[id];
-   } else if (document.getElementById) {
-    object = document.getElementById(id);
-   }
-   return object;
-}
-
 <!--REGISTRATION-FORM-->
   function swap(one, two) {
       document.getElementById(one).style.display = 'block';
       document.getElementById(two).style.display = 'none';
-      document.getElementById('ask_name').style.left = "35%";
+      //document.getElementById('ask_name').style.left = "35%";
 }
+
+
 </script>
 
 </head>
 
 <body onload="init()">
 
-<!--REGISTRATION-FORM-->
-
-<?php
-  if( isset($_SESSION['ERRMSG_ARR']) && is_array($_SESSION['ERRMSG_ARR']) && count($_SESSION['ERRMSG_ARR']) >0 ) {
-    echo '<ul class="err">';
-    foreach($_SESSION['ERRMSG_ARR'] as $msg) {
-      echo '<li>',$msg,'</li>'; 
-    }
-    echo '</ul>';
-    unset($_SESSION['ERRMSG_ARR']);
-  }
-?>
-
-
 <!--FACEBOOK SDK for JavaScript-->
 <script>
-
 
 function userLogin(){
         FB.login(function(response){
@@ -1461,53 +211,33 @@ function userLogin(){
               FB.api('/me', function(response) {
               console.log('Successful login for: ' + response.name);
               document.forms["myname"].login.value = response.name;
-              create_buttons();
-              add_name();
-
+              var id = response.id;
+              var name = response.name;
+              console.log('Your id is  ' + id);
+              register(id,name);
               });
             } 
            else{
              console.log('User cancelled login or did not fully authorize.');
            }
          });
-    };
+  };
 
+  function register(id, name) {
+    $.ajax({
+        url: "facebook-register.php",
+        type: "POST",
+        data: "facebook_id="+id+"&firstname="+name,
+        dataType: "json",
+        success: function (response) {
+            create_buttons();
+            //add_name();
+            //SHOULD REDIRECT TO US ONLY AREA---HAVE TO WORK ON IT
+            window.location.href= "http://localhost/N-Screen/member-index.php";
+        }
+      });
 
-
-
-
-
-
-
-
-  // // This is called with the results from from FB.getLoginStatus().
-  // function statusChangeCallback(response) {
-  //   console.log('statusChangeCallback');
-  //   console.log(response);
-  //   // The response object is returned with a status field that lets the
-  //   // app know the current login status of the person.
-  //   // Full docs on the response object can be found in the documentation
-  //   // for FB.getLoginStatus().
-  //   if (response.status === 'connected') {
-  //     // Logged into your app and Facebook.
-  //     testAPI();
-  //   } else if (response.status === 'not_authorized') {
-  //     // The person is logged into Facebook, but not your app.
-  //   } else {
-  //     // The person is not logged into Facebook, so we're not sure if
-  //     // they are logged into this app or not.
-
-  //   }
-  // }
-
-  // // This function is called when someone finishes with the Login
-  // // Button.  See the onlogin handler attached to it in the sample
-  // // code below.
-  // function checkLoginState() {
-  //   FB.getLoginStatus(function(response) {
-  //     statusChangeCallback(response);
-  //   });
-  // }
+  }
 
   window.fbAsyncInit = function() {
   FB.init({
@@ -1545,57 +275,15 @@ function userLogin(){
     fjs.parentNode.insertBefore(js, fjs);
   }(document, 'script', 'facebook-jssdk'));
 
-  // Here we run a very simple test of the Graph API after login is
-  // successful.  See statusChangeCallback() for when this call is made.
-  function testAPI() {
-    console.log('Welcome!  Fetching your information.... ');
-    FB.api('/me', function(response) {
-      console.log('Successful login for: ' + response.name);
-      document.forms["myname"].login.value = response.name;
-      create_buttons();
-      add_name();
-
-    });
-  } 
-
   // Logout Function
 
   function Logout() {
-  FB.logout(function () { document.location.reload(); });
-}
-
-
-
-function fbAuth() {
-    FB.login(function(response) {
-      if (response.authResponse) {
-        alert('User fully authorize the app.');
-      } else {
-        alert('User canceled login or did not fully authorize the app.');
-      }
-    }, { scope: 'friend_likes' });
-}
-
-
-  /* make the API call */
-// FB.api(
-//     "/me",
-//     function (response) {
-//       if (response && !response.error) {
-//         for (var l = response.data.length, i = 0; i < l; i++) {
-//             var obj = response.data[i];
-//             console.log(obj.name);
-//             console.log(obj.unread);
-//             console.log(obj.bookmark_order);
-//             console.log(obj.id);
-//         }
-//       }
-//     }
-// );
-
-
-
+    FB.logout(function () { document.location.reload(); });
+  }
 </script>
+
+
+
 <div id="everything" ontouchmove="touchMove(event);">
 
 <!-- workaround for audio problems on ipad - http://stackoverflow.com/questions/2894230/fake-user-initiated-audio-tag-on-ipad -->
@@ -1638,7 +326,6 @@ the internet. <br /> <br />
 
       </form>
      </span>
-      
   </div>
 
 <br clear="both"/>
@@ -1712,10 +399,10 @@ the internet. <br /> <br />
     
 
               
-            <div id="ask_name" style="display:none;" class="alert">
+      <div id="ask_name" style="display:none;" class="alert">
 
           <div id="registration" class="registration">
-                  <h2 id="inline1_sub">Sign up</h2>
+                  <h2 class="inline1_sub">Sign up</h2>
                   <div class="formRegistration">
 
                     <form id="loginForm" name="loginForm" method="post" action="register-exec.php">
@@ -1749,19 +436,24 @@ the internet. <br /> <br />
 
                   </div>
 
-                  <div id="fbimage">
+                  <div class="formFacebook">
+                    <div id="fbimage">
 
                       <img id="fbicon"src="images/facebook.jpg" href="#" onclick="userLogin();"/>
 
                       <!-- <fb:login-button data-size="xlarge" data-show-faces="false" data-auto-logout-link="false" scope="public_profile,email" onlogin="checkLoginState();"></fb:login-button> -->
                     </div>
+                  </div>
                   <div id="gotologin"><span id="whatever">Already a user? <span style="font-weight: bold;" id="colorsignin" onclick="swap('formLogin','registration'); return false">Sign in</span></span></div>
             </div>
 
             <div id="formLogin" class="formLogin">
-              <form id="myname" name="loginForm" method="post" action="login-exec.php">
-              <h2 id="inline1_sub">Login</h2>
+              
+              <h2 class="inline1_sub">Login</h2>
+              <div id="joining">You are joining group <span id="group_name"></span></div>
               <div id="err">Some field was not correct. Please try again</div>
+              <div class="login">
+                <form id="myname" name="loginForm" method="post" action="login-exec.php">
                 <div class="input-field">   
                  <input id="login" name="login" type="username" class="textfield" value="" required="required" placeholder="Username" />
                 </div>
@@ -1769,10 +461,27 @@ the internet. <br /> <br />
                  <input id="password" name="password" type="password" class="textfield" value="" required="required" placeholder="Password" />
                 </div>
                  <button class='bluesubmit' type="submit" name="Submit" value="Login">Login!</button>
-                 <br />
-                 <div id="joining">You are joining group <span id="group_name"></span></div>
-                 
-              </form>
+               </form>
+              </div>
+                 <div class="divider">
+                      <span></span>
+                      <p>
+
+                          or
+
+                      </p>
+                      <span></span>
+
+                  </div>
+                  <div class="formFacebook">
+                    <div id="fbimage">
+
+                      <img id="fbicon"src="images/facebook.jpg" href="#" onclick="userLogin();"/>
+
+                      <!-- <fb:login-button data-size="xlarge" data-show-faces="false" data-auto-logout-link="false" scope="public_profile,email" onlogin="checkLoginState();"></fb:login-button> -->
+                    </div>
+                  </div>
+                  <div id="gotologin"><span id="whatever">Not a member? <span style="font-weight: bold;" id="colorsignin" onclick="swap('registration','formLogin'); return false">Sign up</span></span></div>
             </div>
       </div>
   
@@ -1855,6 +564,45 @@ the internet. <br /> <br />
            <br clear="both"></div>
            <div class='dotted_spacer2'></div>
            <div id="search_items"></div>
+        </div>
+
+        <!-- MY NEW CHANNELS -->
+
+        <div id="watch_later" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/watch_later.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Watch Later</div>
+               <p class="description">
+                 y personal list of programmes that I would like to watch.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="list_later"></div>
+        </div>
+
+        <div id="like_dislike" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/likes_dislikes.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Likes & Dislikes</div>
+               <p class="description">
+                 My personal list of Likes & Dislikes.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="list_likes"></div>
+           <div id="list_dislikes"></div>
         </div>
 
 

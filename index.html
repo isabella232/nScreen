@@ -196,7 +196,7 @@ function generate_new_id(j,n){
   function swap(one, two) {
       document.getElementById(one).style.display = 'block';
       document.getElementById(two).style.display = 'none';
-      document.getElementById('ask_name').style.left = "35%";
+      //document.getElementById('ask_name').style.left = "35%";
 }
 
 
@@ -407,7 +407,7 @@ the internet. <br /> <br />
       <div id="ask_name" style="display:none;" class="alert">
 
           <div id="registration" class="registration">
-                  <h2 id="inline1_sub">Sign up</h2>
+                  <h2 class="inline1_sub">Sign up</h2>
                   <div class="formRegistration">
 
                     <form id="loginForm" name="loginForm" method="post" action="register-exec.php">
@@ -453,8 +453,11 @@ the internet. <br /> <br />
             </div>
 
             <div id="formLogin" class="formLogin">
-              <form id="myname" name="loginForm" method="post" action="login-exec.php">
-              <h2 id="inline1_sub">Login</h2>
+              
+              <h2 class="inline1_sub">Login</h2>
+              <div id="joining">You are joining group <span id="group_name"></span></div>
+              <div class="login">
+                <form id="myname" name="loginForm" method="post" action="login-exec.php">
                 <div class="input-field">   
                  <input id="login" name="login" type="username" class="textfield" value="" required="required" placeholder="Username" />
                 </div>
@@ -462,10 +465,27 @@ the internet. <br /> <br />
                  <input id="password" name="password" type="password" class="textfield" value="" required="required" placeholder="Password" />
                 </div>
                  <button class='bluesubmit' type="submit" name="Submit" value="Login">Login!</button>
-                 <br />
-                 <div id="joining">You are joining group <span id="group_name"></span></div>
-                 
-              </form>
+               </form>
+              </div>
+                 <div class="divider">
+                      <span></span>
+                      <p>
+
+                          or
+
+                      </p>
+                      <span></span>
+
+                  </div>
+                  <div class="formFacebook">
+                    <div id="fbimage">
+
+                      <img id="fbicon"src="images/facebook.jpg" href="#" onclick="userLogin();"/>
+
+                      <!-- <fb:login-button data-size="xlarge" data-show-faces="false" data-auto-logout-link="false" scope="public_profile,email" onlogin="checkLoginState();"></fb:login-button> -->
+                    </div>
+                  </div>
+                  <div id="gotologin"><span id="whatever">Not a member? <span style="font-weight: bold;" id="colorsignin" onclick="swap('registration','formLogin'); return false">Sign up</span></span></div>
             </div>
       </div>
   

@@ -13,7 +13,6 @@
 		}
 		return mysql_real_escape_string($str);
 	}
-	
 
 	//RETRIEVE VALUE FACEBOOK ID
 	$facebook_id = $_SESSION['FACEBOOKID'];
