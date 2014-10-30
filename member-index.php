@@ -332,7 +332,6 @@ $(document).bind('disconnected',function(){
    show_grey_bg();
    $("#login").focus();
    Logout();
-
 });
 
 //when the group changes, update the roster
@@ -643,7 +642,6 @@ function insert_watchlater(j){
   console.log("passing to addlater");
   var html3 = generate_html_for_programme(j,null,id);
   $('#list_later').append(html3.join(''));
-
 }
 
 function insert_suggest(j,get_more) {
@@ -1934,7 +1932,7 @@ the internet. <br /> <br />
            <div style="width:300px;float:left;">
                <div class="p_title_large">Watch Later</div>
                <p class="description">
-                 y personal list of programmes that I would like to watch.
+                 My personal list of programmes that I would like to watch.
                </p>
            </div>
 
@@ -1961,9 +1959,6 @@ the internet. <br /> <br />
            <div id="list_likes"></div>
            <div id="list_dislikes"></div>
         </div>
-
-
-
 </div>
 
 </body>
