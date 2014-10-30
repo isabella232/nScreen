@@ -331,6 +331,7 @@ $(document).bind('disconnected',function(){
    $('#disconnected').show();
    show_grey_bg();
    $("#login").focus();
+   Logout();
 
 });
 

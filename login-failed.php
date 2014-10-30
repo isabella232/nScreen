@@ -276,9 +276,16 @@ function userLogin(){
   }(document, 'script', 'facebook-jssdk'));
 
   // Logout Function
-
   function Logout() {
-    FB.logout(function () { document.location.reload(); });
+    $.ajax({
+       url: 'logout.php',
+       async : false,
+         success: function(){
+           window.location.href= "http://localhost/N-Screen/index.html";
+         }
+      });
+    //console.log("RESPUESTA  "+ lalala):
+    //FB.logout(function () { document.location.reload(); });
   }
 </script>
 
