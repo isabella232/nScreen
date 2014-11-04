@@ -1658,105 +1658,123 @@ function userLogin(){
   }
 </script>
 
-<div id="header">
-    <span id='main_title'>Browse Programmes</span>
-    <span id='small_title'><a target='_blank' href='player.html'>Open player in new window</a></span>
+
+
+<div id="everything" ontouchmove="touchMove(event);">
+
+<!-- workaround for audio problems on ipad - http://stackoverflow.com/questions/2894230/fake-user-initiated-audio-tag-on-ipad -->
+
+<div id="junk" style="display:none">
+  <audio src="sounds/x4.wav" id="a1" preload="auto"  autobuffer="autobuffer" controls="" ></audio>
+  <audio src="sounds/x1.wav" id="a2" preload="auto"  autobuffer="autobuffer" controls="" ></audio>
+</div>
+
+
+<div class="about" style="display:none;">
+
+This is <a 
+href="http://notube.tv/2011/10/10/n-screen-a-second-screen-application-for-small-group-exploration-of-on-demand-content/">N-Screen</a>, 
+an application that helps you choose what to watch on TV. It was created by <a 
+href="http://twitter.com/libbymiller">Libby Miller</a>, <a 
+href="http://twitter.com/vickybuser">Vicky Buser</a> and <a 
+href="http://twitter.com/danbri">Dan Brickley</a> within the <a 
+href="http://notube.tv">NoTube Project</a>. Many thanks to <a 
+href="http://dannyayers.com/">Danny Ayers</a> for the sounds, <a 
+href="http://www.sparkslabs.com/michael/">Michael Sparks</a> for the channel icons, and <a 
+href="http://www.fabrique.nl/">Fabrique</a> for the designs. <br /> <br /> Thanks also to <a 
+href="http://www.cs.vu.nl/~laroyo/">Lora Aroyo</a> and <a 
+href="http://www.cs.vu.nl/~guus/">Guus Schreiber</a> and the rest of the NoTube Project, to 
+Andrew McParland at the BBC and to <a href="http://twitter.com/nevali">Mo McRoberts</a> from 
+the internet. <br /> <br />
+
+
+<a onclick="create_buttons()">Try it</a>
+</div>
+
+
+
+  <div id="header" style="display:none;">
+   <span id='title'></span>
     <span class="form" >
       <form onsubmit='javascript:do_search(this.search_text.value);return false;'>
-  <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
+
+        <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
+
       </form>
      </span>
-  <div id="title"></div>
-
   </div>
 
-       
 <br clear="both"/>
+
+        
+
+  
+<div id="container">
+              
+
+  <div id="inner">
+ 
+        
+    <div id="browser">  
+      <div id="top_slider" class="slidey">
+
+      <br clear="both"/>
+
+        <div id="progs"></div>
+
+
+      </div>
+ 
+    </div>
+  
+    <div id="search_results">
+        <span id="sub_title_sr"></span>
+        <div id="progs2"></div>
+
+    </div>
+
+    <div id="devices_menu" class="device_menu alert" style="display:none;">
+    </div>
+
+              
+
+    <br clear="both" />
+ 
+  </div>
+    
+</div>
+        
+<div id="roster_wrapper" style="display:none;">
+<div id="aboutlink">
+
+<a id="logoutspan" href="#" onclick="Logout();">LOGOUT</a>
+</div>
 
   <div class="notifications_red" id="notify"></div>
   <div class="notifications_red_large" id="notify_large" onclick="javascript:close_notifications();"></div>
 
-
-<div id="container">
-
-
-  <div id="inner">
-
-
-    <div id="browser">
-      <div id="side-b" class="slidey">
-        <span class="sub_title">SUGGESTIONS FOR YOU</span> 
-        <span class="more_blue"><a onclick='show_more_recommendations();'>View All</a></span>
-        <div id="progs"> </div>
-      </div>
-
-      <br clear="both"/>
-
-      <div id="content" class="slidey">
-        <span class="sub_title">SHARED BY FRIENDS</span>
-        <span class="more_blue"><a onclick='show_shared();'>View All</a></span>
-        <div id="results">
-         <div class='dotted_box'></div>
-        </div>
-      </div>
-
-      <div id="content2" class="slidey">
-        <span class="sub_title">RECENTLY VIEWED</span>
-        <span class="more_blue"><a  onclick='show_history();'>View All</a></span>
-        <div id="history">
-          <div class='dotted_box'></div>
-        </div>
-      </div>
-
-            
-      <div id="side-c">
-      </div>
-    </div>
-
-    <div id="search_results">
-
-    </div>
-
-
-
-    <br clear="both" />
-
-  </div>
-
-</div>
-
-<div id="roster_wrapper">
-  <div id="side-a">
+  <div id="roster_inner">
     <div id="tv"></div>
       <br clear="both"/>
-      <h3 class="contrast">YOUR FRIENDS</h3>
     <div id="roster"></div>
   </div>
 </div>
 
-<div id="footer">
-  <div id="button_container">
-
-   <div id="browse" class="blue menu"><a href="javascript:init()">BROWSE PROGRAMMES</a></div>
-   <div id="random" class="grey menu"><a href="javascript:do_random()">RANDOM SELECTION</a></div>
-
-  </div>
-</div>
-
-
-
+        
+          
+        
 <p style="display: none;"><small>Status:
 <span id="demo">
 <span id="out"></span>
 </span></small></p>
-
+      
 <!-- overlays -->
-
-<div id='new_overlay' style='display:none;'><div class='close_button'><img src='images/close.png'/></div></div>
+  
+<div class='new_overlay' id='new_overlay' style='display:none;'><div class='close_button'><img src='images/close.png'/></div></div>
 <div id='bg' style='display:none;' onclick='javascript:hide_overlay()'></div>
+    
 
-
-        
+              
       <div id="ask_name" style="display:none;" class="alert">
 
           <div id="registration" class="registration">
@@ -1821,15 +1839,127 @@ function userLogin(){
               </form>
             </div>
       </div>
-        
-
-                
+  
+    
             <div id="disconnected" style="overflow:auto;display: none;" class="alert">
               <h2>Sorry, you've been disconnected - please reload the page.</h2>
             </div>
 
 
+        <div id="results" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/group_wide.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Shared</div>
+               <p class="description">
+                 Shared by friends and shared by you to friends. 
+               </p>
+               <p>To add people to the group send them this link: <a id="grp_link" href=""></a> by email, twitter or however you like.</p><p>Anyone who clicks on the link can join your group.</p>
+           </div>
 
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="shared"></div>
+        </div>
+
+
+
+        <div id="history" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/history_wide.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Recently Viewed</div>
+               <p class="description">
+                  Recently viewed programmes.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="history_items"></div>
+        </div>
+
+        <div id="recs" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/recs_wide.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Recommended</div>
+               <p class="description">
+                 Recommendations for you.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="recs_items"></div>
+        </div>
+
+        <div id="ssee" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/search_results.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Search results</div>
+               <p class="description">
+                 Last search.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="search_items"></div>
+        </div>
+
+        <!-- MY NEW CHANNELS -->
+
+        <div id="watch_later" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/watch_later.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Watch Later</div>
+               <p class="description">
+                 My personal list of programmes that I would like to watch.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="list_later"></div>
+        </div>
+
+        <div id="like_dislike" style="display:none;">
+        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
+        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
+           <div style="float:left;"> 
+             <img class="img" src="images/likes_dislikes.png" width="150px;"/>
+           </div>
+           <div style="width:300px;float:left;">
+               <div class="p_title_large">Likes & Dislikes</div>
+               <p class="description">
+                 My personal list of Likes & Dislikes.
+               </p>
+           </div>
+
+           <br clear="both"></div>
+           <div class='dotted_spacer2'></div>
+           <div id="list_likes"></div>
+           <div id="list_dislikes"></div>
+        </div>
+</div>
 
 </body>
 
