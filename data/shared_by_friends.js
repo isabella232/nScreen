@@ -1,6 +1,6 @@
 {
   "title": "Shared by Friends",
-  "list": [
+  "suggestions": [
 
   ]
 }

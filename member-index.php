@@ -62,6 +62,15 @@ var server = "jabber.notu.be";
 //polling interval (for changes to channels)
 var interval = null;
 
+
+var list = new Array(); //initialazing array
+
+var list_watch_later = new Array();
+var watch_later_json = new Object();
+
+var list_recently_viewed = new Array();
+var recently_viewed_json = new Object();
+
 //handle group names
 //if no group name, show the intro text
 
@@ -297,6 +306,52 @@ function add_name(){
       }
 
     });
+
+    //Get user based content (if stored)
+
+    $.ajax({
+      type: "GET",
+      url: "get_watch_later.php",
+      dataType: "json",
+      success: function(data){
+        console.log(data);
+        watch_later_json = data;
+        var watch_later_items = watch_later_json.suggestions;
+        for(var i in watch_later_items){
+          var id = watch_later_items[i].id;
+          list_watch_later.push(id);
+          console.log("STORED IN WATCH LATER IDS:  " + id);
+        }
+        recommendations(data,"list_later");
+
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nok "+textStatus);
+      }
+
+    });
+
+    $.ajax({
+      type: "GET",
+      url: "get_recently_viewed.php",
+      dataType: "json",
+      success: function(data){
+        console.log(data);
+        recently_viewed_json = data;
+        var recently_viewed_items = watch_later_json.suggestions;
+        for(var i in recently_viewed_items){
+          var id = recently_viewed_items[i].id;
+          list_recently_viewed.push(id);
+          console.log("STORED IN RECENTLY VIEWED:  " + id);
+        }
+        recommendations(data,"history_items");
+
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nok "+textStatus);
+      }
+
+    });
   }
   var state = {"canBeAnything": true};
   //history.pushState(state, "N-Screen", "/N-Screen/");
@@ -358,6 +413,7 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
 
   var id = generate_new_id(programme,name);
 
+  console.log("THE ID OF THE PROGRAM SHARED IS " + id);
   var msg_text = "";
   var html = null
 
@@ -609,33 +665,44 @@ $("#addtowatchlater").live( "click", function() {
   var the_program= $(this).parents().eq(2).attr('id');
   console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
   insert_watchlater_from_div(the_program);
-  console.log("added to list watch later");
+  console.log("clicked watch later");
   return false;
 });
 
 // list of movies ---- > HAVE TO CHANGE IT TO MAKE IT BETTER
-var list = new Array();
 
 function insert_watchlater_from_div(id){
   var div = $("#"+id);
   var j = get_data_from_programme_html(div);
+  var prog_id = j["id"];
   console.log(j);
   var not_in_the_list = true;
 
   //checking wheter is already in the list or not
-  for (var i = 0; i < list.length; i++){
-    if(list[i] == id) not_in_the_list = false;
+  for (var i = 0; i < list_watch_later.length; i++){
+    if(list_watch_later[i] == prog_id) not_in_the_list = false;
   }
   if(not_in_the_list){ 
-    list.push(id);
+    list_watch_later.push(prog_id);
     insert_watchlater(j);
-    update_json_watchlater();
+    watch_later_json.suggestions.push(j);
+
+    jsObject_json = JSON.stringify(watch_later_json);
+
+    $.ajax({
+        url: "set_watch_later.php",
+        type: "POST",
+        data: {data : jsObject_json},
+        dataType: "json",
+        success: function (response) {
+            console.log("Correct watch_later updated");
+        }
+      });
   }
 }
 
-function update_json_watchlater(){
-  
-}
+// Call as
+//setUsername(3, "Thomas");
 
 function insert_watchlater(j){
   var id = j["id"];
@@ -647,6 +714,7 @@ function insert_watchlater(j){
 }
 
 function insert_suggest(j,get_more) {
+      recently_viewed_json.suggestions.push(j);
       var id = j["id"];
       var pid = j["pid"];
       var more = j["more"];
@@ -654,8 +722,19 @@ function insert_suggest(j,get_more) {
       console.log(j);
       console.log("mm");
       html = generate_html_for_programme(j,null,id);
-      $('#history_items').prepend(html.join(''));      
+      $('#history_items').prepend(html.join(''));
 
+      jsObject_json = JSON.stringify(recently_viewed_json);
+
+      $.ajax({
+          url: "set_recently_viewed.php",
+          type: "POST",
+          data: {data : jsObject_json},
+          dataType: "json",
+          success: function (response) {
+              console.log("Correct recently_viewed updated");
+          }
+        });
       html2 = generate_large_html_for_programme(j,"",id);//---
       $('#new_overlay').html(html2.join(''));
 

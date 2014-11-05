@@ -1,6 +1,6 @@
 {
   "title": "Recently Viewed",
-  "list": [
+  "suggestions": [
 
   ]
 }

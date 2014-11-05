@@ -1,6 +1,6 @@
 {
   "title": "Watch Later List",
-  "list": [
+  "suggestions": [
 
   ]
 }
