@@ -604,13 +604,13 @@ function test_for_playability(formats, provider){
 //ON CLICK LISTENER TO ADD TO WATCH LATER
 
 $("#addtowatchlater").live( "click", function() {
-          var father = $(this).parents().eq(2);
-          var this_div = $(this).attr('id');
-          var the_program= $(this).parents().eq(2).attr('id');
-          console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
-         insert_watchlater_from_div(the_program);
-         console.log("added to list watch later");
-         return false;
+  var father = $(this).parents().eq(2);
+  var this_div = $(this).attr('id');
+  var the_program= $(this).parents().eq(2).attr('id');
+  console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
+  insert_watchlater_from_div(the_program);
+  console.log("added to list watch later");
+  return false;
 });
 
 // list of movies ---- > HAVE TO CHANGE IT TO MAKE IT BETTER
@@ -619,6 +619,7 @@ var list = new Array();
 function insert_watchlater_from_div(id){
   var div = $("#"+id);
   var j = get_data_from_programme_html(div);
+  console.log(j);
   var not_in_the_list = true;
 
   //checking wheter is already in the list or not
@@ -628,6 +629,7 @@ function insert_watchlater_from_div(id){
   if(not_in_the_list){ 
     list.push(id);
     insert_watchlater(j);
+    update_json_watchlater();
   }
 }
 
