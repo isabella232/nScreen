@@ -1,0 +1,1391 @@
+<html>
+<head>
+<title>N-Screen - iPlayer</title>
+
+<link type="text/css" rel="stylesheet" href="css/new.css" />
+<script type="text/javascript" src="lib/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="lib/jquery-ui-1.8.10.custom.min.js"></script>
+<script type="text/javascript" src="lib/fix_date.js"></script>
+<script type="text/javascript" src="lib/jquery.ui.touch.js"></script>
+
+
+<script type="text/javascript" src="lib/strophe.js"></script>
+<script type="text/javascript" src="lib/buttons.js"></script>
+<script type="text/javascript" src="lib/spin.min.js"></script>
+
+<script type="text/javascript">
+
+//spinner only
+//http://fgnass.github.com/spin.js/
+var opts = {
+  lines: 12, // The number of lines to draw
+  length: 5, // The length of each line
+  width: 3, // The line thickness
+  radius: 5, // The radius of the inner circle
+  color: '#fff', // #rbg or #rrggbb
+  speed: 1, // Rounds per second
+  trail: 100, // Afterglow percentage   
+  shadow: true // Whether to render a shadow
+};  
+
+
+
+var buttons = null;
+//var roster = null;
+
+function init(){
+
+   if(navigator.platform.indexOf("iPad") != -1 || navigator.platform.indexOf("Linux armv7l") != -1){
+       $("#inner").addClass("inner_noscroll");
+       $(".slidey").addClass("slidey_noscroll");
+       $("#search_results").css("width","80%");
+   }else{
+     $("#inner").addClass("inner_scroll");
+   }
+        
+   toggle_display();
+
+   //ask the user for their name to continue
+   show_ask_for_name();
+    
+   //notifications
+   $("#notify").toggle(
+     function (){
+       //console.log("SHOW");
+       $("#notify_large").show();
+     },
+     function (){
+       //console.log("HIDE");
+       $("#notify_large").hide();
+       $("#notify").html("");
+       $("#notify_large").html("");
+       $("#notify").hide();
+     }
+   );
+   buttons = new ButtonsLink({"server":"jabber.notu.be"});
+
+
+}
+
+function toggle_display(){
+
+   $("#main_title").html("Browse Programmes");
+          
+   $sr=$("#search_results");
+   $sr.css("display","none");
+   $container=$("#browser");
+   $container.css("display","block");
+
+   $browse=$("#browse");
+   $browse.addClass("blue").removeClass("grey");
+
+   $random=$("#random");
+   $random.addClass("grey").removeClass("blue");
+
+}
+
+
+function blink_callback(blink){
+
+  //load the start url or random if no start_url (see conf.js)
+  //get a random set of starting points
+  if($("#progs").is(":empty")){//just do this once per session @@not very nice
+    do_start("progs",blink.library()["start"].url);
+  }
+  var roster = blink.look();
+  if(roster["me"]){
+    $("#title").html(roster["me"].name);
+  }
+  $("#roster").empty();
+
+  var html=[];
+  if(roster){
+    html.push("<div class='snaptarget_group person' id='group'>");
+    html.push("<img class='img_person' src='images/group.png'  />");
+    html.push("<div class='friend_name'>Group</div>");
+    html.push("</div>");
+    for(r in roster){
+      item = roster[r];
+      if(item && item.obj_type=="person" && item.name!=buttons.me.name){
+        html.push("<div class='snaptarget person' id='"+item.name+"'>");
+        html.push("<img class='img_person' src='images/person.png'  />");
+        html.push("<div class='friend_name'>"+item.name+"</div>");
+        html.push("</div>");
+      }
+    }
+    $('#roster').prepend(html.join(''));
+    $(document).trigger('refresh');
+  }
+
+
+//handle hash
+   var pid = window.location.hash;
+   if(pid){
+     pid = pid.substring(1);
+     insert_suggest_from_prog_id(pid);
+   }
+
+
+}
+
+
+///old methods
+
+//ask the user for their name
+
+function show_ask_for_name(){
+  
+   $('#ask_name').show();
+   show_grey_bg();
+   $("#nick1").focus();
+  
+}
+
+function add_name(){
+
+  var name = document.forms["myname"].nick.value;
+
+  if(name){
+    var me = new Person(name,name);
+    buttons.me = me;
+    $(document).trigger('send_name');
+    $("#ask_name").hide();
+    $("#bg").hide();
+  }
+   
+}
+
+
+$(document).bind('disconnected',function(){
+   console.log("disconnecting");
+ 
+   $('#disconnected').show();
+   show_grey_bg();
+   $("#nick1").focus();
+
+});
+
+
+
+$(document).bind('tv_changed', function (ev,item) {
+
+  var ct,cid;
+  var ot = item.obj_type;
+  var id = "tv";
+  if(ot=="tv"){
+      ct = item.nowp["title"];
+      cid = item.nowp["id"];
+  }
+  var pid = item.nowp["pid"];
+  $("#tv").find(".dotted_spacer").html(ct)
+  $("#tv").attr("source_id",pid);
+/*
+  $("#tv").unbind('click');
+  $("#tv").click(function() {
+
+    var sid = $("#tv").attr("source_id")
+    insert_suggest_from_prog_id(pid);
+
+    return false;
+  }).addTouch();
+*/
+//also update any other instances of the tv that may be around
+/*
+  var pid = item.nowp["id"];
+  $("."+pid).click(function() {
+      var id2 = generate_new_id(item.nowp,item.name);
+      var html = generate_large_html_for_programme(item.nowp,item.name,id2);
+      $('#new_overlay').html(html.join(''));
+      $(document).trigger('fix_control_button',[item.nowp]);
+  
+      $('#new_overlay').show();
+      show_grey_bg();
+//should add some stuff about pausing etc
+      return false;
+  }).addTouch();
+*/
+//notifications
+//@@fix me - could be a pause
+
+  $("#tv").find(".dotted_spacer").html(item.nowp["title"]);
+  
+  var msg_text = "TV started playing "+item.nowp["title"];
+  if(item["nowp"]["state"]=="pause"){
+    msg_text = "TV paused "+item.nowp["title"];
+  }
+  build_notification(msg_text,item.nowp, item.name);
+
+});
+
+function build_notification(msg_text,programme,name){
+  var p = $("#notify").text();
+  var num = parseInt(p);
+                 
+  if(!num){
+    num=1;
+  }else{
+    num = num+1;
+  }
+
+  var nid = generate_new_id(programme,name)+"_notification";
+  $("#notify").html(num);
+  $("#notify").show();
+  $("#notify_large").prepend("<div id='"+nid+"' class='dotty_bottom'>"+msg_text+" </div>");//not sure if append / prepend makes most sense
+
+//can't see this working!!@@
+//alert("source_id 2 "+pid);
+  $("#"+nid).attr("source_id",programme["pid"]);
+/*
+  $("#"+nid).unbind('click');
+  $("#"+nid).click(function() {
+
+      insert_suggest_from_prog_id(programme["pid"]);
+
+      return false;
+  }).addTouch();
+*/
+                
+}
+
+$(document).bind('items_changed',function(ev,blink){
+  var roster = blink.look();
+
+  if(roster["me"]){
+    $("#title").html(roster["me"].name);
+  }
+  $("#roster").empty();
+
+  var html=[];
+
+  var disp_title;
+  var disp_pid;
+  var got_tv;
+
+  if(roster){
+//group drag and drop blob
+    html.push("<div class='snaptarget_group person' id='group'>");
+    html.push("<img class='img_person' src='images/group.png'  />");
+    html.push("<div class='friend_name'>Group</div>");
+    html.push("</div>");
+
+    for(r in roster){
+      item = roster[r];
+      if(item && item.obj_type=="person" && item.name!=buttons.me.name){
+        //console.log("me name "+buttons.me.name +" p n "+item.name);
+        html.push("<div class='snaptarget person' id='"+item.name+"'>");
+        html.push("<img class='img_person' src='images/person.png'  />");
+        html.push("<div class='friend_name'>"+item.name+"</div>");
+        html.push("</div>");
+      }else{
+
+        if(item && item.obj_type=="tv"){
+            got_tv = true;
+//if we find any with a title, we keep that
+            var nowp = item.nowp;
+               
+            if(nowp && nowp["title"]){
+                disp_title = nowp["title"];
+                disp_pid = nowp["pid"];
+            }
+
+        }
+
+      }
+
+      if(got_tv){
+
+//console.log("FOUND tv");
+            var html_tv = [];
+            html_tv.push("<h3 class='contrast'>NOW WATCHING</h3>");
+            html_tv.push("<div class='snaptarget_tv telly' id='tv_title'>");
+            
+            html_tv.push("<div id='tv_name' style='float:right;font-size:16px;padding-top:10px;padding-right:10px;'>Shared TV</div>");
+            html_tv.push("<div style='float:left'><img class='img_tv' src='images/tiny_tv.png' /></div>");
+            
+            html_tv.push("<br clear=\"both\" />");
+    
+            html_tv.push("<div class='dotted_spacer'>");
+
+            if(disp_title){
+              html_tv.push(disp_title);
+              $("#tv").attr("source_id",disp_pid);
+            }else{
+              html_tv.push("Nothing currently playing");
+            }
+            html_tv.push("</div>");
+            html_tv.push("</div>");
+            html_tv.push("<br clear=\"both\"></br>");
+
+            $('#tv').html(html_tv.join(''));
+
+            $("#tv").unbind('click');
+            $("#tv").click(function() {
+               var sid = $("#tv").attr("source_id");
+               if(sid && sid!=""){
+                 insert_suggest_from_prog_id(sid);
+               }
+            }).addTouch();
+
+      }
+    }
+    $('#roster').html(html.join(''));
+    $(document).trigger('refresh');
+  }
+});
+
+$(document).bind('shared_changed', function (e,programme,name,msg_type) {
+
+  var a = get_object("a2");
+  a.play();
+  var id = generate_new_id(programme,name);
+  var html = generate_html_for_programme(programme,name,id);
+  $('#results').prepend(html.join(''));
+
+//notifications
+  var msg_text = name+" shared "+programme["title"]+" with you";
+  if(msg_type=="groupchat"){
+    msg_text = name+" shared "+programme["title"]+" with the group";
+  }
+  build_notification(msg_text,programme,name);
+
+  $(document).trigger('refresh_buttons');
+
+});
+
+                 
+function generate_new_id(j,n){
+  var i = j["pid"]+"_"+n; //not really unique enough
+  return i;
+}
+
+
+//connection stuff - after we get name
+$(document).bind('send_name', function () {
+
+  //put name in html page too
+  $("#title").html(buttons.me.name);
+  //console.log("sending name and connecting "+buttons.me.name);
+  buttons.connect(buttons.me,"redux");
+});
+
+
+//when connection is confirmed
+$(document).bind('connected', function (ev,blink) {
+  blink_callback(blink);
+});
+
+
+//refresh the dd
+$(document).bind('refresh', function () {
+                $( "#draggable" ).draggable();
+                $( ".programme" ).draggable(
+                        {
+                        opacity: 0.7,
+                        helper: "clone",
+                        zIndex: 2700
+                }).addTouch();
+                $( ".large_prog" ).draggable(
+                        {
+                        opacity: 0.7,
+                        helper: "clone",
+                        zIndex: 2700
+                }).addTouch();
+
+                $( ".snaptarget" ).droppable({
+           
+                        hoverClass: "dd_highlight",
+                        drop: function(event, ui) {
+     
+                                var el = $(this);
+                                var jid = el.attr('id');
+ 
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+
+                                var res = get_data_from_programme_html(el3);//??
+                                var url = el3.attr('href');
+                                buttons.share(res,new Person(jid,jid));
+
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                        }, 1500 );
+
+                                });
+                        }
+
+                }).addTouch();
+                $( ".snaptarget_group" ).droppable({
+           
+                        hoverClass: "dd_highlight",
+                        drop: function(event, ui) {
+     
+                                var el = $(this);
+                                var jid = el.attr('id');
+ 
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+
+                                var res = get_data_from_programme_html(el3);//??
+                                var url = el3.attr('href');
+                                buttons.share(res);
+
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                        }, 1500 );
+
+                                });
+                        }
+
+                }).addTouch();
+                $( ".snaptarget_tv" ).droppable({  //for tvs
+
+                        hoverClass: "dd_highlight",
+                        drop: function(event, ui) {
+
+                                var el = $(this);
+                                var jid = el.attr('id');
+                         
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+
+                                var res = get_data_from_programme_html(el3);//??
+                                res["action"]="play";
+                                var url = el3.attr('href');
+                                var name = jid;
+//go throgh the roster and send to all tvs
+                                share_to_tvs(res);
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                
+                                        }, 1500 );
+                                
+                                });
+                        }
+                                
+                }).addTouch();
+
+});
+
+
+function share_to_tvs(res){
+///alert("sharing - res is "+res.action);
+                                var roster = buttons.blink.look();
+                                if(roster){
+                                  for(r in roster){
+                                    var item = roster[r];
+                                    if(item.obj_type =="tv"){
+                                      var nm = item.name;
+                                      buttons.share(res, new TV(nm,nm));//need to send this to a list of tvs
+                                    }
+                                  }
+                                }
+
+}
+
+                                        
+//adds an overlay and inserts related stuff
+
+$(document).bind('refresh_buttons', function () {
+                $(".programme").unbind('click');
+                $( ".programme" ).click(function() {
+                        insert_suggest_from_div($( this ).attr("id"));//??
+                        return false;
+
+                });
+});
+
+
+$.extend($.support, {
+        touch: "ontouchend" in document
+});
+                
+
+// Hook up touch events
+$.fn.addTouch = function() {
+        if ($.support.touch) {
+                this.each(function(i,el){
+                        el.addEventListener("touchstart", iPadTouchHandler, false);
+                        el.addEventListener("touchmove", iPadTouchHandler, false);
+                        el.addEventListener("touchend", iPadTouchHandler, false);
+                        el.addEventListener("touchcancel", iPadTouchHandler, false);
+                });
+        }
+};
+
+
+function do_start(el,start_url){
+
+console.log("doing start "+start_url);         
+  if(start_url){
+  
+    $.ajax({
+      url: start_url,
+      dataType: "json",
+      success: function(data){
+        random(data,el);
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("nok "+textStatus);
+      }
+      
+    });
+
+  }else{
+     do_random(el);
+  }
+}
+
+//various old data funcitons
+
+function do_random(el){
+          
+  $("#main_title").html("Random Selection");
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+  $random=$("#random");
+  $random.removeClass("grey").addClass("blue");
+
+  //id for element to add it to
+  if(!el){
+    el = "search_results";
+  }
+
+  $.ajax({
+    url: get_random_url(),
+    dataType: "json",
+    success: function(data){
+      random(data,el);  
+    },
+    error: function(jqXHR, textStatus, errorThrown){
+    //console.log("nok "+textStatus);
+    }
+         
+  });
+         
+}
+
+function get_random_url(){
+  var url = buttons.blink.library()["random"].url;
+  return url;
+}
+
+//called when random results are returned
+
+function random(result,el){
+console.log("[1]");
+//pass to the common bit of processing
+
+  var suggestions = [];
+
+  var local_search=null;
+
+  if(local_search){
+  //if it's local search then random just returns everything
+  //so do some processing
+    for (var i =0;i<11;i++){
+      var rand = Math.floor(Math.random()*result.length)
+      suggestions.push(result[rand]);
+    }
+  }else{
+console.log("[2]");
+    if(result && result["suggestions"]){
+      suggestions = result["suggestions"];//??
+console.log("[3]");
+console.log(suggestions);
+    }else{
+      suggestions = result;
+console.log("[4]");
+console.log(suggestions);
+      //console.log("no results");
+    }
+  }
+
+//randomise what we have//not now; it's ordered by channel instead
+//instead we pick every other one
+
+  if(suggestions){
+     var r = Math.floor(Math.random()*2);
+     for(var i=10;i<suggestions.length;i++){
+       suggestions.splice(i,1);
+     }
+     i = i+2;
+  }
+   
+//  if(suggestions){
+//      suggestions.sort(function() {return 0.5 - Math.random()});
+//  } 
+
+  process_json_results(suggestions,el,null,true);
+
+}
+
+//process the results for displaying
+                     
+function process_json_results(suggestions,ele,pid_title,replace_content,add_stream,stream_title){
+console.log("ok "+suggestions.length);
+          var video_files = null;            
+          var max = 12
+          var s ="";
+          var html = [];
+                    
+          if (suggestions && suggestions.length>0){
+            var count = 0;
+            var num = suggestions.length/2;
+            for (r in suggestions){
+              if(count<max){
+                count = count + 1;
+                var num = suggestions[r]["number"];
+                if(parseInt(num)>1 || !num){
+                  var title = suggestions[r]["core_title"];//@@
+                  if(!title){
+                    title = suggestions[r]["title"];
+
+                  }
+            
+                  var desc = suggestions[r]["description"];
+                  var id = suggestions[r]["id"];
+                  if(!id){
+                    id = suggestions[r]["pid"];
+                  }
+       
+                  var img = suggestions[r]["image"];
+      
+                  var channel = suggestions[r]["channel"];
+                  var date_time = suggestions[r]["date_time"];
+      
+                  var time_offset = suggestions[r]["time_offset"];
+                  var vid;
+                  if(date_time && channel){
+                     var dt = date_time.replace(":","-");
+                     dt = dt.replace(":","-");
+                     dt = dt.replace("T","/");
+                     dt = dt.replace("Z","");
+                     dt = dt.replace(/\+\d.*/,"");
+
+                     vid = "http://g.bbcredux.com/programme/"+channel+"/"+dt;
+                  }
+
+                  var explanation = suggestions[r]["explanation"];
+                  var catz = suggestions[r]["categories"];
+                  var cats ="";
+                  if(catz){
+                    for(var i in catz){
+                      var tn = catz[i]["term_name"];
+                      tn = tn.toLowerCase();
+                      var tnum = catz[i]["term"];
+                      var freq = catz[i]["freq"];
+                      if(freq > 1){ //i.e. if it links to something other than this
+                        cats = cats+" "+tn;
+                      }
+                      if(i<catz.length-1){
+                        cats = cats+",";
+                      }
+                    }
+                  }
+                   
+       
+//processing for local files option
+                  if(video_files){
+                    vid = video_files+""+vid;
+                  }
+      
+//processing for a particular form of time offsets
+//T00:18:31:15F25
+                  if(vid && time_offset){
+                   var offs = time_offset.replace(/T/,"")
+                   var aa = offs.split(":");
+                   var secs = parseInt(aa[1])*60+parseInt(aa[2]);
+                   video = video+"#"+secs
+                  }
+                  if(!id){
+console.log("Nok");
+
+                  }
+                  if(id){
+
+console.log("ok");
+
+                   if(pid_title){
+
+                     html.push("<div id=\""+id+"\" pid=\""+id+"\" href=\""+vid+"\" class=\"ui-widget-content button programme ui-draggable\">");
+
+                   }else{
+                     html.push("<div id=\""+id+"\" pid=\""+id+"\" href=\""+vid+"\" class=\"ui-widget-content button programme\">");
+                   }
+                   html.push("<div><img class=\"img\" src=\""+img+"\" alt=\""+explanation+"\"/></div>");
+//                 html.push("<div><img class=\"img\" src=\"images/prog.jpg\" alt=\""+explanation+"\"/></div>");
+                   html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
+                   html.push("<div clear=\"both\"></div>");
+                   if(desc && desc!=""){
+                     html.push("<span class=\"large description\">"+desc+"</span>");
+                   }
+                   if(explanation && explanation!=""){
+                    //see tidy_dbpedia.js
+                    //idea is that the user doesn't need to see piles of junk
+                    ///explanation = clean_up(explanation);
+                    //i.s. if this is caled because it's related content, say why
+                     if(explanation){
+                         html.push("<span class=\"explain\">"+explanation+"</span>");
+                     }
+                     
+                   }
+                   if(cats && cats!=""){
+                     html.push("<span class=\"large\"><i>"+cats+"</i></span>");
+                   }
+                   html.push("</div>");
+                 }
+                }
+              }//end if count < max
+            }
+
+           if(replace_content){
+              $("#"+ele).html(html.join(''));
+           }else{    
+              $("#"+ele).append("<div id=\"more\">"+html.join('')+"</div>");
+           }
+           if(add_stream){
+
+              $("#side-c").prepend("<span class='sub_title'>Related to '"+stream_title+"'</span>\n<div class='slidey'>"+html.join('')+"</div>");
+           }
+          }else{
+            $("#"+ele).html('');
+          }
+console.log(html);                     
+                    
+   $(document).trigger('refresh');
+   $(document).trigger('refresh_buttons');
+}
+
+
+
+function insert_suggest_from_prog_id(id){
+      $.ajax({
+       url: get_about_url(id),
+       dataType: "json",
+         success: function(data){
+           insert_suggest(data);
+         },
+         error: function(jqXHR, textStatus, errorThrown){
+           alert("oh dear "+textStatus);
+         }
+      });
+}
+
+
+function insert_suggest_from_div(id){
+
+      var div = $("#"+id);
+      var j = get_data_from_programme_html(div);
+      insert_suggest(j);
+}
+
+//display suggestions based on id
+        
+function insert_suggest(j) {
+      id = j["id"];
+      pid = j["pid"];
+      window.location.hash=pid;
+      html = [];
+
+      html.push("<div id=\""+id+"_history\" pid=\""+j["pid"]+"\" href=\""+j["video"]+"\" class=\"ui-widget-content button programme ui-draggable\">");
+
+      html.push("<img class=\"img\" src=\""+j["image"]+"\" />");
+      html.push("<span class=\"p_title\">"+j["title"]+"</span>");
+      html.push("<p class=\"description large\">"+j["description"]+"</b></p>");
+      html.push("</div>");
+      $('#history').prepend(html.join(''));
+
+      html2 = generate_large_html_for_programme(j,"",id);//---
+///      $(document).trigger('fix_control_button',[j]);
+      $('#new_overlay').html(html2.join(''));
+      $(document).trigger('fix_control_button',[j]);
+      
+      $('#new_overlay').show();
+      show_grey_bg();
+      $('#new_overlay').append("<div class='dotted_spacer2'></div><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+j["title"]+"','"+j["pid"]+"');\">View All</a></span>");
+
+      $('#new_overlay').append("<br clear=\"both\"/>");
+      $('#new_overlay').append("<div id='spinner'></div>");
+      var target = document.getElementById('spinner');//??
+      var spinner = new Spinner(opts).spin(target);
+      
+      $.ajax({
+       url: get_related_url(j["pid"]),
+       dataType: "json",
+         success: function(data){
+           recommendations(data,"spinner",false,j["title"]);
+         },
+         error: function(jqXHR, textStatus, errorThrown){
+         //alert("oh dear "+textStatus);
+         }
+      });
+      
+}
+
+function get_related_url(pid){
+  var url = buttons.blink.library()["related"].url+"&pid="+pid
+  //console.log("related url "+url);
+  return url;
+}
+
+function get_about_url(id){
+  var url = buttons.blink.library()["about"].url+"&id="+id
+  //console.log("about url "+url);
+  return url;
+}
+
+//called when recommendations are returned
+        
+function recommendations(result,el,add_stream,stream_title){
+          
+   if(!el){
+     el = "progs2";
+   }
+   if(result){
+          var suggestions = result["suggestions"];
+          var pid_title = result["title"];
+          if(suggestions.length==0){
+            if(pid_title){
+               $("#pane2").html("<h3>Sorry, nothing found related to "+pid_title+"</h3>");
+            }else{
+               $("#pane2").html("<h3>Sorry, nothing found</h3>");
+            }
+            $("#"+el).html("");
+          }else{
+            if(pid_title){
+               $("#pane2").html("<h3>Related to "+pid_title+"</h3>");
+            }else{
+               $("#pane2").html("<h3>Related</h3>");
+            }
+            //order according to number
+     
+            suggestions.sort(sortfunction)  
+       
+//            process_json_results(suggestions,el,pid_title,null,add_stream,stream_title);
+            process_json_results(suggestions,el,pid_title,true,add_stream,stream_title);
+          }
+    }else{
+
+//console.log("OOPS!");
+    
+    }
+}
+          
+//sorting function - sort by number 
+function sortfunction(a, b){
+  //Compare "a" and "b" in some fashion, and return -1, 0, or 1
+  var n1 = a["number"];
+  var n2 = b["number"];
+  return (n2 - n1);
+}
+
+//search for txt
+    
+function do_search(txt){
+     
+  txt = txt.toLowerCase();
+  $('#main_title').html("Search for '"+txt+"'");
+    
+  $sr=$("#search_results");
+  $sr.css("display","block");
+    
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.addClass("grey").removeClass("blue");
+  
+  $random=$("#random");
+  $random.addClass("grey").removeClass("blue");
+   
+
+  $.ajax({
+    url: get_search_url(txt),
+    dataType: "json",
+    success: function(data){
+      search_results(data,txt,"search_results");
+    },
+    error: function(jqXHR, textStatus, errorThrown){
+    //console.log("nok "+textStatus);
+    }
+      
+  });  
+
+}
+
+
+function get_search_url(q){
+  var url = buttons.blink.library()["search"].url+"&q="+q;
+//console.log(url);
+  return url;
+}
+
+          
+//handle inserted search results
+function search_results(result,current_query,el){
+   if(!el){
+     el = "progs";
+   }
+     
+   suggestions = [];
+   var local_search = null;       
+   if(local_search){
+     //if it's local search then search just returns everything
+     //so do some processing
+    
+       for (r in result){
+         var title = result[r]["title"];
+         var desc = result[r]["description"];
+         if(title.toLowerCase().match(current_query)||(desc.toLowerCase().match(current_query))){
+            suggestions.push(result[r]);
+         }
+       }
+   }else{
+      suggestions = result;
+   }
+   if(!suggestions || suggestions.length==0){
+
+      $("#"+el).html("<div class='sub_title' style='padding-top:26px;padding-left:8px'>Sorry, nothing found for '"+current_query+"'</div> <div class='bluebutton'><a href='javascript:do_random()'>Give me a random selection</a></div>");
+
+   }else{
+      $("#rec_pane").html("<h3>Search results for "+current_query+"</h3>");
+      var replace_content=true;
+      process_json_results(suggestions,el,null,true);
+   }
+
+}
+  
+  
+//ui stuff
+
+function remove_search_text(){
+  $("#search_text").attr("value","");
+}
+      
+function close_notifications(){
+  $("#notify_large").hide();
+} 
+   
+function show_grey_bg(){
+ $("#bg").show();
+}        
+ 
+function hide_overlay(){
+ $("#bg").hide();
+ $("#new_overlay").hide();   
+ window.location.hash="";              
+}
+    
+//to - from programmes
+
+function generate_html_for_programme(j,n,id){
+//console.log("generating "+id+" "+n);
+
+      var pid=j["pid"];
+      var video = j["video"];
+      var title=j["title"];
+      var img=j["image"];
+      var desc=j["description"];
+ 
+      var html = [];
+
+      html.push("<div id=\"shared_"+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content button programme\">");
+
+      html.push("<div><img class=\"img\" src=\""+img+"\" />");
+      html.push("</div>");
+      if(n){                    
+        html.push("<span class=\"shared_by\">Shared by "+n+"</span>");
+      }
+      html.push("<div clear=\"both\"></div>");
+      html.push("<span class=\"p_title p_title_small\">"+title+"</span>");
+      html.push("<span class=\"description large\">"+desc+"</span>");
+      html.push("</div>");
+      return html
+}    
+
+/////
+function generate_large_html_for_programme(j,n,id){
+
+      var pid=j["pid"];
+      var video = j["video"];
+      var title=j["title"];
+      var img=j["image"];
+      var action=j["action"];
+      var state=j["state"];
+      var state=j["state"];
+      var desc=j["description"];
+      var explanation=j["explanation"];
+ 
+      html2 = [];
+      html2.push("<div class='close_button'><img src='images/close.png' width='30px' onclick='javascript:hide_overlay();'/></div>");
+
+      html2.push("<div id=\""+id+"_overlay\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog ui-draggable button "+pid+"\">");
+      if(state){
+        html2.push("<div style='float:left;'> <img class=\"img\" src=\""+img+"\" alt=\""+state+"\"/>");
+      }else{
+        html2.push("<div style='float:left;'> <img class=\"img\" src=\""+img+"\" />");
+      }
+///      html2.push("<div class=\"play_button\"><img /></div>");
+/////
+//alert("state is "+state)
+      if(state=="play"){
+        html2.push("<div class=\"play_button\"><img src=\"images/pause.png\" alt=\"pause\" /></a></div></div>");
+      }else{
+        html2.push("<div class=\"play_button\"><img src=\"images/play.png\" alt=\"play\" /></a></div></div>");
+      }
+/*
+      if(initial_state=="play"){
+        $("."+pid).find(".play_button").find("img").attr("src","images/pause.png");
+      }else{
+       $("."+pid).find(".play_button").find("img").attr("src","images/play.png");
+      }
+*/
+      html2.push("<div style='padding-left:20px;padding-right:20px;width:300px;float:left;'>");
+      html2.push("<div class=\"p_title_large\">"+title+"</div>");
+//    html2.push("<p class=\"shared_by\">"+n+"</p>");
+      html2.push("<p class=\"description\">"+desc+"</p>");
+      if(explanation){     
+        html2.push("<p class=\"explain\">"+explanation+"</p>");
+      }
+      html2.push("<p class=\"link\"><a href=\"http://www.bbc.co.uk/programmes/"+pid+"\" target=\"_blank\">Sharable Link</a></p></div>");
+
+      html2.push("</div>");
+      html2.push("<br clear=\"both\"/>");
+      html2.push("</div>");
+      //alert("na "+j["action"]);
+      //$(document).trigger("fix_control_button",[j,state]);
+      
+      return html2;
+
+}
+
+
+$(document).bind('fix_control_button',function(ev,j){
+   var pid = j["pid"];
+   $("."+pid).find(".play_button").unbind('click');
+
+   $("."+pid).find(".play_button").click(function() {
+       var initial_state = $("."+pid).find(".play_button").find("img").attr("alt");
+
+       if(!initial_state){
+         $("."+pid).find(".play_button").find("img").attr("src","images/pause.png").attr("alt","pause");
+         j["action"]="play";
+         share_to_tvs(j);
+       }else{
+        if(initial_state=="play"){
+         $("."+pid).find(".play_button").find("img").attr("src","images/pause.png").attr("alt","pause");
+         j["action"]="play";
+         share_to_tvs(j);
+        }else{
+         $("."+pid).find(".play_button").find("img").attr("src","images/play.png").attr("alt","play");
+         j["action"]="pause";
+         share_to_tvs(j);
+        }
+       }
+   });
+});
+
+
+/////
+
+function get_data_from_programme_html(el){
+     var id = el.attr('id');
+     var pid = el.attr('pid');
+     var video = el.attr('href');
+     var img = el.find("img").attr('src');
+     var title=el.find(".p_title").text();
+     if(!title){
+        title=el.find(".p_title_large").text();
+     }
+     var desc=el.find(".description").text();
+     var explain=el.find(".explain").text();
+                                                
+     var res = {};                 
+     res["id"]=id;
+     res["pid"]=pid;
+     res["video"]=video;
+     res["image"]=img;
+     res["title"]=title; 
+     res["description"]=desc;
+     res["explanation"]=explain;
+                        
+     return res;
+                                
+}
+
+//various fullscreen options
+
+function show_more_recommendations(){
+
+  $("#main_title").html("Suggestions For You");
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+  $random=$("#random");
+  $random.removeClass("blue").addClass("grey");
+
+
+  $sr.empty();
+
+  var start_url = buttons.blink.library()["start"].url;
+  do_start("search_results",start_url);
+
+}
+
+
+function show_shared(){
+   
+  $("#main_title").html("Shared By Friends");
+      
+  $sr=$("#search_results");
+  $sr.css("display","block");
+              
+  $container=$("#browser");
+  $container.css("display","none");
+              
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+              
+  $random=$("#random");
+  $random.removeClass("blue").addClass("grey");
+      
+  $sr.empty();
+  
+//@@
+  $sr.html($("#results").clone());
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+
+}
+
+function show_history(){
+  
+  $("#main_title").html("Recently Viewed");
+  
+  $sr=$("#search_results");
+  $sr.css("display","block");
+  
+  $container=$("#browser");
+  $container.css("display","none");
+  
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+
+  $sr.empty();
+
+//@@
+  $sr.html($("#history").clone());
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+}   
+
+
+function show_more(title,pid){
+//console.log("[1] "+pid);
+
+  $("#main_title").html("Related to "+title);
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+  $random=$("#random");
+  $random.removeClass("blue").addClass("grey");
+
+//@@
+//  $sr.html($("#more").clone(true));
+  //console.log("related url is "+get_related_url(pid));
+  $("#search_results").empty();
+  
+      $.ajax({
+       url: get_related_url(pid),
+       dataType: "json",
+         success: function(data){
+           recommendations(data,"search_results",false,title);
+         },
+         error: function(jqXHR, textStatus, errorThrown){
+         //alert("oh dear "+textStatus);
+         }
+      });
+  hide_overlay();
+}
+
+
+//annoying bloody audio stuff
+//http://codingrecipes.com/documentgetelementbyid-on-all-browsers-cross-browser-getelementbyid
+function get_object(id) {
+   var object = null;
+   if (document.layers) {
+    object = document.layers[id];
+   } else if (document.all) {
+    object = document.all[id];
+   } else if (document.getElementById) {
+    object = document.getElementById(id);
+   }
+   return object;
+}
+
+
+</script>
+
+</head>
+
+<body onload="init()">
+
+<!-- workaround for audio problems on ipad - http://stackoverflow.com/questions/2894230/fake-user-initiated-audio-tag-on-ipad -->
+
+<div id="junk" style="display:none">
+  <audio src="sounds/x4.wav" id="a1" preload="auto"  autobuffer="autobuffer" controls="" ></audio>
+  <audio src="sounds/x1.wav" id="a2" preload="auto"  autobuffer="autobuffer" controls="" ></audio>
+</div>
+
+  <div id="header">
+    <span id='main_title'>Browse Programmes</span>
+    <span class="form" >
+      <form onsubmit='javascript:do_search(this.search_text.value);return false;'>
+
+        <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
+
+      </form>
+     </span>
+      
+  </div>
+
+<br clear="both"/>
+
+
+  
+<div id="container">
+              
+
+  <div id="inner">
+ 
+        
+    <div id="browser">  
+      <div id="top_slider" class="slidey">
+        <span class="sub_title">SUGGESTIONS FOR YOU</span>
+        <span class="more_blue"><a onclick='show_more_recommendations();'>View All</a></span>
+        <div id="progs"></div>
+      </div>
+      
+      <br clear="both"/>
+
+      <div  class="slidey">
+        <span class="sub_title">SHARED BY FRIENDS</span>
+        <span class="more_blue"><a onclick='show_shared();'>View All</a></span>
+        <div id="results">
+         <div class='dotted_box'></div>
+        </div>
+      </div>
+
+      <div  class="slidey">
+        <span class="sub_title">RECENTLY VIEWED</span>
+        <span class="more_blue"><a  onclick='show_history();'>View All</a></span>
+        <div id="history">
+          <div class='dotted_box'></div>
+        </div>
+      </div>
+  
+
+    </div>
+  
+    <div id="search_results">
+
+    </div>
+
+              
+
+    <br clear="both" />
+ 
+  </div>
+    
+</div>
+        
+<div id="roster_wrapper">
+  <div id="title"></div>
+
+  <div class="notifications_red" id="notify"></div>
+  <div class="notifications_red_large" id="notify_large" onclick="javascript:close_notifications();"></div>
+
+  <div id="roster_inner">
+    <div id="tv"></div>
+      <br clear="both"/>
+      <h3 class="contrast">YOUR FRIENDS</h3>
+    <div id="roster"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div id="button_container">
+        
+   <div id="browse" class="blue menu"><a href="javascript:toggle_display()">BROWSE PROGRAMMES</a></div>
+   <div id="random" class="grey menu"><a href="javascript:do_random()">RANDOM SELECTION</a></div>
+      
+  </div>
+</div>
+        
+          
+        
+<p style="display: none;"><small>Status:
+<span id="demo">
+<span id="out"></span>
+</span></small></p>
+      
+<!-- overlays -->
+  
+<div id='new_overlay' style='display:none;'><div class='close_button'><img src='images/close.png'/></div></div>
+<div id='bg' style='display:none;' onclick='javascript:hide_overlay()'></div>
+    
+
+              
+            <div id="ask_name" style="display: none;" class="alert">
+              <h2 id="inline1_sub">Please enter your name:</h2>
+              <form onsubmit="javascript:add_name();return false;" id="myname">
+                 <input class="forminput" type="text" name="nick" id="nick1" spellcheck="false"  autocorrect="off"/>
+                 <input class='bluesubmit' type="submit" name="go" value="Start" />
+              </form>
+              </div>
+
+  
+    
+            <div id="disconnected" style="overflow:auto;display: none;" class="alert">
+              <h2>Sorry, you've been disconnected - please reload the page.</h2>
+            </div>
+  
+
+</body>
+
+</html>

@@ -115,7 +115,7 @@ function create_buttons(){
    $("#roster_wrapper").show();
      
    //ask the user for their name to continue
-   show_ask_for_name();
+   //show_ask_for_name();
     
    //set up notifications area
    $("#notify").toggle(
@@ -1252,7 +1252,7 @@ function generate_large_html_for_programme(j,n,id){
       html2.push("<div class=\"p_title_large\">"+title+"</div>");
 
       //HTML to make the possibility to add later
-      html2.push("<div id=\"addtowatchlater\"><img src=\"images/play.png\"></div>");
+      html2.push("<div class=\"watch_later\" id=\"addtowatchlater\"><img src=\"images/watch_later_icon.png\"></div>");
 
 
 //    html2.push("<p class=\"shared_by\">"+n+"</p>");
@@ -1276,8 +1276,6 @@ function generate_large_html_for_programme(j,n,id){
       //$(document).trigger("fix_control_button",[j,state]);
 
       return html2;
-
-
 }
 
 //create html from a programme
