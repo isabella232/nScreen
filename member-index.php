@@ -57,7 +57,8 @@ var channels_url=api_root+"channels.js";
 var search_url = api_root+"search.js";
 
 //jabber server
-var server = "jabber.notu.be";
+var server = "localhost";
+//var server = "jabber.notu.be";
 
 //polling interval (for changes to channels)
 var interval = null;
@@ -71,6 +72,11 @@ var watch_later_json = new Object();
 var list_recently_viewed = new Array();
 var recently_viewed_json = new Object();
 
+var ted_key = "xbsdfg4uhxf6prsp8c7adrty";
+var ted_api_request = "https://api.ted.com/v1/talks.json?api-key=xbsdfg4uhxf6prsp8c7adrty"
+var ted_api_filter_id= "filter=id:>"; //Remember to make "&" between them and provide int!!
+var ted_api_filter_limit = "limit="
+var ted_api_filter_offset = "offset="
 //handle group names
 //if no group name, show the intro text
 
@@ -352,6 +358,19 @@ function add_name(){
       }
 
     });
+
+    $.ajax({
+        url: 'get_tedtalks.php',
+        dataType: "json",
+        async: false,
+        success: function(response) {
+            console.log("TED TALKS RETREIVED");
+        }
+    });
+    console.log('The name retrieved from session variable is ' + name);
+    return name;
+
+
   }
   var state = {"canBeAnything": true};
   //history.pushState(state, "N-Screen", "/N-Screen/");
