@@ -168,6 +168,13 @@ function init(){
 
 }
 
+function show_browse_programmes(){
+  $sr=$("#search_results");
+  $sr.css("display","none");
+  $container=$("#browser");
+  $container.css("display","block");
+}
+
 //creates and initialises the buttons object                              
 
 function create_buttons(){
@@ -320,7 +327,7 @@ function insert_suggest2(id) {
 
 function get_roster(blink){
 
-  console.log("GETTING RROOOOSSSTEERRRR")
+  //console.log("GETTING RROOOOSSSTEERRRR")
   var roster = blink.look();
   console.log("THIS IS ROSTER === ");
   console.log(roster);
@@ -333,7 +340,7 @@ function get_roster(blink){
   var html=[];
 
   if(roster){
-    console.log("I AM INSIDE ROSTER BECAUSE I SEE IT!")
+    //console.log("I AM INSIDE ROSTER BECAUSE I SEE IT!")
 
      html.push("<h3 class=\"contrast\">SHARE WITH</h3>");
 
@@ -1499,7 +1506,7 @@ function userLogin(){
 <div id="footer">
   <div id="button_container">
 
-   <div id="browse" class="blue menu"><a href="javascript:init()">BROWSE PROGRAMMES</a></div>
+   <div id="browse" class="blue menu"><a href="javascript:show_browse_programmes()">BROWSE PROGRAMMES</a></div>
    <div id="random" class="grey menu"><a href="javascript:do_random()">RANDOM SELECTION</a></div>
 
   </div>
