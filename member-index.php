@@ -1,5 +1,5 @@
 <?php
-	require_once('auth.php');
+  require_once('auth.php');
 ?>
 <!DOCTYPE html>
 <!--
@@ -20,22 +20,44 @@
     limitations under the License.
  --------------------------------------------------------------------------
 -->
-
 <html>
-  <head>
-    <title>N-Screen</title>
-
-    <link type="text/css" rel="stylesheet" href="css/ipad.css" />
+ <head>
+  <title>N-Screen</title>
+    
     <script type="text/javascript" src="lib/jquery-1.4.4.min.js"></script>
-    <script type="text/javascript" src="lib/jquery-ui-1.8.10.custom.min.js"></script>
+    <script type="text/javascript" src="lib/jquery-ui-1.8.10.custom.min.js"></script>    
     <script type="text/javascript" src="lib/jquery.ui.touch.js"></script>
+    
 
     <script type="text/javascript" src="lib/strophe.js"></script>
     <script type="text/javascript" src="lib/buttons.js"></script>
     <script type="text/javascript" src="lib/spin.min.js"></script>
     <script type="text/javascript" src="lib/play_video.js"></script>
 
-    <script type="text/javascript">
+  <link type="text/css" rel="stylesheet" href="css/new.css" />
+
+<!-- workaround - http://stackoverflow.com/questions/2894230/fake-user-initiated-audio-tag-on-ipad -->
+
+  <script type="text/javascript">
+        document.onclick = function(){
+          document.getElementById("a1").load();
+          document.getElementById("a2").load();
+        }
+
+  </script>
+ </head>
+
+
+<body onload="javascript:init()">
+
+<!-- workaround for audio problems on ipad - http://stackoverflow.com/questions/2894230/fake-user-initiated-audio-tag-on-ipad -->
+
+<div id="junk" style="display:none">
+  <audio src="sounds/x4.wav" id="a1" preload="auto"  autobuffer="autobuffer" controls="" ></audio>
+  <audio src="sounds/x1.wav" id="a2" preload="auto"  autobuffer="autobuffer" controls="" ></audio>
+</div>
+
+<script type="text/javascript">
 
 //the main buttons object
 var buttons = null;
@@ -75,22 +97,46 @@ var recently_viewed_json = new Object();
 var ted_key = "xbsdfg4uhxf6prsp8c7adrty";
 var ted_api_request = "https://api.ted.com/v1/talks.json?api-key=xbsdfg4uhxf6prsp8c7adrty"
 var ted_api_filter_id= "filter=id:>"; //Remember to make "&" between them and provide int!!
-var ted_api_filter_limit = "limit="
-var ted_api_filter_offset = "offset="
-//handle group names
-//if no group name, show the intro text
+var ted_api_filter_limit = "limit=";
+var ted_api_filter_offset = "offset=";
+var start_url = "get_suggestions.php";
+var local_search = false;
+var suggestions = null;
+   
 
 function init(){
 
-create_buttons();
+//detect ipads etc
+   //console.log("platform "+navigator.platform);
+   if(navigator.platform.indexOf("iPad") != -1 || navigator.platform.indexOf("Linux armv7l") != -1){
+       $("#inner").addClass("inner_noscroll");
+       $(".slidey").addClass("slidey_noscroll");
+       $("#search_results").css("width","80%");
+   }else{
+     $("#inner").addClass("inner_scroll");
+   }
 
-  var grp = window.location.hash;
+   create_buttons();
 
+   $("#main_title").html("Browse Programmes");
+
+   $sr=$("#search_results");
+   $sr.css("display","none");
+   $container=$("#browser");
+   $container.css("display","block");
+
+   $browse=$("#browse");
+   $browse.addClass("blue").removeClass("grey");
+
+   $random=$("#random");
+   $random.addClass("grey").removeClass("blue");
+
+   var grp = window.location.hash;
    if(grp){
      my_group = grp.substring(1);
-     $("#header").show();
-     $("#roster_wrapper").show();
-     $(".about").hide();
+     //$("#header").show();
+     //$("#roster_wrapper").show();
+     //$(".about").hide();
      create_buttons();
    }else{
      $.ajax({
@@ -99,6 +145,8 @@ create_buttons();
         success: function (response) {
             console.log("Th group is = " + response);
             my_group = response;
+            //$("#header").show();
+            //$("#roster_wrapper").show();
         }
       });
    }
@@ -111,26 +159,18 @@ create_buttons();
    var state = {"canBeAnything": true};
    add_name();
 
-}
+   //load the start url or random if no start_url (see conf.js)
+   //get a random set of starting points
 
-// utility function create a temporary group name if none is set
-function tmp_group(){
-  //var rand = Math.floor(Math.random()*9999);
-  var rand = 1;
-  return String(rand);
+
+   // ??????????????????????????????????????????????????
+   //do_start("progs","get_suggestions.php");
+
 }
 
 //creates and initialises the buttons object                              
 
 function create_buttons(){
-   $("#inner").addClass("inner_noscroll");
-   $(".slidey").addClass("slidey_noscroll");
-   $(".about").hide();
-   $("#header").show();
-   $("#roster_wrapper").show();
-     
-   //ask the user for their name to continue
-   //show_ask_for_name();
     
    //set up notifications area
    $("#notify").toggle(
@@ -154,425 +194,161 @@ function create_buttons(){
 //called when buttons link is created
 
 function blink_callback(blink){
-  get_channels();
-  var delay = 60000;
+  console.log("INSIDE BLINK CALLBACK --> GOING TO CALL GET CHANNEL")
+  //var delay = 60000;
 
-  interval = setInterval(get_channels, delay);
+  //interval = setInterval(get_channels, delay);
 
   get_roster(blink);
 
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-  $(document).trigger('refresh_group');
-  $(document).trigger('refresh_history');
-  $(document).trigger('refresh_recs');
-  $(document).trigger('refresh_search');
+  // ???????????????????????????????????????????
 
-  //my new channels
-  $(document).trigger('refresh_later');
-  $(document).trigger('refresh_ld');
+  // $(document).trigger('refresh');
+  // $(document).trigger('refresh_buttons');
+  // $(document).trigger('refresh_group');
+  // $(document).trigger('refresh_history');
+  // $(document).trigger('refresh_recs');
+  // $(document).trigger('refresh_search');
+
+  // //my new channels
+  // $(document).trigger('refresh_later');
+  // $(document).trigger('refresh_ld');
 }
 
-
-//get the initial channels
-//calls retrieve_channels
-function get_channels(){
-console.log("channels_url");
-console.log(channels_url);
-    $.ajax({
-      url: channels_url,
-      dataType: "json",
-      success: function(data){
-         retrieve_channels(data);
-      },
-      error: function(jqXHR, textStatus, errorThrown){
-      //console.log("nok "+textStatus);
-      }
-
-    });
-
-
-}
-
-
-//do something with the initial channels information
-//in this case, print them out
-
-function retrieve_channels(result){
-  var html = [];
-  var suggestions = result["suggestions"];
-  for(var r in suggestions){
-                  var id = suggestions[r]["id"];
-                  if(!id){
-                    id = suggestions[r]["pid"];
-                  }
-                  //in this case (since these are channels) for top level, don't make draggable
-                  suggestions[r]["classes"]="ui-widget-content button nondrag_programme open_win";
-                  //html.push(generate_html_for_programme(suggestions[r],false,id,false).join("\n"));    
-  }
-
-  //our special channels
-
-  var hh = {"id":"hist","pid":"hist", "title":"Recently Viewed", "description":"Programmes you've looked at.","image":"images/history_wide.png","classes":"ui-widget-content nondrag_programme snaptarget_history"};
-
-  var gg = {"id":"grp","pid":"grp","title":"Shared by friends","description":"Shared by friends","image":"images/group_wide.png","classes":"ui-widget-content button nondrag_programme"};
-
-  var rr = {"id":"recos","pid":"recos","title":"Recommendations for you","description":"Recommendations for you.","image":"images/recs_wide.png","classes":"ui-widget-content button nondrag_programme snaptarget_recs"};
-
-  var se = {"id":"se","pid":"se","title":"Search Results","description":"Results of last search","image":"images/search_results.png","classes":"ui-widget-content button nondrag_programme snaptarget_search"};
-
-//My NEW CHANNELS
-  var later = {"id":"later","pid":"later","title":"Watch Later","description":"Selection of programmes to remind me to watch later","image":"images/watch_later.png","classes":"ui-widget-content button nondrag_programme snaptarget_later"};
-
-
-  var ld = {"id":"ld","pid":"ld","title":"Like/Dislike","description":"My Personal Likes & Dislikes","image":"images/likes_dislikes.png","classes":"ui-widget-content button nondrag_programme snaptarget_ld"};
-  
-
-  html.push(generate_html_for_programme(gg,false,"grp").join("\n"));
-  html.push(generate_html_for_programme(rr,false,"recos").join("\n"));
-  html.push(generate_html_for_programme(hh,false,"hist").join("\n"));
-  html.push(generate_html_for_programme(se,false,"se").join("\n"));
-
-
-//PUSH My NEW CHANNELS
-  html.push(generate_html_for_programme(later,false,"later").join("\n"));
-  html.push(generate_html_for_programme(ld,false,"ld").join("\n"));
-
-
-  $("#progs").html(html.join("\n"));
-
-  //make sure all the drag and drop works
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-  $(document).trigger('refresh_group');
-  $(document).trigger('refresh_history');
-  $(document).trigger('refresh_recs');
-  $(document).trigger('refresh_search');
-
-  //my new channels
-  $(document).trigger('refresh_later');
-  $(document).trigger('refresh_ld');
-}
-
-
-
-//ask the user for their name
-
-function show_ask_for_name(){
-
-   $("#devices_menu").hide();
-  
-   $('#ask_name').show();
-   show_grey_bg();
-   $("#login").focus();
-  
-}
-
-//when the user enters their name, tell buttons
-
-function get_name() {
-    var name = null;
-
-    $.ajax({
-        url: 'get_name.php',
-        async: false,
-        success: function(response) {
-            name = response;
-        }
-    });
-    console.log('The name retrieved from session variable is ' + name);
-    return name;
-}
-
-function add_name(){
-  
-  var name = get_name();
-  if(name){
-
-    var me = new Person(name,name);
-    buttons.me = me;
-    $(document).trigger('send_name');
-    $("#ask_name").hide();
-    $("#bg").hide();
-
-//get some 'personalised recommendations' 
-
-    //get some 'personalised recommendations' 
-
-    $.ajax({
-      type: "GET",
-      url: "get_suggestions.php",
-      dataType: "json",
-      success: function(data){
-        console.log(data);
-        recommendations(data,"recs_items");
-      },
-      error: function(jqXHR, textStatus, errorThrown){
-        console.log("!!nok "+textStatus);
-      }
-
-    });
-
-    //Get user based content (if stored)
-
-    $.ajax({
-      type: "GET",
-      url: "get_watch_later.php",
-      dataType: "json",
-      success: function(data){
-        console.log(data);
-        watch_later_json = data;
-        var watch_later_items = watch_later_json.suggestions;
-        for(var i in watch_later_items){
-          var id = watch_later_items[i].id;
-          list_watch_later.push(id);
-          console.log("STORED IN WATCH LATER IDS:  " + id);
-        }
-        recommendations(data,"list_later");
-
-      },
-      error: function(jqXHR, textStatus, errorThrown){
-        console.log("!!nok "+textStatus);
-      }
-
-    });
-
-    $.ajax({
-      type: "GET",
-      url: "get_recently_viewed.php",
-      dataType: "json",
-      success: function(data){
-        console.log(data);
-        recently_viewed_json = data;
-        var recently_viewed_items = watch_later_json.suggestions;
-        for(var i in recently_viewed_items){
-          var id = recently_viewed_items[i].id;
-          list_recently_viewed.push(id);
-          console.log("STORED IN RECENTLY VIEWED:  " + id);
-        }
-        recommendations(data,"history_items");
-
-      },
-      error: function(jqXHR, textStatus, errorThrown){
-        console.log("!!nok "+textStatus);
-      }
-
-    });
-
-    $.ajax({
-        url: 'get_tedtalks.php',
-        dataType: "json",
-        async: false,
-        success: function(response) {
-            console.log("TED TALKS RETREIVED");
-        }
-    });
-    console.log('The name retrieved from session variable is ' + name);
-    return name;
-
-
-  }
-  var state = {"canBeAnything": true};
-  //history.pushState(state, "N-Screen", "/N-Screen/");
-  window.location.hash=my_group;
-  $("#logoutspan").show();
-}
-
-
-// various triggered things
-
-// Connect to the service as me
-
-$(document).bind('send_name', function () {
-  console.log("sending name and connecting "+buttons.me.name);
-  buttons.connect(buttons.me,my_group,false); // third arg is debugging
-});
-
-
-//when connection is confirmed
-$(document).bind('connected', function (ev,blink) {
-  //get the initial stuff
-  blink_callback(blink);
-});
-
-//what to do when disconnected
-
-$(document).bind('disconnected',function(){
-   console.log("disconnecting");
-   if(interval){
-     clearInterval(interval);//stop polling
-   }
-   $('#disconnected').show();
-   show_grey_bg();
-   $("#login").focus();
-   Logout();
-});
-
-//when the group changes, update the roster
-
-$(document).bind('items_changed',function(ev,blink){
-    get_roster(blink);
-    $(document).trigger('refresh');
-    $(document).trigger('refresh_buttons');
-    $(document).trigger('refresh_group');
-    $(document).trigger('refresh_history');
-    $(document).trigger('refresh_recs');
-    $(document).trigger('refresh_search');
-    //my new channels
-    $(document).trigger('refresh_later');
-    $(document).trigger('refresh_ld');
-
-});
-
-//when someone shares something, put a copy of it in the right place
-
-$(document).bind('shared_changed', function (e,programme,name,msg_type) {
-  var a = get_object("a2");
-  a.play();
-
-  var id = generate_new_id(programme,name);
-
-  console.log("THE ID OF THE PROGRAM SHARED IS " + id);
-  var msg_text = "";
-  var html = null
-
-  if(programme.item_type=="webpage"){
-    html = generate_html_for_webpage(programme,name,id);
-    msg_text = name+" shared <a onclick='show_webpage(\""+programme["link"]+")'>"+programme["title"]+"</a> with you";
-    if(msg_type=="groupchat"){
-      msg_text = name+" shared <a onclick='show_webpage(\""+programme["link"]+")'>"+programme["title"]+"</a> with the group";
-    }
-  }else{
-    if(programme.item_type=="video"){
-      html = generate_html_for_video(programme,name,id);
-      msg_text = name+" shared <a onclick='show_video(\""+programme["link"]+"\")'>"+programme["title"]+"</a> with you";
-      if(msg_type=="groupchat"){
-        msg_text = name+" shared <a onclick='show_video(\""+programme["link"]+"\")'>"+programme["title"]+"</a> with the group";
-      }
-    }else{
-      html = generate_html_for_programme(programme,name,id);
-      msg_text = name+" shared "+programme["title"]+" with you";
-      if(msg_type=="groupchat"){
-        msg_text = name+" shared "+programme["title"]+" with the group";
-      }
-    }
-  }
-
-  $('#shared').append(html.join(''));
-
-//notifications 
-  build_notification(msg_text,programme,name);
-
-  $(document).trigger('refresh_group');
-  $(document).trigger('refresh_buttons');
-  $(document).trigger('refresh_history');
-  $(document).trigger('refresh_recs');
-  $(document).trigger('refresh_search');
-
-  //my new channels
-  $(document).trigger('refresh_later');
-  $(document).trigger('refresh_ld');
-
-});
-
-//we can play some video locally
-
-function show_video(mp4){
-
-      $('#new_overlay').html("<video id='myvid' width=\"100%\" controls autoplay><source src=\""+mp4+"\"></video>");
-      $('.new_overlay').hide();
-      $('#new_overlay').show();
+//http://fgnass.github.com/spin.js/
+var opts = {
+  lines: 12, // The number of lines to draw
+  length: 5, // The length of each line
+  width: 3, // The line thickness
+  radius: 5, // The radius of the inner circle
+  color: '#fff', // #rbg or #rrggbb
+  speed: 1, // Rounds per second
+  trail: 100, // Afterglow percentage
+  shadow: true // Whether to render a shadow
+};
+
+
+//display suggestions based on id
+
+function insert_suggest2(id) {
+      var div = $("#"+id);
+
+      var title = div.find(".p_title").text();
+      var description = div.find(".description").text();
+      var explanation = div.find(".explain").text();
+      var keywords = div.find(".keywords").text();
+      var video = div.attr("href");
+      var pid = div.attr("pid");
+      var img = div.find(".img").attr("src");
+
+      html = [];
+      html.push("<div id=\""+id+"_history\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content button programme ui-draggable\">");
+      html.push("<img class=\"img\" src=\""+img+"\" />");
+      html.push("<span class=\"p_title\">"+title+"</span>");
+      html.push("<p class=\"description large\">"+description+"</b></p>");
+      html.push("</div>");
+      $('#history').prepend(html.join(''));
+
+      html2 = [];
+/*
+      html2.push("<div id=\""+id+"_overlay\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog\">");
+      html2.push("<img class=\"img\" src=\""+img+"\" />");
+      html2.push("<div class=\"play_button\"><img src=\"images/play.png\" /></a></div>");
+      html2.push("<span style='float:left;' class=\"p_title_large\">"+title+"</span>");
+      html2.push("<br clear=\"both\"/>");
+      html2.push("<p class=\"description\">"+description+"</p>");
+      html2.push("<p class=\"explain\">"+explanation+"</p>");
+      html2.push("</div>");
+*/
+
+      html2.push("<div class='close_button'><img src='images/close.png' width='30px' onclick='javascript:hide_overlay();'/></div>");
+      html2.push("<div id=\""+id+"_overlay\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog\">");
+      html2.push("<div style='float:left;'> <img class=\"img\" src=\""+img+"\" />");
+      html2.push("<div class=\"play_button\"><img src=\"images/play.png\" /></a></div></div>");
+      html2.push("<div style='padding-left:20px;padding-right:20px;'>");
+      html2.push("<div class=\"p_title_large\">"+title+"</div>");
+      html2.push("<p class=\"description\">"+description+"</p>");
+      html2.push("<p class=\"explain\">"+explanation+"</p>");
+//      html2.push("<p class=\"keywords\">"+keywords+"</p>");
+      html2.push("<p class=\"link\"><a href=\"http://www.ted.com/talks/view/id/"+pid+"\" target=\"_blank\">Sharable Link</a></p></div>");
+      html2.push("</div>");
+      html2.push("<br clear=\"both\"/>");
+      html2.push("</div>");
+
+      $('#new_overlay').html(html2.join(''));
+   
+      $('#new_overlay').show();  
       show_grey_bg();
 
+
+      $( ".play_button" ).click(function() {
+              var res = {};
+              res["id"]=id;
+              res["pid"]=pid;
+              res["title"]=title;
+              res["video"]=video;
+              res["description"]=description;
+              res["explanation"]=explanation;
+              res["img"]=id;
+              sendProgrammeTVs(res,my_tv); 
+              return false;
+
+      }).addTouch();
+
+
+      $('#new_overlay').append("<div class='dotted_spacer2'></div><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span>");
+      $('#new_overlay').append("<br clear=\"both\"/>");
+      $('#new_overlay').append("<div id='spinner'></div>");
+      var target = document.getElementById('spinner');//??
+      var spinner = new Spinner(opts).spin(target);
+
+      $.ajax({
+       url: get_related_url(pid),
+       dataType: "json",
+         success: function(data){
+           recommendations(data,"spinner",false,title);
+//           recommendations(data,"new_overlay",false,title);
+         },
+         error: function(jqXHR, textStatus, errorThrown){
+         //alert("oh dear "+textStatus);
+         }
+      });
+
 }
-
-//webpage anntations reult in a new window
-
-function show_webpage(url){
-        window.open(url);
-}
-
-
-//when the TV changes, print out what's being watched
-
-$(document).bind('tv_changed', function (ev,item) {
-  var ct,cid;
-  var ot = item.obj_type;
-  var id = "tv";
-  if(ot=="tv"){
-      ct = item.nowp["title"];
-      cid = item.nowp["id"];
-  }
-  var pid = item.nowp["pid"];
-
-  $("#tv").find(".dotted_spacer").html(ct)
-  $("#tv").attr("pid",pid);
-
-//notifications
-
-  $("#tv").find(".dotted_spacer").html(item.nowp["title"]);
-  
-  var msg_text = "TV started playing "+item.nowp["title"];
-  if(item["nowp"]["state"]=="pause"){
-    msg_text = "TV paused "+item.nowp["title"];
-  }
-  build_notification(msg_text,item.nowp, item.name);
-
-});
-
-
-
-//html interactions
-
-//create the notifications
-
-function build_notification(msg_text,programme,name){
-
-  if(lastmsg!=msg_text){
-    var p = $("#notify").text();
-    var num = parseInt(p);
-
-    if(!num){
-      num=1;
-    }else{
-      num = num+1;
-    }
-
-    lastmsg = msg_text;
-    var nid = generate_new_id(programme,name)+"_notification";
-    $("#notify").html(num);
-    $("#notify").show();
-    $("#notify_large").prepend("<div id='"+nid+"' class='dotty_bottom'>"+msg_text+" </div>");//not sure if append / prepend makes most sense
-
-  }            
-}
-
 
 //print out who is in the group and what sort of thing they are
 
 function get_roster(blink){
-  var roster = blink.look();
 
-  if(roster["me"]){
-    $("#title").html("hi, "+roster["me"].name+", here's what's on <a href='player.html#"+my_group+"' target='_blank'>TV</a>");
-  }
+  console.log("GETTING RROOOOSSSTEERRRR")
+  var roster = blink.look();
+  console.log("THIS IS ROSTER === ");
+  console.log(roster);
+
+   if(roster["me"]){
+     $("#title").html(roster["me"].name);
+   }
   $("#roster").empty();
 
   var html=[];
 
   if(roster){
+    console.log("I AM INSIDE ROSTER BECAUSE I SEE IT!")
 
-    html.push("<h3 class=\"contrast\">SHARE WITH</h3>");
+     html.push("<h3 class=\"contrast\">SHARE WITH</h3>");
 
-    html.push("<div class='snaptarget_group person' id='group'>");
-    html.push("<img class='img_person' src='images/group.png'  />");
-    html.push("<div class='friend_name' id='grp'>Group #"+my_group+"</div>");
-    html.push("</div>");
+    // html.push("<div class='snaptarget_group person' id='group'>");
+    // html.push("<img class='img_person' src='images/group.png'  />");
+    // html.push("<div class='friend_name' id='grp'>Group #"+my_group+"</div>");
+    // html.push("</div>");
 
-    html.push("<br clear=\"both\" />");
+    // html.push("<br clear=\"both\" />");
 
     for(r in roster){
+
       item = roster[r];
+      console.log("printing roster[r]")
+      console.log(roster[r]);
 
        //i.e. not me
       if(item && item.name!=buttons.me.name){
@@ -637,43 +413,54 @@ function get_roster(blink){
 }
 
 
-//find some related stuff and show it to the user
+//show all recommendations
+function show_more_recommendations(){
 
-function insert_suggest_from_prog_id(id,manifest,get_more){
-      $.ajax({
-       url: manifest,
-       dataType: "json",
-         success: function(data){
-           insert_suggest(data,get_more);
-         },
-         error: function(jqXHR, textStatus, errorThrown){
-           alert("oh dear "+textStatus);
-         }
-      });
+  $("#main_title").html("Suggestions For You");
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+  
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+  $random=$("#random");
+  $random.removeClass("blue").addClass("grey");
+
+
+  $sr.empty();
+
+  //do_start("search_results",start_url);
+  do_start("search_results","get_suggestions.php");
+
 }
 
+function show_shared(){
 
+  $("#main_title").html("Shared By Friends");
 
-function insert_suggest_from_div(id,get_more){
-  var div = $("#"+id);
-  var j = get_data_from_programme_html(div);
-  insert_suggest(j,get_more);
-}
+  $sr=$("#search_results");
+  $sr.css("display","block");
+  
+  $container=$("#browser");
+  $container.css("display","none");
 
-//test if we can play locally
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
 
-function test_for_playability(formats, provider){
-  //this could be handled better
-  //might want also to exclude some providers
-  if(navigator.platform.indexOf("iPad") != -1 || navigator.platform.indexOf("iPhone") !=-1){
-    if(formats["mp4"]){
-      return true;
-    }else{
-      return false;
-    }
-  }else{
-    return true;
-  }
+  $random=$("#random");
+  $random.removeClass("blue").addClass("grey");
+
+  $sr.empty();
+
+//@@
+  $sr.html($("#results").clone());
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+
 }
 
 //ON CLICK LISTENER TO ADD TO WATCH LATER
@@ -732,731 +519,577 @@ function insert_watchlater(j){
   $('#list_later').append(html3.join(''));
 }
 
-function insert_suggest(j,get_more) {
-      recently_viewed_json.suggestions.push(j);
-      var id = j["id"];
-      var pid = j["pid"];
-      var more = j["more"];
-      console.log("mm");
-      console.log(j);
-      console.log("mm");
-      html = generate_html_for_programme(j,null,id);
-      $('#history_items').prepend(html.join(''));
+function show_history(){
 
-      jsObject_json = JSON.stringify(recently_viewed_json);
+  $("#main_title").html("Recently Viewed");
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+  
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+
+  $sr.empty();
+
+//@@
+  $sr.html($("#history").clone());
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+}
+
+function show_later(){
+
+  $("#main_title").html("Watch Later");
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+  
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+
+  $sr.empty();
+  do_start("search_results",start_url);
+}
+
+
+function show_more(title,pid){
+
+//console.log("[1] "+pid);
+
+  $("#main_title").html("Related to "+title);
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+  
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+  $random=$("#random");
+  $random.removeClass("blue").addClass("grey");
+
+//@@
+//  $sr.html($("#more").clone(true));
+  //console.log("related url is "+get_related_url(pid));
+  $("#search_results").empty();
 
       $.ajax({
-          url: "set_recently_viewed.php",
-          type: "POST",
-          data: {data : jsObject_json},
-          dataType: "json",
-          success: function (response) {
-              console.log("Correct recently_viewed updated");
-          }
-        });
-      html2 = generate_large_html_for_programme(j,"",id);//---
-      $('#new_overlay').html(html2.join(''));
-
-      $('.new_overlay').hide();
-      $('#new_overlay').show();
-      show_grey_bg();
-
-      if(more && more!="undefined" && get_more){
-
-        $('#new_overlay').append("<div class='dotted_spacer2'></div><span class=\"sub_title\">MORE LIKE THIS</span>");
-
-        $('#new_overlay').append("<br clear=\"both\"/>");
-        $('#new_overlay').append("<div id='spinner'></div>");
-        $('#new_overlay').append("<div id='more'></div>");
-        var target = document.getElementById('spinner');//??
-        var spinner = new Spinner(opts).spin(target);
-        console.log("related "+more);
-        $.ajax({
-         url: more,
-         dataType: "json",
-           success: function(data){
-             recommendations(data,"more");
-           },
-           error: function(jqXHR, textStatus, errorThrown){
-           //alert("oh dear "+textStatus);
-           }
-        });
-      }
-
-//finally because this can be slow, see aboutplayability
-  if(j["manifest"]){
-    var manifest = j["manifest"];
-
-      $.ajax({
-       url: j["manifest"],
+       url: get_related_url(pid),
        dataType: "json",
          success: function(data){
-           set_playable(data);
+           recommendations(data,"search_results",false,title);
          },
          error: function(jqXHR, textStatus, errorThrown){
-           alert("oh dear "+textStatus);
+         //alert("oh dear "+textStatus);
          }
       });
+  hide_overlay();
+}
+
+
+//get a random selection
+
+function do_random(el){
+
+  $("#main_title").html("Random Selection");
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+  
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+  $random=$("#random");
+  $random.removeClass("grey").addClass("blue");
+
+  //id for element to add it to
+  if(!el){
+    el = "search_results";
+  }
+
+  $.ajax({
+    url: random_url,
+    dataType: "json",
+    success: function(data){
+      random(data,el);
+    },
+    error: function(jqXHR, textStatus, errorThrown){
+    //console.log("nok "+textStatus);
+    }
+
+  });
+
+}
+
+
+// start url if different from do_random
+
+function do_start(el,start_url){
+
+  //do_start("search_results",start_url);
+
+
+  //id for element to add it to
+  if(!el){
+    el = "progs";
+  }
+
+  if(start_url){
+
+    $.ajax({
+      url: start_url,
+      dataType: "json",
+      success: function(data){
+        random(data,el);
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+      //console.log("nok "+textStatus);
+      }
+
+    });
+
+  }else{
+     do_random(el);
   }
 }
 
 
-function set_playable(manifest_data){
+//search for txt
+       
+function do_search(txt){
 
-    if(manifest_data && manifest_data["limo"]){
-       //two kinds of manifest - one with events and one not
-       // this is the events one
+  txt = txt.toLowerCase();
+  $('#main_title').html("Search for '"+txt+"'");
 
-       if(manifest_data["limo"]["event-resources"][0]["link"]){
+  $sr=$("#search_results");
+  $sr.css("display","block");
 
-         $.ajax({
-           url: manifest_data["limo"]["event-resources"][0]["link"],
-           dataType: "json",
-           success: function(data){
-           process_events(data);
-           },
-           error: function(jqXHR, textStatus, errorThrown){
-           console.log("oh dear2 "+textStatus);
-           }
-         });
+  $container=$("#browser");
+  $container.css("display","none");
 
-       }
+  $browse=$("#browse");
+  $browse.addClass("grey").removeClass("blue");
 
-       if(manifest_data["limo"]["media-resources"][0]["link"]){
-
-        $.ajax({
-         url: manifest_data["limo"]["media-resources"][0]["link"],
-         dataType: "json",
-           success: function(data){
-             set_playable(data);
-           },
-           error: function(jqXHR, textStatus, errorThrown){
-             alert("oh dear "+textStatus);
-           }
-        });
-          
-       }else{
-         console.log("broken manifest limo file");
-       }
-
-    }else{
-
-      var locally_playable = false;
-
-      if(manifest_data && manifest_data["media"]){
-         var swf = manifest_data["media"]["swf"];
-         var mp4 = manifest_data["media"]["mp4"];
-
-         var provider = manifest_data["provider"];
-         var formats = {"swf":swf,"mp4":mp4};
-         locally_playable = test_for_playability(formats, provider);
-         if(locally_playable){
-           $(".play_button").show();
-           $(".play_button").unbind('click');
-           $( ".play_button" ).click(function() {
-                      //get the prpgramme
-                      var el = $( this ).parent().parent();
-                      var programme = get_data_from_programme_html(el);
-
-                      $("#new_overlay").html("<div class='close_button'><img src='images/close.png' width='30px' onclick='javascript:hide_overlay();'/></div><div id='player'></div>");
-                      process_video(programme,formats,provider);
-                      return false;
-
-           });
+  $random=$("#random");
+  $random.addClass("grey").removeClass("blue");
 
 
-         }
-      }
-   }
+  $.ajax({
+    url: get_search_url(txt),
+    dataType: "json",
+    success: function(data){
+      search_results(data,txt,"search_results");
+    },
+    error: function(jqXHR, textStatus, errorThrown){
+    //console.log("nok "+textStatus);
+    }
+
+  });
+
+}    
+
+
+//make titles look a bit more readable
+
+function capitalise(txt){
+
+  txt = txt.replace(/:/g," : ");
+  var arr = txt.split(/[.|,| |\(|\)|\[|\]]/);
+  var arr2 = [];
+  for(x in arr){
+    var str = arr[x];
+    var letter = str.substr(0,1);
+    arr2.push(letter.toUpperCase() + str.substr(1).toLowerCase());
+  }
+
+  return arr2.join(" ");
 }
 
-//recommendations
+
+//called when random results are returned
+
+function random(result,el){
+//pass to the common bit of processing
+
+  var suggestions = [];
+
+  if(local_search){
+  //if it's local search then random just returns everything
+  //so do some processing
+    for (var i =0;i<11;i++){
+      var rand = Math.floor(Math.random()*result.length)
+      suggestions.push(result[rand]);
+    }
+  }else{
+    if(result && result["suggestions"]){
+      suggestions = result["suggestions"];//??
+    }else{
+      suggestions = result;
+      //console.log("no results");
+    }
+  }
+
+//randomise what we have
+  if(suggestions){
+      suggestions.sort(function() {return 0.5 - Math.random()});
+  }
+
+  process_json_results(suggestions,el,null,true);
+}
+
+
 //called when recommendations are returned
 
-function recommendations(result,el){
+function recommendations(result,el,add_stream,stream_title){
 
+   if(!el){
+     el = "progs2";
+   }
    if(result){
           var suggestions = result["suggestions"];
-          var got_ids = {};
-          if(!suggestions){
-            suggestions = result["results"];
-          }
           var pid_title = result["title"];
           if(suggestions.length==0){
-            console.log("no suggestions");
-          }else{
-
-            //order according to number
-            suggestions.sort(sortfunction)
-            $("#spinner").empty();
-
-            //print
-            var html = [];
-            for(var r in suggestions){
-                  var id = suggestions[r]["id"];
-                  if(!id){
-                    id = suggestions[r]["pid"];
-                  }
-                  if(!got_ids[id]){
-                    html.push(generate_html_for_programme(suggestions[r],false,id).join("\n"));    
-                  }
-                  got_ids[id]=id;
+            if(pid_title){
+               $("#pane2").html("<h3>Sorry, nothing found related to "+pid_title+"</h3>");
+            }else{
+               $("#pane2").html("<h3>Sorry, nothing found</h3>");
             }
-
-            $("#"+el).html(html.join("\n"));
-
-            //make sure all the drag and drop works
-            $(document).trigger('refresh');
-            $(document).trigger('refresh_buttons');
-            $(document).trigger('refresh_group');
-            $(document).trigger('refresh_history');
-            $(document).trigger('refresh_recs');
-            $(document).trigger('refresh_search');
-            //my new channels
-            $(document).trigger('refresh_later');
-            $(document).trigger('refresh_ld');
-
+            $("#"+el).html("");
+          }else{
+            if(pid_title){
+               $("#pane2").html("<h3>Related to "+pid_title+"</h3>");
+            }else{
+               $("#pane2").html("<h3>Related</h3>");
+            }
+//            process_json_results(suggestions,el,pid_title,null,add_stream,stream_title);
+            process_json_results(suggestions,el,pid_title,true,add_stream,stream_title);
           }
     }else{
-
-     console.log("OOPS!");
+//tmp@@ for when offline
+/*
+       var s = {    "pid": "b0074fpm",
+    "core_title": "Doctor Who - Series 2 - The Satan Pit",
+    "channel": "bbcthree",
+    "description": "As Rose battles the murderous Ood, the Doctor finds his beliefs challenged.",
+    "image": "http://dev.notu.be/2011/04/danbri/crawler/images/b0074fpm_512_288.jpg",
+    "series_title": "Doctor Who",
+    "date_time": "2010-10-03T18:00:00+00:00"};
+       var suggestions = [];
+       suggestions.push(s);
+       process_json_results(suggestions,el,pid_title,null,add_stream,title);
+*/
+//console.log("OOPS!");
 
     }
 }
 
 
-//sorting function - sort by number
-function sortfunction(a, b){
-  //Compare "a" and "b" in some fashion, and return -1, 0, or 1
-  var n1 = a["number"];
-  var n2 = b["number"];
-  return (n2 - n1);
-}
+//handle inserted search results
+function search_results(result,current_query,el){
+   if(!el){
+     el = "progs";
+   }
 
-//spinner stuff
+   suggestions = [];
 
-//http://fgnass.github.com/spin.js/
-var opts = {
-  lines: 12, // The number of lines to draw
-  length: 5, // The length of each line
-  width: 3, // The line thickness
-  radius: 5, // The radius of the inner circle
-  color: '#fff', // #rbg or #rrggbb
-  speed: 1, // Rounds per second
-  trail: 100, // Afterglow percentage
-  shadow: true // Whether to render a shadow
-};
+   if(local_search){
+     //if it's local search then search just returns everything
+     //so do some processing
 
+       for (r in result){
+         var title = result[r]["title"];
+         var desc = result[r]["description"];
+         if(title.toLowerCase().match(current_query)||(desc.toLowerCase().match(current_query))){
+            suggestions.push(result[r]);
+         }
+       }
+   }else{
+      suggestions = result;
+   }
 
-//ensure the drag and drop is working
-
-$(document).bind('refresh', function () {
-                $( "#draggable" ).draggable();
-                $( ".programme" ).draggable(
-                        {
-                        opacity: 0.7,
-                        helper: "clone",
-                        zIndex: 2700,
-      start: function() {
-                          $(".snaptarget").addClass( "dd_highlight"); 
-                          $(".snaptarget_tv").addClass( "dd_highlight"); 
-                          $(".snaptarget_group").addClass( "dd_highlight"); 
-                          $(".snaptarget_bot").addClass( "dd_highlight"); 
-      },
-      drag: function() {
-                          $(".snaptarget").addClass( "dd_highlight"); 
-                          $(".snaptarget_tv").addClass( "dd_highlight"); 
-                          $(".snaptarget_group").addClass( "dd_highlight"); 
-                          $(".snaptarget_bot").addClass( "dd_highlight"); 
-      },
-      stop: function() {
-                          $(".snaptarget").removeClass( "dd_highlight"); 
-                          $(".snaptarget_tv").removeClass( "dd_highlight"); 
-                          $(".snaptarget_group").removeClass( "dd_highlight"); 
-                          $(".snaptarget_bot").removeClass( "dd_highlight"); 
-      }
-
-                }).addTouch();
-                $( ".large_prog" ).draggable(
-                        {
-                        opacity: 0.7,
-                        helper: "clone",
-                        zIndex: 2700
-                }).addTouch();
-
-                $( ".snaptarget" ).droppable({
-           
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-     
-                                var el = $(this);
-                                var jid = el.attr('id');
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-
-                                var res = get_data_from_programme_html(el3);//??
-                                var url = el3.attr('href');
-                                buttons.share(res,new Person(jid,jid));
-
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                        }, 1500 );
-
-                                });
-                        }
-
-                }).addTouch();
-                $( ".snaptarget_group" ).droppable({
-           
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-     
-                                var el = $(this);
-                                var jid = el.attr('id');
- 
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-
-                                var res = get_data_from_programme_html(el3);//??
-                                var url = el3.attr('href');
-                                buttons.share(res);
-
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                        }, 1500 );
-
-                                });
-                        }
-
-                }).addTouch();
-
-
-                $( ".snaptarget_bot" ).droppable({
-           
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-     
-                                var el = $(this);
-                                var jid = el.attr('id');
- 
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-                                var res = get_data_from_programme_html(el3);//??
-
-
-                                html3 = [];
-                                html3.push("<div id=\""+res["id"]+"_favs\" pid=\""+res["pid"]+"\" href=\""+recs["video"]+"\" class=\"ui-widget-content button programme ui-draggable open_win\">");
-                                html3.push("<img class=\"img\" src=\""+res["image"]+"\" />");
-                                html3.push("<span class=\"p_title\">"+res["title"]+"</a>");
-                                html3.push("<p class=\"description large\">"+res["description"]+"</b></p>");
-                                html3.push("</div>");
-                                $('#favs').prepend(html3.join(''));
-                                buttons.share(res,new Person(jid,jid))
-
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                        }, 1500 );
-
-                                });
-                        }
-
-                }).addTouch();
-
-                $( ".snaptarget_tv" ).droppable({  //for tvs
-
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-
-                                var el = $(this);
-                                var jid = el.attr('id');
-                         
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-
-                                var res = get_data_from_programme_html(el3);//??
-                                res["action"]="play";
-                                res["shared_by"] = buttons.me.name;
-                                var url = el3.attr('href');
-                                var name = jid;
-//go throgh the roster and send to all tvs
-                                share_to_tvs(res);
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                
-                                        }, 1500 );
-                                
-                                });
-                        }
-                                
-                }).addTouch();
-
-});
-
-
-function share_to_tvs(res){
-////hm this should be an ajax call
-                                var roster = buttons.blink.look();
-                                if(roster){
-                                  for(r in roster){
-                                    var item = roster[r];
-                                    if(item.obj_type =="tv"){
-                                      var nm = item.name;
-                                      buttons.share(res, new TV(nm,nm));//need to send this to a list of tvs
-
-                                    }
-                                  }
-                                }
+   if(!suggestions || suggestions.length==0){
+      $("#"+el).html("<div class='sub_title' style='padding-top:26px;padding-left:8px'>Sorry, nothing found for '"+current_query+"'</div>   <div class='bluebutton'><a href='javascript:do_random()'>Give me a random selection</a></div>");
+   }else{
+      $("#rec_pane").html("<h3>Search results for "+current_query+"</h3>");
+      var replace_content=true;
+      process_json_results(suggestions,el,null,true);
+   }
 
 }
 
 
 
-$(document).bind('refresh_group', function () {
-
-                $(".snaptarget_group").unbind('click');
-                $( ".snaptarget_group" ).click(function() {
-
-                        $('.new_overlay').hide();
-//open a new overlay containing group shared
-                        $('#results').addClass("new_overlay");
-                        $('#results').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-                $("#grp").unbind('click');
-                $( "#grp" ).click(function() {
-
-                        $('.new_overlay').hide();
-//open a new overlay containing group shared
-                        $('#results').addClass("new_overlay");
-                        $('#results').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-
-//adds an overlay and inserts related stuff
-
-$(document).bind('refresh_buttons', function () {
-
-                $(".open_win").unbind('click');
-                $( ".open_win" ).click(function() {
-                        insert_suggest_from_div($( this ).attr("id"),true);//??
-                        return false;
-
-                });
-
-//for adverts / video
-                $(".open_vid_win").unbind('click');
-                $( ".open_vid_win" ).click(function() {
-                        //show_video($( this ).attr("href"));
-                        insert_suggest_from_div($( this ).attr("id"),true);//??
-
-                        return false;
-
-                });
-//for webpages
-                $(".open_win_web").unbind('click');
-                $( ".open_win_web" ).click(function() {
-                        show_webpage($( this ).attr("href"));
-                        return false;
-
-                });
-
-
-});
-
-
-$(document).bind('refresh_history', function () {
-
-                $(".snaptarget_history").unbind('click');
-                $( ".snaptarget_history" ).click(function() {
-
-//open a new overlay containing history
-
-//apply class here
-                        $('.new_overlay').hide();
-                        $('#history').addClass("new_overlay");
-
-                        $('#history').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-
-$(document).bind('refresh_recs', function () {
-
-                $(".snaptarget_recs").unbind('click');
-                $( ".snaptarget_recs" ).click(function() {
-//open a new overlay containing recs
-
-//apply class here
-                        $('.new_overlay').hide();
-                        $('#recs').addClass("new_overlay");
-
-                        $('#recs').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-
-$(document).bind('refresh_search', function () {
-
-                $(".snaptarget_search").unbind('click');
-                $( ".snaptarget_search" ).click(function() {
-//open a new overlay containing search
-
-//apply class here
-                        $('.new_overlay').hide();
-                        $('#ssee').addClass("new_overlay");
-
-                        $('#ssee').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-
-// REFRESH FUNCTIONS OF MY NEW ADDITIONAL CHAANNELS:
-
-// WATCH LATER , LIKE & DISLIKE 
-
-$(document).bind('refresh_later', function () {
-
-                $(".snaptarget_later").unbind('click');
-                $( ".snaptarget_later" ).click(function() {
-//open a new overlay containing search
-
-//apply class here
-                        $('.new_overlay').hide();
-                        $('#watch_later').addClass("new_overlay");
-
-                        $('#watch_later').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-$(document).bind('refresh_ld', function () {
-
-                $(".snaptarget_ld").unbind('click');
-                $( ".snaptarget_ld" ).click(function() {
-//open a new overlay containing search
-
-//apply class here
-                        $('.new_overlay').hide();
-                        $('#like_dislike').addClass("new_overlay");
-
-                        $('#like_dislike').show();
-                        show_grey_bg();
-                        return false;
-
-                });
-
-});
-
-
-///touch events stuff for ipad etc
-
-$.extend($.support, {
-        touch: "ontouchend" in document
-});
-                
-
-// Hook up touch events
-$.fn.addTouch = function() {
-        if ($.support.touch) {
-                this.each(function(i,el){
-                        el.addEventListener("touchstart", iPadTouchHandler, false);
-                        el.addEventListener("touchmove", iPadTouchHandler, false);
-                        el.addEventListener("touchend", iPadTouchHandler, false);
-                        el.addEventListener("touchcancel", iPadTouchHandler, false);
-                });
-        }
-};
-
-
-    
-//serialising form html to a programme json and vice versa
-
-function generate_large_html_for_programme(j,n,id){
-      var pid=j["pid"];
-      var video = j["video"];
-      var title=j["title"];
-      var link=j["url"];
-      var img=j["image"];
-      var more=j["more"];
-      var action=j["action"];
-      var state=j["state"];
-      var manifest=j["manifest"];
-      var service=j["service"];
-      var is_live=j["is_live"];
-      var desc=j["description"];
-      var explanation=j["explanation"];
-      var later = "Watch later";
-
-      html2 = [];
-
-      html2.push("<div class='close_button'><img src='images/close.png' width='30px' onclick='javascript:hide_overlay();'/></div>");
-      html2.push("<div id=\""+id+"_overlay\" pid=\""+pid+"\" class=\"ui-widget-content large_prog ui-draggable button "+pid+"\" ");
-      if(more){
-        html2.push(" more=\""+more+"\"");
-      }
-      html2.push(" is_live=\""+is_live+"\"");
-
-      if(video){
-        html2.push("  href=\""+video+"\"");
-      }
-      if(service){
-        html2.push("  service=\""+service+"\"");
-      }
-      if(manifest){
-        html2.push("  manifest=\""+manifest+"\"");
-      }
-      html2.push(">");
-
-      html2.push("<div style='float:left;'> <img class=\"img\" src=\""+img+"\" />");
-      html2.push("<div class=\"play_button\"><img src=\"images/play.png\"></div>");
-      html2.push("<div style='width:300px;float:left;padding-left:10px;'>");
-      html2.push("<div class=\"p_title_large\">"+title+"</div>");
-
-      //HTML to make the possibility to add later
-      html2.push("<div class=\"watch_later\" id=\"addtowatchlater\"><img src=\"images/watch_later_icon.png\"></div>");
-
-
-//    html2.push("<p class=\"shared_by\">"+n+"</p>");
-
-
-
-      if(desc){
-        html2.push("<p class=\"description\">"+desc+"</p>");
-      }
-      if(explanation){
-        html2.push("<p class=\"explain\">"+explanation+"</p>");
-      }
-
-      if(link){
-        html2.push("<p class=\"link\"><a href=\""+link+"\" target=\"_blank\">Link</a></p>");
-      }
-      html2.push("</div></div>");
-      html2.push("<br clear=\"both\"/>");
-      html2.push("</div>");
-      //alert("na "+j["action"]);
-      //$(document).trigger("fix_control_button",[j,state]);
-
-      return html2;
-}
-
-//create html from a programme
-function generate_html_for_programme(j,n,id){
-
-      var pid=j["pid"];
-      var video = j["video"];
-      var title=j["title"];
-      if(!title){
-         title = j["core_title"];
-      }
-      var img=j["image"];
-      if(!img){
-        img=j["depiction"];
-      }
-      var manifest=j["manifest"];
-      var more=j["more"];
-      var explanation=j["explanation"];
-      var desc=j["description"];
-      var classes= j["classes"];
-      var is_live = false;
-      if(j["live"]==true || j["live"]=="true" || j["is_live"]==true || j["is_live"]=="true"){
-        is_live = true;
-      }
-      var service = j["service"];
-      var channel = j["channel"];
-      if(channel && is_live){
-        img = "channel_images/"+channel.replace(" ","_")+".png";
-      }
-
-
-      var html = [];
-      html.push("<div id=\""+id+"\" pid=\""+pid+"\"");
-      if(more){
-        html.push(" more=\""+more+"\"");
-      }
-      html.push(" is_live=\""+is_live+"\"");
-
-      if(video){
-        html.push("  href=\""+video+"\"");
-      }
-      if(service){
-        html.push("  service=\""+service+"\"");
-      }
-      if(manifest){
-        html.push("  manifest=\""+manifest+"\"");
-      }
-      if(classes){
-        html.push("class=\""+classes+"\">");
-      }else{
-        html.push("class=\"ui-widget-content button programme open_win\">");
-      }
-      html.push("<div class='img_container'><img class=\"img\" src=\""+img+"\" />");
-      html.push("</div>");
-      if(is_live){
-       html.push("Live: ");
-
-      }else{
-      }
-      html.push("<span class=\"p_title p_title_small\">"+title+"</span>");
-      html.push("<div clear=\"both\"></div>");
-      if(n){                    
-        html.push("<span class=\"shared_by\">Shared by "+n+"</span>");
-      }
-      if(desc){
-        html.push("<span class=\"description large\">"+desc+"</span>");
-      }
+//process the results for displaying
+
+function process_json_results(result,ele,pid_title,replace_content,add_stream,stream_title){
+
+          var max = 12
+          var s ="";
+          var html = [];
+          suggestions = result;
+          console.log("THIS IS THE RESULT OF RESULT VAR");
+          console.log(result);
+
+          if (suggestions && suggestions.length>0){
+            var count = 0;
+            var num = suggestions.length/2;
+            for (var r in suggestions){
+              if(count<max){
+                count = count + 1;
+                var title = suggestions[r]["core_title"];//@@
+                if(!title){
+                  title = suggestions[r]["title"];
+                }
+                var desc="";
+                var desc = suggestions[r]["description"];
+//                desc = desc.replace(/\"/g,"'");
+                var id = suggestions[r]["id"];
+                if(!id){
+                  id = suggestions[r]["pid"];
+                }
+
+                var img = suggestions[r]["image"];
+
+                var channel = suggestions[r]["channel"];
+                var date_time = suggestions[r]["date_time"];
+
+                var time_offset = suggestions[r]["time_offset"];
+                var explanation=suggestions[r]["explanation"];
+                var vid = suggestions[r]["video"];
 /*
-      if(explanation){
+                var vid = suggestions[r]["media"]["swf"]["uri"];
 
-        //string.charAt(0).toUpperCase() + string.slice(1);
-        explanation = explanation.replace(/_/g," ");
-        var exp = explanation.replace(/,/g," and ");
 
-        html.push("<span class=\"explain_small\">Matches "+exp+" in your profile</span>");
-      }
+//processing for local files option
+                if(video_files){
+                    vid = video_files+""+vid;
+                }
+
+//processing for a particular form of time offsets
+//T00:18:31:15F25
+                if(vid && time_offset){
+                   var offs = time_offset.replace(/T/,"")
+                   var aa = offs.split(":");
+                   var secs = parseInt(aa[1])*60+parseInt(aa[2]);
+                   video = video+"#"+secs
+                }
 */
-      html.push("</div>");
-      return html
-}    
 
+                if(id){
+                  if(pid_title){
+                     html.push("<div id=\""+id+"\" pid=\""+id+"\" href=\""+vid+"\" class=\"ui-widget-content button programme ui-draggable\">");
+                  }else{
+                     html.push("<div id=\""+id+"\" pid=\""+id+"\" href=\""+vid+"\" class=\"ui-widget-content button programme\">");
+                  }
+                  html.push("<div><img class=\"img\" src=\""+img+"\" /></div>");
+                  html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
+                  html.push("<div clear=\"both\"></div>");
+                  if(desc && desc!=""){
+                    html.push("<span class=\"large description\">"+desc+"</span>");
+                  }
+                  if(explanation && explanation!=""){
+                    //see tidy_dbpedia.js
+                    //idea is that the user doesn't need to see piles of junk
+                    ///explanation = clean_up(explanation);
+                    //i.s. if this is caled because it's related content, say why
+                    if(explanation){
+                        html.push("<span class=\"explain large\">"+explanation+"</span>");
+                    }
+
+                  }
+//                  var cats = suggestions[r]["keywords"];
+  //                if(cats && cats!=""){
+    //                html.push("<span class=\"large keywords\"><i>"+cats+"</i></span>");
+      //            }
+                  html.push("</div>");
+                }
+              }//end if count < max
+            }
+
+//console.log("[1]");
+           if(replace_content){
+              $("#"+ele).html(html.join(''));
+           }else{
+              $("#"+ele).append("<div id=\"more\">"+html.join('')+"</div>");
+           }
+           if(add_stream){
+              $("#side-c").prepend("<span class='sub_title'>Related to '"+stream_title+"'</span>\n<div class='slidey'>"+html.join('')+"</div>");
+           }
+          }else{
+            $("#"+ele).html('');
+          }
+
+
+   $(document).trigger('refresh');
+   $(document).trigger('refresh_buttons');
+}
+
+        
+//show disconnect overlay
+
+function show_disconnect(){
+   //console.log("disconnecting");
+
+   $('#disconnected').show();
+   show_grey_bg();
+   $("#nick1").focus();
+
+}
+
+//when the user enters their name, tell buttons
+
+function get_name() {
+    var name = null;
+
+    $.ajax({
+        url: 'get_name.php',
+        async: false,
+        success: function(response) {
+            name = response;
+        }
+    });
+    console.log('The name retrieved from session variable is ' + name);
+    return name;
+}
+
+
+function add_name(){
+  
+  var name = get_name();
+  if(name){
+
+    var me = new Person(name,name);
+    buttons.me = me;
+    $(document).trigger('send_name');
+    $("#ask_name").hide();
+    $("#bg").hide();
+
+//get some 'personalised recommendations' 
+
+    //get some 'personalised recommendations' 
+
+    $.ajax({
+      type: "GET",
+      url: "get_suggestions.php",
+      dataType: "json",
+      success: function(data){
+        console.log(data);
+        recommendations(data,"progs");
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nok "+textStatus);
+      }
+
+    });
+
+    //Get user based content (if stored)
+
+    $.ajax({
+      type: "GET",
+      url: "get_watch_later.php",
+      dataType: "json",
+      success: function(data){
+        console.log(data);
+        watch_later_json = data;
+        var watch_later_items = watch_later_json.suggestions;
+        for(var i in watch_later_items){
+          var id = watch_later_items[i].id;
+          list_watch_later.push(id);
+          console.log("STORED IN WATCH LATER IDS:  " + id);
+        }
+        recommendations(data,"list_later");
+
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nok "+textStatus);
+      }
+
+    });
+
+    $.ajax({
+      type: "GET",
+      url: "get_recently_viewed.php",
+      dataType: "json",
+      success: function(data){
+        console.log(data);
+        recently_viewed_json = data;
+        var recently_viewed_items = watch_later_json.suggestions;
+        for(var i in recently_viewed_items){
+          var id = recently_viewed_items[i].id;
+          list_recently_viewed.push(id);
+          console.log("STORED IN RECENTLY VIEWED:  " + id);
+        }
+        recommendations(data,"history");
+
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nok "+textStatus);
+      }
+
+    });
+
+    $.ajax({
+        url: 'get_tedtalks.php',
+        dataType: "json",
+        async: false,
+        success: function(response) {
+            console.log("TED TALKS RETREIVED");
+        }
+    });
+    console.log('The name retrieved from session variable is ' + name);
+    return name;
+
+
+  }
+  var state = {"canBeAnything": true};
+  //history.pushState(state, "N-Screen", "/N-Screen/");
+  window.location.hash=my_group;
+  $("#logoutspan").show();
+}
+
+
+// various triggered things
+
+// Connect to the service as me
+
+$(document).bind('send_name', function () {
+  console.log("sending name and connecting "+buttons.me.name);
+  buttons.connect(buttons.me,my_group,false); // third arg is debugging
+});
+
+
+//when connection is confirmed
+$(document).bind('connected', function (ev,blink) {
+  //get the initial stuff
+  console.log("SUPER CONECTED --> CALLING BLINK_cALLBACK")
+  blink_callback(blink);
+});
+
+//what to do when disconnected
+
+$(document).bind('disconnected',function(){
+   console.log("disconnecting");
+   if(interval){
+     clearInterval(interval);//stop polling
+   }
+   $('#disconnected').show();
+   show_grey_bg();
+   $("#nick1").focus();
+   Logout();
+});
 
 ///webpages - this is early stuff
 function generate_html_for_webpage(j,n,id){
@@ -1549,88 +1182,21 @@ function get_data_from_programme_html(el){
                                 
 }
 
+//when the group changes, update the roster
 
-//a few utility functions
+$(document).bind('items_changed',function(ev,blink){
+    get_roster(blink);
+    // $(document).trigger('refresh');
+    // $(document).trigger('refresh_buttons');
+    // $(document).trigger('refresh_group');
+    // $(document).trigger('refresh_history');
+    // $(document).trigger('refresh_recs');
+    // $(document).trigger('refresh_search');
+    // //my new channels
+    // $(document).trigger('refresh_later');
+    // $(document).trigger('refresh_ld');
 
-//search stuff
-
-function remove_search_text(){
-  $("#search_text").attr("value","");
-}
-
-function do_search(txt){
-
-  txt = txt.toLowerCase();
-
-  $("#ssee").find(".description").html("Search for "+txt);
-  $.ajax({
-    url: search_url,
-    dataType: "json",
-    success: function(data){
-      search_results(data,txt);
-    },
-    error: function(jqXHR, textStatus, errorThrown){
-    //console.log("nok "+textStatus);
-    }
-
-  });
-
-}
-
-function search_results(result,current_query){
-  var html = [];
-  var suggestions = result;
-  for(var r in suggestions){
-                  var id = suggestions[r]["id"];
-                  if(!id){
-                    id = suggestions[r]["pid"];
-                  }
-                  html.push(generate_html_for_programme(suggestions[r],false,id).join("\n"));
-  }
-
-  $("#search_items").html(html.join("\n"));
-                        $('.new_overlay').hide();
-                        $('#ssee').addClass("new_overlay");
-
-                        $('#ssee').show();
-                        show_grey_bg();
-
-
-  //make sure all the drag and drop works
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-  $(document).trigger('refresh_group');
-  $(document).trigger('refresh_search');
-  //my new channels
-  $(document).trigger('refresh_later');
-  $(document).trigger('refresh_ld');
-
-}
-
-
-function get_search_url(q){
-  var url = buttons.blink.library()["search"].url+""+q;
-  return url;
-}
-
-
-//hides the large notifications bar
-function close_notifications(){
-  $("#notify_large").hide();
-}
-
-//shows the overlay background      
-function show_grey_bg(){
- $("#bg").show();       
-}
-
-//hides the overlay background
-function hide_overlay(){
- $("#bg").hide();
- $(".new_overlay").hide();
- $("#new_overlay").html("");
-
-}
+});
 
 //creates a new id from a programme and a person name string
 function generate_new_id(j,n){
@@ -1638,37 +1204,125 @@ function generate_new_id(j,n){
   return i;
 }
 
+//when someone shares something, put a copy of it in the right place
 
-//annoying bloody audio stuff
-//http://codingrecipes.com/documentgetelementbyid-on-all-browsers-cross-browser-getelementbyid
-function get_object(id) {
-   var object = null;
-   if (document.layers) {       
-    object = document.layers[id];
-   } else if (document.all) {
-    object = document.all[id];
-   } else if (document.getElementById) {
-    object = document.getElementById(id);
-   }
-   return object;
+$(document).bind('shared_changed', function (e,programme,name,msg_type) {
+  var a = get_object("a2");
+  a.play();
+
+  var id = generate_new_id(programme,name);
+
+  console.log("THE ID OF THE PROGRAM SHARED IS " + id);
+  var msg_text = "";
+  var html = null
+
+  if(programme.item_type=="webpage"){
+    html = generate_html_for_webpage(programme,name,id);
+    msg_text = name+" shared <a onclick='show_webpage(\""+programme["link"]+")'>"+programme["title"]+"</a> with you";
+    if(msg_type=="groupchat"){
+      msg_text = name+" shared <a onclick='show_webpage(\""+programme["link"]+")'>"+programme["title"]+"</a> with the group";
+    }
+  }else{
+    if(programme.item_type=="video"){
+      html = generate_html_for_video(programme,name,id);
+      msg_text = name+" shared <a onclick='show_video(\""+programme["link"]+"\")'>"+programme["title"]+"</a> with you";
+      if(msg_type=="groupchat"){
+        msg_text = name+" shared <a onclick='show_video(\""+programme["link"]+"\")'>"+programme["title"]+"</a> with the group";
+      }
+    }else{
+      html = generate_html_for_programme(programme,name,id);
+      msg_text = name+" shared "+programme["title"]+" with you";
+      if(msg_type=="groupchat"){
+        msg_text = name+" shared "+programme["title"]+" with the group";
+      }
+    }
+  }
+
+  $('#shared').append(html.join(''));
+
+//notifications 
+  build_notification(msg_text,programme,name);
+
+  // $(document).trigger('refresh_group');
+  // $(document).trigger('refresh_buttons');
+  // $(document).trigger('refresh_history');
+  // $(document).trigger('refresh_recs');
+  // $(document).trigger('refresh_search');
+
+  // //my new channels
+  // $(document).trigger('refresh_later');
+  // $(document).trigger('refresh_ld');
+
+});
+
+function build_notification(msg_text,programme,name){
+
+  if(lastmsg!=msg_text){
+    var p = $("#notify").text();
+    var num = parseInt(p);
+
+    if(!num){
+      num=1;
+    }else{
+      num = num+1;
+    }
+
+    lastmsg = msg_text;
+    var nid = generate_new_id(programme,name)+"_notification";
+    $("#notify").html(num);
+    $("#notify").show();
+    $("#notify_large").prepend("<div id='"+nid+"' class='dotty_bottom'>"+msg_text+" </div>");//not sure if append / prepend makes most sense
+
+  }            
 }
-<!--REGISTRATION-FORM-->
-  function swap(one, two) {
-      document.getElementById(one).style.display = 'block';
-      document.getElementById(two).style.display = 'none';
-      document.getElementById('ask_name').style.left = "35%";
+
+//when the TV changes, print out what's being watched
+
+$(document).bind('tv_changed', function (ev,item) {
+  var ct,cid;
+  var ot = item.obj_type;
+  var id = "tv";
+  if(ot=="tv"){
+      ct = item.nowp["title"];
+      cid = item.nowp["id"];
+  }
+  var pid = item.nowp["pid"];
+
+  $("#tv").find(".dotted_spacer").html(ct)
+  $("#tv").attr("pid",pid);
+
+//notifications
+
+  $("#tv").find(".dotted_spacer").html(item.nowp["title"]);
+  
+  var msg_text = "TV started playing "+item.nowp["title"];
+  if(item["nowp"]["state"]=="pause"){
+    msg_text = "TV paused "+item.nowp["title"];
+  }
+  build_notification(msg_text,item.nowp, item.name);
+
+});
+
+
+function remove_search_text(){
+  $("#search_text").attr("value","");
 }
 
+function close_notifications(){
+  $("#notify_large").hide();
+}
 
-</script>
+function show_grey_bg(){
+ $("#bg").show();
+}
 
-</head>
+function hide_overlay(){
+ $("#bg").hide();
+ $("#new_overlay").hide();
+          
+}
 
-<body onload="init()">
-
-<!--FACEBOOK SDK for JavaScript-->
-<script>
-
+//FACEBOOK SDK for JavaScript-->
 function userLogin(){
         FB.login(function(response){
            if (response.authResponse){
@@ -1756,309 +1410,132 @@ function userLogin(){
   }
 </script>
 
-
-
-<div id="everything" ontouchmove="touchMove(event);">
-
-<!-- workaround for audio problems on ipad - http://stackoverflow.com/questions/2894230/fake-user-initiated-audio-tag-on-ipad -->
-
-<div id="junk" style="display:none">
-  <audio src="sounds/x4.wav" id="a1" preload="auto"  autobuffer="autobuffer" controls="" ></audio>
-  <audio src="sounds/x1.wav" id="a2" preload="auto"  autobuffer="autobuffer" controls="" ></audio>
-</div>
-
-
-<div class="about" style="display:none;">
-
-This is <a 
-href="http://notube.tv/2011/10/10/n-screen-a-second-screen-application-for-small-group-exploration-of-on-demand-content/">N-Screen</a>, 
-an application that helps you choose what to watch on TV. It was created by <a 
-href="http://twitter.com/libbymiller">Libby Miller</a>, <a 
-href="http://twitter.com/vickybuser">Vicky Buser</a> and <a 
-href="http://twitter.com/danbri">Dan Brickley</a> within the <a 
-href="http://notube.tv">NoTube Project</a>. Many thanks to <a 
-href="http://dannyayers.com/">Danny Ayers</a> for the sounds, <a 
-href="http://www.sparkslabs.com/michael/">Michael Sparks</a> for the channel icons, and <a 
-href="http://www.fabrique.nl/">Fabrique</a> for the designs. <br /> <br /> Thanks also to <a 
-href="http://www.cs.vu.nl/~laroyo/">Lora Aroyo</a> and <a 
-href="http://www.cs.vu.nl/~guus/">Guus Schreiber</a> and the rest of the NoTube Project, to 
-Andrew McParland at the BBC and to <a href="http://twitter.com/nevali">Mo McRoberts</a> from 
-the internet. <br /> <br />
-
-
-<a onclick="create_buttons()">Try it</a>
-</div>
-
-
-
-  <div id="header" style="display:none;">
-   <span id='title'></span>
+  <div id="header">
+    <span id='main_title'>Browse Programmes</span>
+    <span id='small_title'><a target='_blank' href='player.html'>Open player in new window</a></span>
     <span class="form" >
       <form onsubmit='javascript:do_search(this.search_text.value);return false;'>
-
-        <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
-
+  <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
       </form>
      </span>
+  <div id="title"></div>
+
   </div>
 
+       
 <br clear="both"/>
-
-        
-
-  
-<div id="container">
-              
-
-  <div id="inner">
- 
-        
-    <div id="browser">  
-      <div id="top_slider" class="slidey">
-
-      <br clear="both"/>
-
-        <div id="progs"></div>
-
-
-      </div>
- 
-    </div>
-  
-    <div id="search_results">
-        <span id="sub_title_sr"></span>
-        <div id="progs2"></div>
-
-    </div>
-
-    <div id="devices_menu" class="device_menu alert" style="display:none;">
-    </div>
-
-              
-
-    <br clear="both" />
- 
-  </div>
-    
-</div>
-        
-<div id="roster_wrapper" style="display:none;">
-<div id="aboutlink">
-
-<a id="logoutspan" href="#" onclick="Logout();">LOGOUT</a>
-</div>
 
   <div class="notifications_red" id="notify"></div>
   <div class="notifications_red_large" id="notify_large" onclick="javascript:close_notifications();"></div>
 
-  <div id="roster_inner">
+
+<div id="container">
+
+
+  <div id="inner">
+
+
+    <div id="browser">
+      <div id="side-b" class="slidey">
+        <span class="sub_title">SUGGESTIONS FOR YOU</span> 
+        <span class="more_blue"><a onclick='show_more_recommendations();'>View All</a></span>
+        <div id="progs"> </div>
+      </div>
+
+      <br clear="both"/>
+
+      <div id="content" class="slidey">
+        <span class="sub_title">SHARED BY FRIENDS</span>
+        <span class="more_blue"><a onclick='show_shared();'>View All</a></span>
+        <div id="results">
+         <div class='dotted_box'></div>
+        </div>
+      </div>
+
+      <div id="content2" class="slidey">
+        <span class="sub_title">RECENTLY VIEWED</span>
+        <span class="more_blue"><a  onclick='show_history();'>View All</a></span>
+        <div id="history">
+          <div class='dotted_box'></div>
+        </div>
+      </div>
+
+      <div id="content2" class="slidey">
+        <span class="sub_title">WATCH LATER</span>
+        <span class="more_blue"><a  onclick='show_later();'>View All</a></span>
+        <div id="list_later">
+          <div class='dotted_box'></div>
+        </div>
+      </div>
+
+            
+      <div id="side-c">
+      </div>
+    </div>
+
+    <div id="search_results">
+
+    </div>
+
+
+
+    <br clear="both" />
+
+  </div>
+
+</div>
+
+<div id="roster_wrapper">
+  <div class="notifications_red" id="notify"></div>
+  <div class="notifications_red_large" id="notify_large" onclick="javascript:close_notifications();"></div>
+
+  <div id="side-a">
     <div id="tv"></div>
       <br clear="both"/>
     <div id="roster"></div>
   </div>
 </div>
 
-        
-          
-        
+<div id="footer">
+  <div id="button_container">
+
+   <div id="browse" class="blue menu"><a href="javascript:init()">BROWSE PROGRAMMES</a></div>
+   <div id="random" class="grey menu"><a href="javascript:do_random()">RANDOM SELECTION</a></div>
+
+  </div>
+</div>
+
+
+
 <p style="display: none;"><small>Status:
 <span id="demo">
 <span id="out"></span>
 </span></small></p>
-      
+
 <!-- overlays -->
-  
-<div class='new_overlay' id='new_overlay' style='display:none;'><div class='close_button'><img src='images/close.png'/></div></div>
+
+<div id='new_overlay' style='display:none;'><div class='close_button'><img src='images/close.png'/></div></div>
 <div id='bg' style='display:none;' onclick='javascript:hide_overlay()'></div>
-    
 
-              
-      <div id="ask_name" style="display:none;" class="alert">
 
-          <div id="registration" class="registration">
-                  <h2 id="inline1_sub">Sign up</h2>
-                  <div class="formRegistration">
-
-                    <form id="loginForm" name="loginForm" method="post" action="register-exec.php">
-                      <div class="input-field">
-                       <input id="fname" name="fname" type="fname" class="textfield" value="" required="required" placeholder="First Name" />
-                      </div>
-                      <div class="input-field">
-                       <input id="lname" name="lname" type="lname" class="textfield" value="" required="required" placeholder="Last Name" />
-                      </div>
-                      <div class="input-field">
-                       <input id="login" name="login" type="login" class="textfield" value="" required="required" placeholder="Username"  />
-                      </div>
-                      <div class="input-field">
-                       <input id="password" name="password" type="password" class="textfield" value="" required="required" placeholder="Password"  />
-                      </div>
-                      <div class="input-field">                
-                       <input id="cpassword" name="cpassword" type="password" class="textfield" value="" required="required" placeholder="Repeat Password"  />
-                      </div>
-                       </p>
-                       <input class='bluesubmit' type="submit" name="Submit" value="Sign up!" />
-                    </form>
-                  </div>
-                  <div class="divider">
-                      <span></span>
-                      <p>
-
-                          or
-
-                      </p>
-                      <span></span>
-
-                  </div>
-
-                  <div class="formFacebook">
-                    <div id="fbimage">
-
-                      <img id="fbicon"src="images/facebook.jpg" href="#" onclick="userLogin();"/>
-
-                      <!-- <fb:login-button data-size="xlarge" data-show-faces="false" data-auto-logout-link="false" scope="public_profile,email" onlogin="checkLoginState();"></fb:login-button> -->
-                    </div>
-                  </div>
-                  <div id="gotologin"><span id="whatever">Already a user? <span style="font-weight: bold;" id="colorsignin" onclick="swap('formLogin','registration'); return false">Sign in</span></span></div>
-            </div>
-
-            <div id="formLogin" class="formLogin">
-              <form id="myname" name="loginForm" method="post" action="login-exec.php">
-              <h2 id="inline1_sub">Login</h2>
-                <div class="input-field">   
-                 <input id="login" name="login" type="username" class="textfield" value="" required="required" placeholder="Username" />
-                </div>
-                <div class="input-field"> 
-                 <input id="password" name="password" type="password" class="textfield" value="" required="required" placeholder="Password" />
-                </div>
-                 <button class='bluesubmit' type="submit" name="Submit" value="Login">Login!</button>
-                 <br />
-                 <div id="joining">You are joining group <span id="group_name"></span></div>
-                 
+        
+            <div id="ask_name" style="display: none;" class="alert">
+            <h2 id="inline1_sub">Please enter your name:</h2>
+              <form onsubmit="javascript:add_name();return false;" id="myname">
+                 <input class="forminput" type="text" name="nick" id="login" spellcheck="false"  autocorrect="off"/>
+                 <input class='bluesubmit' type="submit" name="go" value="Start" />               
               </form>
-            </div>
-      </div>
-  
-    
+              </div>
+        
+
+                
             <div id="disconnected" style="overflow:auto;display: none;" class="alert">
               <h2>Sorry, you've been disconnected - please reload the page.</h2>
             </div>
 
 
-        <div id="results" style="display:none;">
-        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
-        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
-           <div style="float:left;"> 
-             <img class="img" src="images/group_wide.png" width="150px;"/>
-           </div>
-           <div style="width:300px;float:left;">
-               <div class="p_title_large">Shared</div>
-               <p class="description">
-                 Shared by friends and shared by you to friends. 
-               </p>
-               <p>To add people to the group send them this link: <a id="grp_link" href=""></a> by email, twitter or however you like.</p><p>Anyone who clicks on the link can join your group.</p>
-           </div>
-
-           <br clear="both"></div>
-           <div class='dotted_spacer2'></div>
-           <div id="shared"></div>
-        </div>
-
-
-
-        <div id="history" style="display:none;">
-        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
-        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
-           <div style="float:left;"> 
-             <img class="img" src="images/history_wide.png" width="150px;"/>
-           </div>
-           <div style="width:300px;float:left;">
-               <div class="p_title_large">Recently Viewed</div>
-               <p class="description">
-                  Recently viewed programmes.
-               </p>
-           </div>
-
-           <br clear="both"></div>
-           <div class='dotted_spacer2'></div>
-           <div id="history_items"></div>
-        </div>
-
-        <div id="recs" style="display:none;">
-        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
-        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
-           <div style="float:left;"> 
-             <img class="img" src="images/recs_wide.png" width="150px;"/>
-           </div>
-           <div style="width:300px;float:left;">
-               <div class="p_title_large">Recommended</div>
-               <p class="description">
-                 Recommendations for you.
-               </p>
-           </div>
-
-           <br clear="both"></div>
-           <div class='dotted_spacer2'></div>
-           <div id="recs_items"></div>
-        </div>
-
-        <div id="ssee" style="display:none;">
-        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
-        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
-           <div style="float:left;"> 
-             <img class="img" src="images/search_results.png" width="150px;"/>
-           </div>
-           <div style="width:300px;float:left;">
-               <div class="p_title_large">Search results</div>
-               <p class="description">
-                 Last search.
-               </p>
-           </div>
-
-           <br clear="both"></div>
-           <div class='dotted_spacer2'></div>
-           <div id="search_items"></div>
-        </div>
-
-        <!-- MY NEW CHANNELS -->
-
-        <div id="watch_later" style="display:none;">
-        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
-        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
-           <div style="float:left;"> 
-             <img class="img" src="images/watch_later.png" width="150px;"/>
-           </div>
-           <div style="width:300px;float:left;">
-               <div class="p_title_large">Watch Later</div>
-               <p class="description">
-                 My personal list of programmes that I would like to watch.
-               </p>
-           </div>
-
-           <br clear="both"></div>
-           <div class='dotted_spacer2'></div>
-           <div id="list_later"></div>
-        </div>
-
-        <div id="like_dislike" style="display:none;">
-        <div class="close_button"><img src="images/close.png" width="30px" onclick="javascript:hide_overlay();"></div>
-        <div id="group_overlay" class="ui-widget-content large_prog ui-draggable">
-           <div style="float:left;"> 
-             <img class="img" src="images/likes_dislikes.png" width="150px;"/>
-           </div>
-           <div style="width:300px;float:left;">
-               <div class="p_title_large">Likes & Dislikes</div>
-               <p class="description">
-                 My personal list of Likes & Dislikes.
-               </p>
-           </div>
-
-           <br clear="both"></div>
-           <div class='dotted_spacer2'></div>
-           <div id="list_likes"></div>
-           <div id="list_dislikes"></div>
-        </div>
-</div>
-
 </body>
-
 </html>
+
+
+
