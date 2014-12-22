@@ -1652,7 +1652,7 @@ function get_object(id) {
    }
    return object;
 }
-<!--REGISTRATION-FORM-->
+// <!--REGISTRATION-FORM-->
   function swap(one, two) {
       document.getElementById(one).style.display = 'block';
       document.getElementById(two).style.display = 'none';

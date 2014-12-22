@@ -291,19 +291,19 @@ function insert_suggest2(id) {
 
       // FIXXXX PLAY BUTTON!!!!! ??????????? **************************************************
 
-      // $('.play_button').click(function(){
-      //         var res = {};
-      //         res["id"]=id;
-      //         res["pid"]=pid;
-      //         res["title"]=title;
-      //         res["video"]=video;
-      //         res["description"]=description;
-      //         res["explanation"]=explanation;
-      //         res["img"]=id;
-      //         sendProgrammeTVs(res,my_tv); 
-      //         return false;
+      $('.play_button').click(function(){
+              var res = {};
+              res["id"]=id;
+              res["pid"]=pid;
+              res["title"]=title;
+              res["video"]=video;
+              res["description"]=description;
+              res["explanation"]=explanation;
+              res["img"]=id;
+              sendProgrammeTVs(res,my_tv); 
+              return false;
 
-      // }).addTouch();
+      }).addTouch();
 
 
       $('#new_overlay').append("<div class='dotted_spacer2'></div><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span>");
@@ -422,7 +422,17 @@ function get_roster(blink){
 
 }
 
-
+// Hook up touch events
+$.fn.addTouch = function() {
+        if ($.support.touch) {
+                this.each(function(i,el){
+                        el.addEventListener("touchstart", iPadTouchHandler, false);
+                        el.addEventListener("touchmove", iPadTouchHandler, false);
+                        el.addEventListener("touchend", iPadTouchHandler, false);
+                        el.addEventListener("touchcancel", iPadTouchHandler, false);
+                });
+        }
+};
 //show all recommendations
 function show_more_recommendations(){
 
@@ -1074,6 +1084,183 @@ function add_name(){
   //history.pushState(state, "N-Screen", "/N-Screen/");
   window.location.hash=my_group;
   $("#logoutspan").show();
+}
+
+//ensure the drag and drop is working
+
+$(document).bind('refresh', function () {
+                $( "#draggable" ).draggable();
+                $( ".programme" ).draggable(
+                        {
+                        opacity: 0.7,
+                        helper: "clone",
+                        zIndex: 2700,
+      start: function() {
+                          $(".snaptarget").addClass( "dd_highlight"); 
+                          $(".snaptarget_tv").addClass( "dd_highlight"); 
+                          $(".snaptarget_group").addClass( "dd_highlight"); 
+                          $(".snaptarget_bot").addClass( "dd_highlight"); 
+      },
+      drag: function() {
+                          $(".snaptarget").addClass( "dd_highlight"); 
+                          $(".snaptarget_tv").addClass( "dd_highlight"); 
+                          $(".snaptarget_group").addClass( "dd_highlight"); 
+                          $(".snaptarget_bot").addClass( "dd_highlight"); 
+      },
+      stop: function() {
+                          $(".snaptarget").removeClass( "dd_highlight"); 
+                          $(".snaptarget_tv").removeClass( "dd_highlight"); 
+                          $(".snaptarget_group").removeClass( "dd_highlight"); 
+                          $(".snaptarget_bot").removeClass( "dd_highlight"); 
+      }
+
+                }).addTouch();
+                $( ".large_prog" ).draggable(
+                        {
+                        opacity: 0.7,
+                        helper: "clone",
+                        zIndex: 2700
+                }).addTouch();
+
+                $( ".snaptarget" ).droppable({
+           
+                        hoverClass: "dd_highlight_dark",
+                        drop: function(event, ui) {
+     
+                                var el = $(this);
+                                var jid = el.attr('id');
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+
+                                var res = get_data_from_programme_html(el3);//??
+                                var url = el3.attr('href');
+                                buttons.share(res,new Person(jid,jid));
+
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                        }, 1500 );
+
+                                });
+                        }
+
+                }).addTouch();
+                $( ".snaptarget_group" ).droppable({
+           
+                        hoverClass: "dd_highlight_dark",
+                        drop: function(event, ui) {
+     
+                                var el = $(this);
+                                var jid = el.attr('id');
+ 
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+
+                                var res = get_data_from_programme_html(el3);//??
+                                var url = el3.attr('href');
+                                buttons.share(res);
+
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                        }, 1500 );
+
+                                });
+                        }
+
+                }).addTouch();
+
+
+                $( ".snaptarget_bot" ).droppable({
+           
+                        hoverClass: "dd_highlight_dark",
+                        drop: function(event, ui) {
+     
+                                var el = $(this);
+                                var jid = el.attr('id');
+ 
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+                                var res = get_data_from_programme_html(el3);//??
+
+
+                                html3 = [];
+                                html3.push("<div id=\""+res["id"]+"_favs\" pid=\""+res["pid"]+"\" href=\""+recs["video"]+"\" class=\"ui-widget-content button programme ui-draggable open_win\">");
+                                html3.push("<img class=\"img\" src=\""+res["image"]+"\" />");
+                                html3.push("<span class=\"p_title\">"+res["title"]+"</a>");
+                                html3.push("<p class=\"description large\">"+res["description"]+"</b></p>");
+                                html3.push("</div>");
+                                $('#favs').prepend(html3.join(''));
+                                buttons.share(res,new Person(jid,jid))
+
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                        }, 1500 );
+
+                                });
+                        }
+
+                }).addTouch();
+
+                $( ".snaptarget_tv" ).droppable({  //for tvs
+
+                        hoverClass: "dd_highlight_dark",
+                        drop: function(event, ui) {
+
+                                var el = $(this);
+                                var jid = el.attr('id');
+                         
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+
+                                var res = get_data_from_programme_html(el3);//??
+                                res["action"]="play";
+                                res["shared_by"] = buttons.me.name;
+                                var url = el3.attr('href');
+                                var name = jid;
+//go throgh the roster and send to all tvs
+                                share_to_tvs(res);
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                
+                                        }, 1500 );
+                                
+                                });
+                        }
+                                
+                }).addTouch();
+
+});
+
+
+function share_to_tvs(res){
+////hm this should be an ajax call
+                                var roster = buttons.blink.look();
+                                if(roster){
+                                  for(r in roster){
+                                    var item = roster[r];
+                                    if(item.obj_type =="tv"){
+                                      var nm = item.name;
+                                      buttons.share(res, new TV(nm,nm));//need to send this to a list of tvs
+
+                                    }
+                                  }
+                                }
+
 }
 
 
