@@ -77,6 +77,8 @@ var api_root = "data/";
 var recommendations_url=api_root+"recommendations.js"
 var channels_url=api_root+"channels.js";
 var search_url = api_root+"search.js";
+var start_url = "get_suggestions.php";
+var random_url = "get_random.php"
 
 //jabber server
 var server = "localhost";
@@ -99,7 +101,6 @@ var ted_api_request = "https://api.ted.com/v1/talks.json?api-key=xbsdfg4uhxf6prs
 var ted_api_filter_id= "filter=id:>"; //Remember to make "&" between them and provide int!!
 var ted_api_filter_limit = "limit=";
 var ted_api_filter_offset = "offset=";
-var start_url = "get_suggestions.php";
 var local_search = false;
 var suggestions = null;
    
@@ -238,7 +239,7 @@ var opts = {
 //display suggestions based on id
 
 function insert_suggest2(id) {
-      var div = $("#"+id);
+      var div = $(id);
 
       var title = div.find(".p_title").text();
       var description = div.find(".description").text();
@@ -288,38 +289,40 @@ function insert_suggest2(id) {
       show_grey_bg();
 
 
-      $( ".play_button" ).click(function() {
-              var res = {};
-              res["id"]=id;
-              res["pid"]=pid;
-              res["title"]=title;
-              res["video"]=video;
-              res["description"]=description;
-              res["explanation"]=explanation;
-              res["img"]=id;
-              sendProgrammeTVs(res,my_tv); 
-              return false;
+      // FIXXXX PLAY BUTTON!!!!! ??????????? **************************************************
 
-      }).addTouch();
+      // $('.play_button').click(function(){
+      //         var res = {};
+      //         res["id"]=id;
+      //         res["pid"]=pid;
+      //         res["title"]=title;
+      //         res["video"]=video;
+      //         res["description"]=description;
+      //         res["explanation"]=explanation;
+      //         res["img"]=id;
+      //         sendProgrammeTVs(res,my_tv); 
+      //         return false;
+
+      // }).addTouch();
 
 
       $('#new_overlay').append("<div class='dotted_spacer2'></div><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span>");
       $('#new_overlay').append("<br clear=\"both\"/>");
       $('#new_overlay').append("<div id='spinner'></div>");
-      var target = document.getElementById('spinner');//??
-      var spinner = new Spinner(opts).spin(target);
+      // var target = document.getElementById('spinner');//??
+      // var spinner = new Spinner(opts).spin(target);
 
-      $.ajax({
-       url: get_related_url(pid),
-       dataType: "json",
-         success: function(data){
-           recommendations(data,"spinner",false,title);
-//           recommendations(data,"new_overlay",false,title);
-         },
-         error: function(jqXHR, textStatus, errorThrown){
-         //alert("oh dear "+textStatus);
-         }
-      });
+//       $.ajax({
+//        url: get_related_url(pid),
+//        dataType: "json",
+//          success: function(data){
+//            recommendations(data,"spinner",false,title);
+// //           recommendations(data,"new_overlay",false,title);
+//          },
+//          error: function(jqXHR, textStatus, errorThrown){
+//          //alert("oh dear "+textStatus);
+//          }
+//       });
 
 }
 
@@ -362,7 +365,7 @@ function get_roster(blink){
 
         // if a person
         if(item.obj_type=="person"){
-          html.push("<div class='snaptarget person' id='"+item.name+"'>");
+          html.push("<div class='snaptarget person ui-droppable' id='"+item.name+"'>");
           html.push("<img class='img_person' src='images/person.png'  />");
           html.push("<div class='friend_name'>"+item.name+"</div>");
           html.push("</div>");
@@ -875,7 +878,12 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
 
                 var time_offset = suggestions[r]["time_offset"];
                 var explanation=suggestions[r]["explanation"];
-                var vid = suggestions[r]["video"];
+                //var vid = suggestions[r]["video"];
+                var vid = "http://video.ted.com/talks/dynamic/IsabelleAllende_2007-high.flv";
+
+                var whatever = id.toString();
+
+                var string = "<div id=\""+id+"\" pid=\""+id+"\" class=\"ui-widget-content button programme ui-draggable\" " + " onclick= \"javascript:insert_suggest2("+whatever+");return true\">";
 /*
                 var vid = suggestions[r]["media"]["swf"]["uri"];
 
@@ -894,15 +902,16 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                    video = video+"#"+secs
                 }
 */
-
                 if(id){
                   if(pid_title){
-                     html.push("<div id=\""+id+"\" pid=\""+id+"\" href=\""+vid+"\" class=\"ui-widget-content button programme ui-draggable\">");
+                    
+                    console.log(string);
+                     html.push(string);
                   }else{
-                     html.push("<div id=\""+id+"\" pid=\""+id+"\" href=\""+vid+"\" class=\"ui-widget-content button programme\">");
+                     html.push(string);
                   }
                   html.push("<div><img class=\"img\" src=\""+img+"\" /></div>");
-                  html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
+                  html.push("<span class=\"p_title p_title_small\">"+title+"</span>");
                   html.push("<div clear=\"both\"></div>");
                   if(desc && desc!=""){
                     html.push("<span class=\"large description\">"+desc+"</span>");
@@ -1499,6 +1508,7 @@ function userLogin(){
   <div id="side-a">
     <div id="tv"></div>
       <br clear="both"/>
+      <!-- <h3 class="contrast">YOUR FRIENDS</h3> -->
     <div id="roster"></div>
   </div>
 </div>
