@@ -77,6 +77,8 @@ var ted_api_request = "https://api.ted.com/v1/talks.json?api-key=xbsdfg4uhxf6prs
 var ted_api_filter_id= "filter=id:>"; //Remember to make "&" between them and provide int!!
 var ted_api_filter_limit = "limit="
 var ted_api_filter_offset = "offset="
+
+var init_ted = {};
 //handle group names
 //if no group name, show the intro text
 
@@ -102,6 +104,16 @@ create_buttons();
         }
       });
    }
+
+   //getting a possible initialization set of videos
+   $.ajax({
+        url: 'get_tedtalks.php',
+        dataType: "json",
+        async: false,
+        success: function(data) {
+        init_ted = changeData(data);
+        }
+    });
    history.pushState(state, "N-Screen", "/N-Screen/");
    clean_loc = String(window.location);
    window.location.hash=my_group;

@@ -37,8 +37,9 @@
 	$lname = utf8_encode($_POST['lname']);
 	$login = utf8_encode($_POST['login']);
 	$password = utf8_encode($_POST['password']);
-	$cpassword = utf8_encode($_POST['cpassword']);
-	
+	$cpassword = utf8_encode($_POST['cpassword']);	
+	//$json = $_POST['cpassword'];
+	$recommendations = utf8_encode($_POST['json_object']);
 
 	if( strcmp($password, $cpassword) != 0 ) {
 		//$errmsg_arr[] = 'Passwords do not match';
@@ -59,7 +60,7 @@
 			@mysql_free_result($result);
 		}
 		else {
-			die("Query failed");
+			die("Query failed at the login if");
 		}
 	}
 	
@@ -74,22 +75,22 @@
 	//Create INSERT query
 	$qry = "INSERT INTO members(firstname, lastname, login, passwd) VALUES('$fname','$lname','$login','".md5($_POST['password'])."')";
 	$result = @mysql_query($qry);
+
+	$recently_viewed = file_get_contents("data/recently_viewed.js");
+	$watch_later = file_get_contents("data/watch_later.js");
+	$like_dislike = file_get_contents("data/like_dislike.js");
+	$shared_by_friends = file_get_contents("data/shared_by_friends.js");
+	$sql = "INSERT INTO content(recommendations, recently_viewed, watch_later, like_dislike, shared_by_friends) VALUES ('$recommendations', '$recently_viewed', '$watch_later', '$like_dislike', '$shared_by_friends')"; //Insert every read line from txt to mysql database
+	$result2 = @mysql_query($sql);
 	
 	//Check whether the query was successful or not
-	if($result) {
+	if($result && $result2) {
 		$_SESSION['SESS_MEMBER_ID'] = $login; //set for login
-		//Insert user based content to be tracked
-		$recommendations = file_get_contents("data/recommendations.js");
-		$recently_viewed = file_get_contents("data/recently_viewed.js");
-		$watch_later = file_get_contents("data/watch_later.js");
-		$like_dislike = file_get_contents("data/like_dislike.js");
-		$shared_by_friends = file_get_contents("data/shared_by_friends.js");
-		$sql = "INSERT INTO content(recommendations, recently_viewed, watch_later, like_dislike, shared_by_friends) VALUES ('$recommendations', '$recently_viewed', '$watch_later', '$like_dislike', '$shared_by_friends')"; //Insert every read line from txt to mysql database
-		mysql_query($sql);
 		header("location: login-exec.php");
 		exit();
 	}else {
-		die("Query failed");
+		die("Query failed at registration with some result");
 		header("location: registration-failed.php");
+		exit();
 	}
 ?>

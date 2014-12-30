@@ -100,6 +100,65 @@ function init(){
             console.log("Th group is = " + response);
         }
       });
+   //getting a possible initialization set of videos
+
+   $(document).ready(function() { 
+     $.ajax({
+          url: 'get_tedtalks.php',
+          dataType: "json",
+          async: false,
+          success: function(data) {
+          var starting_data = changeData(data);
+          //console.log(JSON.stringify(starting_data));
+          $('#json_object').val(JSON.stringify(starting_data));
+          }
+      });
+  })
+}
+
+//Adapt ted-talks http requesst to our ow data format 
+//Im sexy and I know it
+
+function changeData(data){
+
+  var random_ted = {
+    suggestions: []
+  };
+  
+
+  for(var i = 0; i < data.talks.length; i++) {  var item = data.talks[i];
+      for(var j = 0; j < data.talks[i].talk.photo_urls.length; j++){
+        if(data.talks[i].talk.photo_urls[j].size == "240x180"){
+          var image = data.talks[i].talk.photo_urls[j].url;
+        }
+      } 
+      random_ted.suggestions.push({ 
+          "pid"   : item.talk.id,
+          "title" : item.talk.name,          
+          "description" : item.talk.description,
+          "date_time" : item.talk.published_at,
+          "media_profile_uris" : item.talk.media_profile_uris,
+          "url" : item.talk.media_profile_uris, //TODO CHANGE THIS
+          "video" : item.talk.media_profile_uris,
+          "speaker" : item.talk.speakers,
+          "image" : image,
+          "manifest" : {
+              "pid"   : item.talk.id,
+              "id" : item.talk.id,          
+              "title" : item.talk.name,
+              "image" : image,
+              "provider" : "ted",
+              "duration" : 1750,
+              "media": {
+                "swf": {
+                  "type": "video/x-swf",
+                  "uri": item.talk.media_profile_uris
+                }
+              }
+          },
+          "tags" : item.talk.tags
+      });
+  }console.log(random_ted);return random_ted;
 }
 
 
@@ -154,6 +213,8 @@ function show_ask_for_name(){
   
 }
 
+
+
 //spinner stuff
 
 //http://fgnass.github.com/spin.js/
@@ -193,7 +254,7 @@ function generate_new_id(j,n){
   return i;
 }
 
-<!--REGISTRATION-FORM-->
+// <!--REGISTRATION-FORM-->
   function swap(one, two) {
       document.getElementById(one).style.display = 'block';
       document.getElementById(two).style.display = 'none';
@@ -242,7 +303,6 @@ function userLogin(){
             window.location.href= "http://localhost/N-Screen/member-index.php";
         }
       });
-
   }
 
   window.fbAsyncInit = function() {
@@ -412,6 +472,9 @@ the internet. <br /> <br />
                   <div class="formRegistration">
 
                     <form id="loginForm" name="loginForm" method="post" action="register-exec.php">
+                       <div class="input-field">
+                      <input  name="json_object" id="json_object"/>
+                    </div>
                       <div class="input-field">
                        <input id="fname" name="fname" type="fname" class="textfield" value="" required="required" placeholder="First Name" />
                       </div>

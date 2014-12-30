@@ -769,51 +769,8 @@ function capitalise(txt){
 }
 
 
+
 //called when random results are returned
-
-function changeData(data){
-
-  var random_ted = {
-    suggestions: []
-  };
-  
-
-  for(var i = 0; i < data.talks.length; i++) {
-  console.log("*****THIS IS DATA *****");
-  var item = data.talks[i];
-      for(var j = 0; j < data.talks[i].talk.photo_urls.length; j++){
-        if(data.talks[i].talk.photo_urls[j].size == "240x180"){
-          var image = data.talks[i].talk.photo_urls[j].url;
-        }
-      } 
-      random_ted.suggestions.push({ 
-          "pid"   : item.talk.id,
-          "title" : item.talk.name,          
-          "description" : item.talk.description,
-          "date_time" : item.talk.published_at,
-          "media_profile_uris" : item.talk.media_profile_uris,
-          "url" : item.talk.media_profile_uris, //TODO CHANGE THIS
-          "video" : item.talk.media_profile_uris,
-          "speaker" : item.talk.speakers,
-          "image" : image,
-          "manifest" : {
-              "pid"   : item.talk.id,
-              "id" : item.talk.id,          
-              "title" : item.talk.name,
-              "image" : image,
-              "provider" : "ted",
-              "duration" : 1750,
-              "media": {
-                "swf": {
-                  "type": "video/x-swf",
-                  "uri": item.talk.media_profile_uris
-                }
-              }
-          },
-          "tags" : item.talk.tags
-      });
-  }return random_ted;
-}
 
 function random(result,el){
 //pass to the common bit of processing
@@ -1128,7 +1085,7 @@ function add_name(){
       success: function(data){
         console.log(data);
         recently_viewed_json = data;
-        var recently_viewed_items = watch_later_json.suggestions;
+        var recently_viewed_items = recently_viewed_json.suggestions;
         for(var i in recently_viewed_items){
           var id = recently_viewed_items[i].id;
           list_recently_viewed.push(id);
@@ -1461,6 +1418,50 @@ function get_data_from_programme_html(el){
      res["explanation"]=explain;
      return res;
                                 
+}
+
+//Adapt ted-talks http requesst to our ow data format
+
+function changeData(data){
+
+  var random_ted = {
+    suggestions: []
+  };
+  
+
+  for(var i = 0; i < data.talks.length; i++) {  var item = data.talks[i];
+      for(var j = 0; j < data.talks[i].talk.photo_urls.length; j++){
+        if(data.talks[i].talk.photo_urls[j].size == "240x180"){
+          var image = data.talks[i].talk.photo_urls[j].url;
+        }
+      } 
+      random_ted.suggestions.push({ 
+          "pid"   : item.talk.id,
+          "title" : item.talk.name,          
+          "description" : item.talk.description,
+          "date_time" : item.talk.published_at,
+          "media_profile_uris" : item.talk.media_profile_uris,
+          "url" : item.talk.media_profile_uris, //TODO CHANGE THIS
+          "video" : item.talk.media_profile_uris,
+          "speaker" : item.talk.speakers,
+          "image" : image,
+          "manifest" : {
+              "pid"   : item.talk.id,
+              "id" : item.talk.id,          
+              "title" : item.talk.name,
+              "image" : image,
+              "provider" : "ted",
+              "duration" : 1750,
+              "media": {
+                "swf": {
+                  "type": "video/x-swf",
+                  "uri": item.talk.media_profile_uris
+                }
+              }
+          },
+          "tags" : item.talk.tags
+      });
+  }console.log(random_ted);return random_ted;
 }
 
 //when the group changes, update the roster

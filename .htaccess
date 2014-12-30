@@ -1,3 +1,5 @@
+php_value post_max_size 10M
+
 RewriteEngine On
 
 RewriteBase /opt/lampp/htdocs/N-Screen
