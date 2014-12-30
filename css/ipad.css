@@ -161,6 +161,7 @@ a:hover{
   border-bottom-style: dotted ; 
   border-bottom-color: #2B383F; 
   border-bottom-width: 1px;
+  padding-bottom: 2em;
 }
 
 /* for non-slidey version */

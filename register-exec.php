@@ -37,10 +37,9 @@
 	$lname = utf8_encode($_POST['lname']);
 	$login = utf8_encode($_POST['login']);
 	$password = utf8_encode($_POST['password']);
-	$cpassword = utf8_encode($_POST['cpassword']);	
-	//$json = $_POST['cpassword'];
-	$recommendations = utf8_encode($_POST['json_object']);
-
+	$cpassword = utf8_encode($_POST['cpassword']);
+	$recommendations = mysql_real_escape_string($_POST['json_object']);
+	
 	if( strcmp($password, $cpassword) != 0 ) {
 		//$errmsg_arr[] = 'Passwords do not match';
 		$errflag = true;
@@ -75,7 +74,7 @@
 	//Create INSERT query
 	$qry = "INSERT INTO members(firstname, lastname, login, passwd) VALUES('$fname','$lname','$login','".md5($_POST['password'])."')";
 	$result = @mysql_query($qry);
-
+	//$recommendations = mysql_real_escape_string(file_get_contents("data/cacota.js"));
 	$recently_viewed = file_get_contents("data/recently_viewed.js");
 	$watch_later = file_get_contents("data/watch_later.js");
 	$like_dislike = file_get_contents("data/like_dislike.js");

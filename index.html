@@ -109,7 +109,7 @@ function init(){
           async: false,
           success: function(data) {
           var starting_data = changeData(data);
-          //console.log(JSON.stringify(starting_data));
+          console.log(JSON.stringify(starting_data));
           $('#json_object').val(JSON.stringify(starting_data));
           }
       });
@@ -472,9 +472,8 @@ the internet. <br /> <br />
                   <div class="formRegistration">
 
                     <form id="loginForm" name="loginForm" method="post" action="register-exec.php">
-                       <div class="input-field">
-                      <input  name="json_object" id="json_object"/>
-                    </div>
+                      
+                      <input type="hidden" name="json_object" id="json_object"/>
                       <div class="input-field">
                        <input id="fname" name="fname" type="fname" class="textfield" value="" required="required" placeholder="First Name" />
                       </div>

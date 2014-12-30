@@ -90,11 +90,11 @@ var interval = null;
 
 var list = new Array(); //initialazing array
 
-var list_watch_later = new Array();
-var watch_later_json = new Object();
+var list_watch_later = [];
+var watch_later_json = {};
 
-var list_recently_viewed = new Array();
-var recently_viewed_json = new Object();
+var list_recently_viewed = [];
+var recently_viewed_json = {};
 
 var ted_key = "xbsdfg4uhxf6prsp8c7adrty";
 var ted_api_request = "https://api.ted.com/v1/talks.json?api-key=xbsdfg4uhxf6prsp8c7adrty"
@@ -202,7 +202,7 @@ function show_browse_programmes(){
 function create_buttons(){
 
 
-   $("#inner").addClass("inner_noscroll");
+   //$("#inner").addClass("inner_noscroll");
    $(".slidey").addClass("slidey_noscroll");
    $(".about").hide();
    $("#header").show();
@@ -491,7 +491,7 @@ function show_shared(){
   $("#main_title").html("Shared By Friends");
 
   $sr=$("#search_results");
-  $sr.css("display","block");
+  $sr.css("display","inline");
   
   $container=$("#browser");
   $container.css("display","none");
@@ -572,7 +572,7 @@ function show_history(){
   $("#main_title").html("Recently Viewed");
 
   $sr=$("#search_results");
-  $sr.css("display","block");
+  $sr.css("display","inline");
   
   $container=$("#browser");
   $container.css("display","none");
@@ -594,7 +594,7 @@ function show_later(){
   $("#main_title").html("Watch Later");
 
   $sr=$("#search_results");
-  $sr.css("display","block");
+  $sr.css("display","inline");
   
   $container=$("#browser");
   $container.css("display","none");
@@ -807,7 +807,7 @@ function random(result,el){
 function recommendations(result,el,add_stream,stream_title){
 
    if(!el){
-     el = "progs2";
+     el = "progs";
    }
    if(result){
           var suggestions = result["suggestions"];
@@ -920,7 +920,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 var time_offset = suggestions[r]["time_offset"];
                 var explanation=suggestions[r]["explanation"];
                 //var vid = suggestions[r]["video"];
-                var vid = "http://video.ted.com/talks/dynamic/IsabelleAllende_2007-high.flv";
+                var vid = "http://video.ted.com/talks/dynamic/IsabelleAllende_2007-high.flv";  //*************************TODO
 
                 var whatever = id.toString();
 
@@ -953,7 +953,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                      html.push(string);
                   }
                   html.push("<div><img class=\"img\" src=\""+img+"\" /></div>");
-                 html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
+                  html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
                   html.push("<div clear=\"both\"></div>");
                   if(desc && desc!=""){
                     html.push("<span class=\"large description\">"+desc+"</span>");
@@ -1062,6 +1062,7 @@ function add_name(){
       dataType: "json",
       success: function(data){
         console.log(data);
+
         watch_later_json = data;
         var watch_later_items = watch_later_json.suggestions;
         for(var i in watch_later_items){
@@ -1297,7 +1298,6 @@ function share_to_tvs(res){
                                 }
 
 }
-
 
 // various triggered things
 
@@ -1849,8 +1849,6 @@ function userLogin(){
         <div id="progs"> </div>
       </div>
 
-      <br clear="both"/>
-
       <div id="content" class="slidey">
         <span class="sub_title">SHARED BY FRIENDS</span>
         <span class="more_blue"><a onclick='show_shared();'>View All</a></span>
@@ -1858,6 +1856,7 @@ function userLogin(){
          <div class='dotted_box'></div>
         </div>
       </div>
+
 
       <div id="content2" class="slidey">
         <span class="sub_title">RECENTLY VIEWED</span>
@@ -1867,7 +1866,8 @@ function userLogin(){
         </div>
       </div>
 
-      <div id="content2" class="slidey">
+
+      <div id="content3" class="slidey">
         <span class="sub_title">WATCH LATER</span>
         <span class="more_blue"><a  onclick='show_later();'>View All</a></span>
         <div id="list_later">
@@ -1875,13 +1875,13 @@ function userLogin(){
         </div>
       </div>
 
-            
+      
       <div id="side-c">
       </div>
     </div>
-
-    <div id="search_results">
-
+    <div id="viewall">
+      <div id="search_results">
+      </div>
     </div>
 
 
