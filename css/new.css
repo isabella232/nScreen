@@ -38,7 +38,7 @@ body{
   border: 2px dashed #2B383F;
   height: 125px;
   padding-left: 12px; 
-#  padding-bottom:30px;
+/*#  padding-bottom:30px;*/
   border-color:#2B383F;
   float:left;
 }
@@ -383,7 +383,7 @@ h2{
 
 .forminput{
   height:30px;
-  #width:80%;
+  /*#width:80%;*/
   font-size:16px;
 }
 
@@ -391,8 +391,8 @@ h2{
   background: #3198C4;
   border: 1px #3198C4;
   color: white;
-#  padding:10px;
-#  margin-top:10px;
+/*#  padding:10px;
+#  margin-top:10px;*/
   float:right;
   font-size:20px;
   -moz-border-radius: 3px;
@@ -402,9 +402,9 @@ h2{
 
 
 .play_button{
- # width:50px;
+/* # width:50px;
  # padding-bottom:5px;
- #padding-right:10px;
+ #padding-right:10px;*/
  position:absolute;
  top:250px;
  left:30px;
@@ -459,7 +459,7 @@ h2{
   z-index:10;
 }
 
-##new_overlay{
+/*##new_overlay{
 #  position:absolute;
 #  top:0px;
 #  left:25%;
@@ -467,7 +467,7 @@ h2{
 #  color:white;
 #  background-color:black;
 #  z-index:10;
-#}
+#}*/
  
  
 #bg{

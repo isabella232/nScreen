@@ -107,6 +107,8 @@ var suggestions = null;
 
 function init(){
 
+  changeCSS('css/new.css', 0);
+
 //detect ipads etc
    //console.log("platform "+navigator.platform);
    if(navigator.platform.indexOf("iPad") != -1 || navigator.platform.indexOf("Linux armv7l") != -1){
@@ -169,9 +171,28 @@ function init(){
 
 }
 
+//Change CSS file
+function changeCSS(cssFile, cssLinkIndex) {
+ 
+        var oldlink = document.getElementsByTagName("link").item(cssLinkIndex);
+ 
+        var newlink = document.createElement("link");
+        newlink.setAttribute("rel", "stylesheet");
+        newlink.setAttribute("type", "text/css");
+        newlink.setAttribute("href", cssFile);
+ 
+        document.getElementsByTagName("head").item(0).replaceChild(newlink, oldlink);
+}
+
 function show_browse_programmes(){
   $sr=$("#search_results");
   $sr.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("grey").addClass("blue");
+
+  $random=$("#random");
+  $random.removeClass("blue").addClass("grey");
   $container=$("#browser");
   $container.css("display","block");
 }
@@ -179,6 +200,13 @@ function show_browse_programmes(){
 //creates and initialises the buttons object                              
 
 function create_buttons(){
+
+
+   $("#inner").addClass("inner_noscroll");
+   $(".slidey").addClass("slidey_noscroll");
+   $(".about").hide();
+   $("#header").show();
+   $("#roster_wrapper").show();
     
    //set up notifications area
    $("#notify").toggle(
@@ -239,7 +267,7 @@ var opts = {
 //display suggestions based on id
 
 function insert_suggest2(id) {
-      var div = $(id);
+      var div = $("#"+id);
 
       var title = div.find(".p_title").text();
       var description = div.find(".description").text();
@@ -641,10 +669,12 @@ function do_random(el){
   }
 
   $.ajax({
-    url: random_url,
+    url: "get_random_tedtalks.php",
     dataType: "json",
     success: function(data){
-      random(data,el);
+      var result = changeData(data);
+      console.log(JSON.stringify(result));
+      random(result,el);
     },
     error: function(jqXHR, textStatus, errorThrown){
     //console.log("nok "+textStatus);
@@ -684,8 +714,8 @@ function do_start(el,start_url){
   }else{
      do_random(el);
   }
-}
 
+}
 
 //search for txt
        
@@ -740,6 +770,50 @@ function capitalise(txt){
 
 
 //called when random results are returned
+
+function changeData(data){
+
+  var random_ted = {
+    suggestions: []
+  };
+  
+
+  for(var i = 0; i < data.talks.length; i++) {
+  console.log("*****THIS IS DATA *****");
+  var item = data.talks[i];
+      for(var j = 0; j < data.talks[i].talk.photo_urls.length; j++){
+        if(data.talks[i].talk.photo_urls[j].size == "240x180"){
+          var image = data.talks[i].talk.photo_urls[j].url;
+        }
+      } 
+      random_ted.suggestions.push({ 
+          "pid"   : item.talk.id,
+          "title" : item.talk.name,          
+          "description" : item.talk.description,
+          "date_time" : item.talk.published_at,
+          "media_profile_uris" : item.talk.media_profile_uris,
+          "url" : item.talk.media_profile_uris, //TODO CHANGE THIS
+          "video" : item.talk.media_profile_uris,
+          "speaker" : item.talk.speakers,
+          "image" : image,
+          "manifest" : {
+              "pid"   : item.talk.id,
+              "id" : item.talk.id,          
+              "title" : item.talk.name,
+              "image" : image,
+              "provider" : "ted",
+              "duration" : 1750,
+              "media": {
+                "swf": {
+                  "type": "video/x-swf",
+                  "uri": item.talk.media_profile_uris
+                }
+              }
+          },
+          "tags" : item.talk.tags
+      });
+  }return random_ted;
+}
 
 function random(result,el){
 //pass to the common bit of processing
@@ -894,6 +968,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 var whatever = id.toString();
 
                 var string = "<div id=\""+id+"\" pid=\""+id+"\" class=\"ui-widget-content button programme ui-draggable\" " + " onclick= \"javascript:insert_suggest2("+whatever+");return true\">";
+
 /*
                 var vid = suggestions[r]["media"]["swf"]["uri"];
 
@@ -921,7 +996,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                      html.push(string);
                   }
                   html.push("<div><img class=\"img\" src=\""+img+"\" /></div>");
-                  html.push("<span class=\"p_title p_title_small\">"+title+"</span>");
+                 html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
                   html.push("<div clear=\"both\"></div>");
                   if(desc && desc!=""){
                     html.push("<span class=\"large description\">"+desc+"</span>");
@@ -1012,7 +1087,8 @@ function add_name(){
       url: "get_suggestions.php",
       dataType: "json",
       success: function(data){
-        console.log(data);
+        //console.log(data);
+        //var whatever = changeData(data);
         recommendations(data,"progs");
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -1071,7 +1147,9 @@ function add_name(){
         url: 'get_tedtalks.php',
         dataType: "json",
         async: false,
-        success: function(response) {
+        success: function(data) {
+            var whatever = changeData(data);
+            console.log(whatever);
             console.log("TED TALKS RETREIVED");
         }
     });
@@ -1389,9 +1467,9 @@ function get_data_from_programme_html(el){
 
 $(document).bind('items_changed',function(ev,blink){
     get_roster(blink);
-    // $(document).trigger('refresh');
-    // $(document).trigger('refresh_buttons');
-    // $(document).trigger('refresh_group');
+     $(document).trigger('refresh');
+     $(document).trigger('refresh_buttons');
+     //$(document).trigger('refresh_group');
     // $(document).trigger('refresh_history');
     // $(document).trigger('refresh_recs');
     // $(document).trigger('refresh_search');
@@ -1460,6 +1538,7 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
 
 function build_notification(msg_text,programme,name){
 
+  console.log("Detected shared item");
   if(lastmsg!=msg_text){
     var p = $("#notify").text();
     var num = parseInt(p);
@@ -1478,6 +1557,85 @@ function build_notification(msg_text,programme,name){
 
   }            
 }
+
+//create html from a programme
+function generate_html_for_programme(j,n,id){
+
+      var pid=j["pid"];
+      var video = j["video"];
+      var title=j["title"];
+      if(!title){
+         title = j["core_title"];
+      }
+      var img=j["image"];
+      if(!img){
+        img=j["depiction"];
+      }
+      var manifest=j["manifest"];
+      var more=j["more"];
+      var explanation=j["explanation"];
+      var desc=j["description"];
+      var classes= j["classes"];
+      var is_live = false;
+      if(j["live"]==true || j["live"]=="true" || j["is_live"]==true || j["is_live"]=="true"){
+        is_live = true;
+      }
+      var service = j["service"];
+      var channel = j["channel"];
+      if(channel && is_live){
+        img = "channel_images/"+channel.replace(" ","_")+".png";
+      }
+
+
+      var html = [];
+      html.push("<div id=\""+id+"\" pid=\""+pid+"\"");
+      if(more){
+        html.push(" more=\""+more+"\"");
+      }
+      html.push(" is_live=\""+is_live+"\"");
+
+      if(video){
+        html.push("  href=\""+video+"\"");
+      }
+      if(service){
+        html.push("  service=\""+service+"\"");
+      }
+      if(manifest){
+        html.push("  manifest=\""+manifest+"\"");
+      }
+      if(classes){
+        html.push("class=\""+classes+"\">");
+      }else{
+        html.push("class=\"ui-widget-content button programme open_win\">");
+      }
+      html.push("<div class='img_container'><img class=\"img\" src=\""+img+"\" />");
+      html.push("</div>");
+      if(is_live){
+       html.push("Live: ");
+
+      }else{
+      }
+      html.push("<span class=\"p_title p_title_small\">"+title+"</span>");
+      html.push("<div clear=\"both\"></div>");
+      if(n){                    
+        html.push("<span class=\"shared_by\">Shared by "+n+"</span>");
+      }
+      if(desc){
+        html.push("<span class=\"description large\">"+desc+"</span>");
+      }
+/*
+      if(explanation){
+
+        //string.charAt(0).toUpperCase() + string.slice(1);
+        explanation = explanation.replace(/_/g," ");
+        var exp = explanation.replace(/,/g," and ");
+
+        html.push("<span class=\"explain_small\">Matches "+exp+" in your profile</span>");
+      }
+*/
+      html.push("</div>");
+      return html
+}    
 
 //when the TV changes, print out what's being watched
 
@@ -1505,6 +1663,51 @@ $(document).bind('tv_changed', function (ev,item) {
   build_notification(msg_text,item.nowp, item.name);
 
 });
+
+
+//**************************TO DO*****************************
+
+// $(document).bind('refresh_group', function () {
+
+//                 $(".snaptarget_group").unbind('click');
+//                 $( ".snaptarget_group" ).click(function() {
+
+//                         $('.new_overlay').hide();
+// //open a new overlay containing group shared
+//                         $('#results').addClass("new_overlay");
+//                         $('#results').show();
+//                         show_grey_bg();
+//                         return false;
+
+//                 });
+
+//                 $("#grp").unbind('click');
+//                 $( "#grp" ).click(function() {
+
+//                         $('.new_overlay').hide();
+// //open a new overlay containing group shared
+//                         $('#results').addClass("new_overlay");
+//                         $('#results').show();
+//                         show_grey_bg();
+//                         return false;
+
+//                 });
+
+// });
+
+//annoying bloody audio stuff
+//http://codingrecipes.com/documentgetelementbyid-on-all-browsers-cross-browser-getelementbyid
+function get_object(id) {
+   var object = null;
+   if (document.layers) {       
+    object = document.layers[id];
+   } else if (document.all) {
+    object = document.all[id];
+   } else if (document.getElementById) {
+    object = document.getElementById(id);
+   }
+   return object;
+}
 
 
 function remove_search_text(){
@@ -1689,9 +1892,7 @@ function userLogin(){
 </div>
 
 <div id="roster_wrapper">
-  <div class="notifications_red" id="notify"></div>
-  <div class="notifications_red_large" id="notify_large" onclick="javascript:close_notifications();"></div>
-
+  
   <div id="side-a">
     <div id="tv"></div>
       <br clear="both"/>
