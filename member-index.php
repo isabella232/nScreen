@@ -185,6 +185,7 @@ function changeCSS(cssFile, cssLinkIndex) {
 }
 
 function show_browse_programmes(){
+  $("#main_title").html("Browse Programmes");
   $sr=$("#search_results");
   $sr.css("display","none");
 
@@ -203,7 +204,7 @@ function create_buttons(){
 
 
    //$("#inner").addClass("inner_noscroll");
-   $(".slidey").addClass("slidey_noscroll");
+   // $(".slidey").addClass("slidey_noscroll");
    $(".about").hide();
    $("#header").show();
    $("#roster_wrapper").show();
@@ -285,6 +286,7 @@ function insert_suggest2(id) {
       html.push("</div>");
       $('#history').prepend(html.join(''));
 
+
       html2 = [];
 /*
       html2.push("<div id=\""+id+"_overlay\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog\">");
@@ -308,7 +310,7 @@ function insert_suggest2(id) {
 //      html2.push("<p class=\"keywords\">"+keywords+"</p>");
       html2.push("<p class=\"link\"><a href=\"http://www.ted.com/talks/view/id/"+pid+"\" target=\"_blank\">Sharable Link</a></p></div>");
       html2.push("</div>");
-      html2.push("<br clear=\"both\"/>");
+      // html2.push("<br clear=\"both\"/>");
       html2.push("</div>");
 
       $('#new_overlay').html(html2.join(''));
@@ -335,7 +337,7 @@ function insert_suggest2(id) {
 
 
       $('#new_overlay').append("<div class='dotted_spacer2'></div><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span>");
-      $('#new_overlay').append("<br clear=\"both\"/>");
+      // $('#new_overlay').append("<br clear=\"both\"/>");
       $('#new_overlay').append("<div id='spinner'></div>");
       // var target = document.getElementById('spinner');//??
       // var spinner = new Spinner(opts).spin(target);
@@ -397,7 +399,7 @@ function get_roster(blink){
           html.push("<img class='img_person' src='images/person.png'  />");
           html.push("<div class='friend_name'>"+item.name+"</div>");
           html.push("</div>");
-          html.push("<br clear=\"both\" />");
+          // html.push("<br clear=\"both\" />");
         }
 
         // if a bot
@@ -406,7 +408,7 @@ function get_roster(blink){
           html.push("<img class='img_person' src='images/bot.png'  />");
           html.push("<div class='friend_name'>"+item.name+"</div>");
           html.push("</div>");
-          html.push("<br clear=\"both\" />");
+          // html.push("<br clear=\"both\" />");
         }
 
         // if a TV
@@ -418,7 +420,7 @@ function get_roster(blink){
             html_tv.push("<div id='tv_name' style='float:right;font-size:16px;padding-top:10px;padding-right:40px;'>My TV</div>");
             html_tv.push("<div style='float:left'><img class='img_tv' src='images/tiny_tv.png' /></div>");
             
-            html_tv.push("<br clear=\"both\" />");
+            // html_tv.push("<br clear=\"both\" />");
     
             html_tv.push("<div class='dotted_spacer'>");
             var nowp = item.nowp;
@@ -431,7 +433,7 @@ function get_roster(blink){
             }
             html_tv.push("</div>");
             html_tv.push("</div>");
-            html_tv.push("<br clear=\"both\"></br>");
+            // html_tv.push("<br clear=\"both\"></br>");
             $('#tv').html(html_tv.join(''));
             $("#tv").unbind('click');
             $("#tv").click(function() {
@@ -954,7 +956,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                   }
                   html.push("<div><img class=\"img\" src=\""+img+"\" /></div>");
                   html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
-                  html.push("<div clear=\"both\"></div>");
+                  // html.push("<div clear=\"both\"></div>");
                   if(desc && desc!=""){
                     html.push("<span class=\"large description\">"+desc+"</span>");
                   }
@@ -1049,9 +1051,8 @@ function add_name(){
         recommendations(data,"progs");
       },
       error: function(jqXHR, textStatus, errorThrown){
-        console.log("!!nok "+textStatus);
+        console.log("!!nokkkk "+textStatus);
       }
-
     });
 
     //Get user based content (if stored)
@@ -1374,7 +1375,7 @@ function generate_html_for_video(j,n,id){
       html.push("<div><img class=\"img\" src=\""+img+"\" /></div>");
 
       html.push("<span class=\"p_title p_title_small\">"+title+"</span>");
-      html.push("<div clear=\"both\"></div>");
+      // html.push("<div clear=\"both\"></div>");
       if(n){                    
         html.push("<span class=\"shared_by\">Shared by "+n+"</span>");
       }
@@ -1617,7 +1618,7 @@ function generate_html_for_programme(j,n,id){
       }else{
       }
       html.push("<span class=\"p_title p_title_small\">"+title+"</span>");
-      html.push("<div clear=\"both\"></div>");
+      // html.push("<div clear=\"both\"></div>");
       if(n){                    
         html.push("<span class=\"shared_by\">Shared by "+n+"</span>");
       }
@@ -1830,7 +1831,7 @@ function userLogin(){
   </div>
 
        
-<br clear="both"/>
+<!-- <br clear="both"/> -->
 
   <div class="notifications_red" id="notify"></div>
   <div class="notifications_red_large" id="notify_large" onclick="javascript:close_notifications();"></div>
@@ -1840,7 +1841,7 @@ function userLogin(){
 
 
   <div id="inner">
-
+   
 
     <div id="browser">
       <div id="side-b" class="slidey">
@@ -1848,45 +1849,39 @@ function userLogin(){
         <span class="more_blue"><a onclick='show_more_recommendations();'>View All</a></span>
         <div id="progs"> </div>
       </div>
+      <!-- <br clear="both" /> -->
 
       <div id="content" class="slidey">
         <span class="sub_title">SHARED BY FRIENDS</span>
         <span class="more_blue"><a onclick='show_shared();'>View All</a></span>
         <div id="results">
-         <div class='dotted_box'></div>
+         <div class='dotted_box'> </div>
         </div>
       </div>
 
-
-      <div id="content2" class="slidey">
+      <div id="content_2" class="slidey">
         <span class="sub_title">RECENTLY VIEWED</span>
         <span class="more_blue"><a  onclick='show_history();'>View All</a></span>
         <div id="history">
-          <div class='dotted_box'></div>
-        </div>
-      </div>
-
-
-      <div id="content3" class="slidey">
-        <span class="sub_title">WATCH LATER</span>
-        <span class="more_blue"><a  onclick='show_later();'>View All</a></span>
-        <div id="list_later">
-          <div class='dotted_box'></div>
+          <div class='dotted_box_2'></div>
         </div>
       </div>
 
       
+      <div id="content_3" class="slidey">
+        <span class="sub_title">WATCH LATER</span>
+        <span class="more_blue"><a  onclick='show_later();'>View All</a></span>
+        <div id="list_later">
+          <div class="dotted_box_2"> </div>
+        </div>
+      </div>
+ 
       <div id="side-c">
       </div>
     </div>
-    <div id="viewall">
-      <div id="search_results">
-      </div>
-    </div>
 
-
-
-    <br clear="both" />
+      <div id="search_results"></div>
+    <!-- <br clear="both" /> -->
 
   </div>
 
@@ -1896,7 +1891,7 @@ function userLogin(){
   
   <div id="side-a">
     <div id="tv"></div>
-      <br clear="both"/>
+      <!-- <br clear="both"/> -->
       <!-- <h3 class="contrast">YOUR FRIENDS</h3> -->
     <div id="roster"></div>
   </div>

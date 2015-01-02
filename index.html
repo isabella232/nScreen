@@ -61,6 +61,8 @@ var server = "localhost:5280";
 //polling interval (for changes to channels)
 var interval = null;
 
+var starting_data = {};
+
 //handle group names
 //if no group name, show the intro text
 
@@ -108,7 +110,7 @@ function init(){
           dataType: "json",
           async: false,
           success: function(data) {
-          var starting_data = changeData(data);
+          starting_data = changeData(data);
           console.log(JSON.stringify(starting_data));
           $('#json_object').val(JSON.stringify(starting_data));
           }
@@ -294,7 +296,8 @@ function userLogin(){
     $.ajax({
         url: "facebook-register.php",
         type: "POST",
-        data: "facebook_id="+id+"&firstname="+name,
+        data: {facebook_id: id, firstname: name, recommendations : JSON.stringify(starting_data)},
+        // data: "facebook_id="+id+"&firstname="+name+"&recommendations="+JSON.stringify(starting_data),
         dataType: "json",
         success: function (response) {
             create_buttons();

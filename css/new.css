@@ -32,7 +32,7 @@ body{
 }
 
 
-.dotted_box{
+.dotted_box, .dotted_box_2{
   width:216px;
   margin-top:10px;margin-bottom:10px;margin-left:20px;
   border: 2px dashed #2B383F;
@@ -103,24 +103,21 @@ body{
 
 .slidey{
   height:250px;  
-  border-bottom-style: dotted ; 
-  border-bottom-color: #2B383F; 
-  border-bottom-width: 1px;
+  /*border-bottom-style: dotted ; */
+  /*border-bottom-color: #2B383F; 
+  border-bottom-width: 1px;*/
 }
 
-#viewall{
-  width: 100%;
-}
 
 .slidey_noscroll{
   padding-bottom: 1.5em;
   overflow:hidden;
 }
 
-#content2, #content3{
+/*#content2, #content3{
   padding-top:20px;
 }
-
+*/
 #side-c{
   padding-top:20px;
 }

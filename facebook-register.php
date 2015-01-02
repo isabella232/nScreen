@@ -35,6 +35,7 @@
 	$cpassword = null;
 
 	$facebook_id = $_POST['facebook_id'];
+	$recommendations= mysql_real_escape_string($_POST['recommendations']);
 		
 	// //Check for duplicate facebook ID and login directly
 	if($facebook_id != '') {
@@ -61,7 +62,7 @@
 	if($result) {
 
 		//Insert user based content to be tracked
-		$recommendations = file_get_contents("data/recommendations.js");
+		//$recommendations = file_get_contents("data/recommendations.js");
 		$recently_viewed = file_get_contents("data/recently_viewed.js");
 		$watch_later = file_get_contents("data/watch_later.js");
 		$like_dislike = file_get_contents("data/like_dislike.js");
