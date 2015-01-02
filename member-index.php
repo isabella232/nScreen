@@ -478,7 +478,7 @@ function show_shared(){
   $("#main_title").html("Shared By Friends");
 
   $sr=$("#search_results");
-  $sr.css("display","inline");
+  $sr.css("display","block");
   
   $container=$("#browser");
   $container.css("display","none");
@@ -559,7 +559,7 @@ function show_history(){
   $("#main_title").html("Recently Viewed");
 
   $sr=$("#search_results");
-  $sr.css("display","inline");
+  $sr.css("display","block");
   
   $container=$("#browser");
   $container.css("display","none");
@@ -581,7 +581,7 @@ function show_later(){
   $("#main_title").html("Watch Later");
 
   $sr=$("#search_results");
-  $sr.css("display","inline");
+  $sr.css("display","block");
   
   $container=$("#browser");
   $container.css("display","none");
