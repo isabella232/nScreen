@@ -96,6 +96,9 @@ var watch_later_json = {};
 var list_recently_viewed = [];
 var recently_viewed_json = {};
 
+var list_shared_by_friends = [];
+var shared_by_friends_json = {};
+
 var ted_key = "xbsdfg4uhxf6prsp8c7adrty";
 var ted_api_request = "https://api.ted.com/v1/talks.json?api-key=xbsdfg4uhxf6prsp8c7adrty"
 var ted_api_filter_id= "filter=id:>"; //Remember to make "&" between them and provide int!!
@@ -252,6 +255,9 @@ var opts = {
 
 function insert_suggest2(id) {
 
+      if(update_list(id,list_recently_viewed) == false){ //this means that the element IS already in the list
+        $('#history').find("#"+id).remove();
+      }
 
       var div = $("#"+id);
 
@@ -264,7 +270,7 @@ function insert_suggest2(id) {
       var img = div.find(".img").attr("src");
 
       html = [];
-      html.push("<div id=\""+id+"_history\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content button programme ui-draggable\">");
+      html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
       html.push("<img class=\"img\" src=\""+img+"\" />");
       html.push("<span class=\"p_title\">"+title+"</span>");
       html.push("<p class=\"description large\">"+description+"</p>");
@@ -510,12 +516,26 @@ $("#addtowatchlater").live( "click", function() {
   return false;
 });
 
+//FUnctin to update internal list of programmes within each section and to add properly html
+function update_list(pid, list){
+  var not_in_the_list = true;
+  for (var i = 0; i < list.length; i++){
+    if(list[i] == pid){
+      not_in_the_list = false;
+    }
+  }
+  if(not_in_the_list){
+    list.push(pid);
+  }
+  return not_in_the_list; //returns true if element not in the list
+}
+
 // list of movies ---- > HAVE TO CHANGE IT TO MAKE IT BETTER
 
 function insert_watchlater_from_div(id){
   var div = $("#"+id);
   var j = get_data_from_programme_html(div);
-  var prog_id = j["id"];
+  var prog_id = j["pid"];
   console.log(j);
   var not_in_the_list = true;
 
@@ -546,7 +566,7 @@ function insert_watchlater_from_div(id){
 //setUsername(3, "Thomas");
 
 function insert_watchlater(j){
-  var id = j["id"];
+  var id = j["pid"];
   console.log("passing to addlater");
   console.log(j);
   console.log("passing to addlater");
@@ -893,7 +913,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 var desc="";
                 var desc = suggestions[r]["description"];
 //                desc = desc.replace(/\"/g,"'");
-                var id = suggestions[r]["id"];
+                var id = suggestions[r]["pid"];
                 if(!id){
                   id = suggestions[r]["pid"];
                 }
@@ -908,9 +928,9 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 //var vid = suggestions[r]["video"];
                 var vid = "http://video.ted.com/talks/dynamic/IsabelleAllende_2007-high.flv";  //*************************TODO
 
-                var whatever = id.toString();
+                var program_id = id.toString();
 
-                var string = "<div id=\""+id+"\" pid=\""+id+"\" class=\"ui-widget-content button programme ui-draggable\" " + " onclick= \"javascript:insert_suggest2("+whatever+");return true\">";
+                var string = "<div id=\""+id+"\" pid=\""+id+"\" class=\"ui-widget-content button programme ui-draggable\" " + " onclick= \"javascript:insert_suggest2("+program_id+");return true\">";
 
 /*
                 var vid = suggestions[r]["media"]["swf"]["uri"];
