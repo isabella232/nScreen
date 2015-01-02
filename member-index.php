@@ -678,7 +678,6 @@ function do_start(el,start_url){
 
   //do_start("search_results",start_url);
 
-
   //id for element to add it to
   if(!el){
     el = "progs";
