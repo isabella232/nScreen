@@ -107,8 +107,6 @@ var suggestions = null;
 
 function init(){
 
-  changeCSS('css/new.css', 0);
-
 //detect ipads etc
    //console.log("platform "+navigator.platform);
    if(navigator.platform.indexOf("iPad") != -1 || navigator.platform.indexOf("Linux armv7l") != -1){
@@ -125,22 +123,22 @@ function init(){
 
    $sr=$("#search_results");
    $sr.css("display","none");
-   $container=$("#browser");
-   $container.css("display","block");
+   // $container=$("#browser");
+   // $container.css("display","block");
 
-   $browse=$("#browse");
-   $browse.addClass("blue").removeClass("grey");
+   // $browse=$("#browse");
+   // $browse.addClass("blue").removeClass("grey");
 
-   $random=$("#random");
-   $random.addClass("grey").removeClass("blue");
+   // $random=$("#random");
+   // $random.addClass("grey").removeClass("blue");
 
    var grp = window.location.hash;
    if(grp){
      my_group = grp.substring(1);
      //$("#header").show();
-     //$("#roster_wrapper").show();
+     // $("#roster_wrapper").show();
      //$(".about").hide();
-     create_buttons();
+     //create_buttons();
    }else{
      $.ajax({
         url: "get_group.php",
@@ -156,9 +154,9 @@ function init(){
    history.pushState(state, "N-Screen", "/N-Screen/");
    clean_loc = String(window.location);
    window.location.hash=my_group;
-   $("#group_name").html(my_group);
-   $("#grp_link").html(clean_loc+"#"+my_group);
-   $("#grp_link").attr("href",clean_loc+"#"+my_group);
+   //$("#group_name").html(my_group);
+   // $("#grp_link").html(clean_loc+"#"+my_group);
+   // $("#grp_link").attr("href",clean_loc+"#"+my_group);
    var state = {"canBeAnything": true};
    add_name();
 
@@ -169,19 +167,6 @@ function init(){
    // ??????????????????????????????????????????????????
    //do_start("progs","get_suggestions.php");
 
-}
-
-//Change CSS file
-function changeCSS(cssFile, cssLinkIndex) {
- 
-        var oldlink = document.getElementsByTagName("link").item(cssLinkIndex);
- 
-        var newlink = document.createElement("link");
-        newlink.setAttribute("rel", "stylesheet");
-        newlink.setAttribute("type", "text/css");
-        newlink.setAttribute("href", cssFile);
- 
-        document.getElementsByTagName("head").item(0).replaceChild(newlink, oldlink);
 }
 
 function show_browse_programmes(){
@@ -201,13 +186,11 @@ function show_browse_programmes(){
 //creates and initialises the buttons object                              
 
 function create_buttons(){
-
-
    //$("#inner").addClass("inner_noscroll");
    // $(".slidey").addClass("slidey_noscroll");
-   $(".about").hide();
-   $("#header").show();
-   $("#roster_wrapper").show();
+   //$(".about").hide();
+   // $("#header").show();
+    $("#roster_wrapper").show();
     
    //set up notifications area
    $("#notify").toggle(
@@ -228,7 +211,7 @@ function create_buttons(){
    buttons = new ButtonsLink({"server":server});
 }
 
-//called when buttons link is created
+// called when buttons link is created
 
 function blink_callback(blink){
   console.log("INSIDE BLINK CALLBACK --> GOING TO CALL GET CHANNEL")
@@ -268,6 +251,8 @@ var opts = {
 //display suggestions based on id
 
 function insert_suggest2(id) {
+
+
       var div = $("#"+id);
 
       var title = div.find(".p_title").text();
@@ -282,7 +267,7 @@ function insert_suggest2(id) {
       html.push("<div id=\""+id+"_history\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content button programme ui-draggable\">");
       html.push("<img class=\"img\" src=\""+img+"\" />");
       html.push("<span class=\"p_title\">"+title+"</span>");
-      html.push("<p class=\"description large\">"+description+"</b></p>");
+      html.push("<p class=\"description large\">"+description+"</p>");
       html.push("</div>");
       $('#history').prepend(html.join(''));
 
@@ -714,7 +699,7 @@ function do_start(el,start_url){
     });
 
   }else{
-     do_random(el);
+     //do_random(el);
   }
 
 }
@@ -820,7 +805,7 @@ function recommendations(result,el,add_stream,stream_title){
             }else{
                $("#pane2").html("<h3>Sorry, nothing found</h3>");
             }
-            $("#"+el).html("");
+            $("#"+el).append("");
           }else{
             if(pid_title){
                $("#pane2").html("<h3>Related to "+pid_title+"</h3>");
@@ -888,7 +873,6 @@ function search_results(result,current_query,el){
 //process the results for displaying
 
 function process_json_results(result,ele,pid_title,replace_content,add_stream,stream_title){
-
           var max = 12
           var s ="";
           var html = [];
@@ -897,6 +881,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
           console.log(result);
 
           if (suggestions && suggestions.length>0){
+            console.log("---------WE ARE NOW IN DIV " +  ele + "----------and json size is " + suggestions.length);
             var count = 0;
             var num = suggestions.length/2;
             for (var r in suggestions){
@@ -989,7 +974,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
               $("#side-c").prepend("<span class='sub_title'>Related to '"+stream_title+"'</span>\n<div class='slidey'>"+html.join('')+"</div>");
            }
           }else{
-            $("#"+ele).html('');
+            $("#"+ele).append('');
           }
 
 
@@ -1034,8 +1019,8 @@ function add_name(){
     var me = new Person(name,name);
     buttons.me = me;
     $(document).trigger('send_name');
-    $("#ask_name").hide();
-    $("#bg").hide();
+    //$("#ask_name").hide();
+    //$("#bg").hide();
 
 //get some 'personalised recommendations' 
 
@@ -1071,7 +1056,7 @@ function add_name(){
           list_watch_later.push(id);
           console.log("STORED IN WATCH LATER IDS:  " + id);
         }
-        recommendations(data,"list_later");
+        //recommendations(data,"list_later");
 
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -1823,10 +1808,10 @@ function userLogin(){
     <span id='small_title'><a target='_blank' href='player.html'>Open player in new window</a></span>
     <span class="form" >
       <form onsubmit='javascript:do_search(this.search_text.value);return false;'>
-  <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
+        <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
       </form>
-     </span>
-  <div id="title"></div>
+    </span>
+    <div id="title"></div>
 
   </div>
 
@@ -1849,7 +1834,7 @@ function userLogin(){
         <span class="more_blue"><a onclick='show_more_recommendations();'>View All</a></span>
         <div id="progs"> </div>
       </div>
-      <!-- <br clear="both" /> -->
+     
 
       <div id="content" class="slidey">
         <span class="sub_title">SHARED BY FRIENDS</span>
@@ -1859,20 +1844,22 @@ function userLogin(){
         </div>
       </div>
 
-      <div id="content_2" class="slidey">
+      <!-- <br clear="all" /> -->
+
+      <div id="content2" class="slidey">
         <span class="sub_title">RECENTLY VIEWED</span>
-        <span class="more_blue"><a  onclick='show_history();'>View All</a></span>
+        <span class="more_blue"><a onclick='show_history();'>View All</a></span>
         <div id="history">
-          <div class='dotted_box_2'></div>
+          <div class='dotted_box'> </div>
         </div>
       </div>
 
       
-      <div id="content_3" class="slidey">
+      <div id="content3" class="slidey">
         <span class="sub_title">WATCH LATER</span>
-        <span class="more_blue"><a  onclick='show_later();'>View All</a></span>
+        <span class="more_blue"><a onclick='show_later();'>View All</a></span>
         <div id="list_later">
-          <div class="dotted_box_2"> </div>
+          <div class='dotted_box'> </div>
         </div>
       </div>
  

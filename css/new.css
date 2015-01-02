@@ -108,16 +108,18 @@ body{
   border-bottom-width: 1px;*/
 }
 
+div.container {overflow: auto;}
 
 .slidey_noscroll{
   padding-bottom: 1.5em;
   overflow:hidden;
 }
 
-/*#content2, #content3{
+#content, #content2, #content3{
   padding-top:20px;
+  /*float: left;*/
 }
-*/
+
 #side-c{
   padding-top:20px;
 }
