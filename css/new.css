@@ -1,5 +1,5 @@
 body{
- font-family:Arial, Helvetica, sans-serif;
+ font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
  font:weight: lighter;
  background:black;
  margin-top:0px;
@@ -7,6 +7,11 @@ body{
  margin-right:0px;
  color:white;
  height:100%;
+}
+
+a:hover{
+  cursor: pointer; 
+  cursor: hand;
 }
 
 .telly{
@@ -21,14 +26,14 @@ body{
 }
 
 .person{
- background:#5F6C72;
+ /*background:#5F6C72;*/
  width:162px;
  min-height:70px;
  color:white;
  padding:5px;
- /*margin:5px;*/
- -moz-border-radius: 3px;
- border-radius: 3px;
+ margin:5px;
+ /*-moz-border-radius: 3px;
+ border-radius: 3px;*/
 }
 
 
@@ -116,7 +121,7 @@ div.container {overflow: auto;}
 }
 
 #content, #content2, #content3{
-  padding-top:20px;
+  padding-top:2em;
   /*float: left;*/
 }
 
@@ -245,16 +250,16 @@ div.container {overflow: auto;}
  /* this will work for QtWebKit in future */
  -webkit-user-drag: none;
 }
+.img_small:hover{
+  cursor: pointer; 
+  cursor: hand;
+}
 
 .large_prog {
- ##width:500px;
+ /*##width:500px;*/
  margin:10px;
 }
 
-.large_prog .img{
- width:500px;margin:10px;
-#margin-top:10px;margin-bottom:10px;
-}
 
 .large_prog .img{
  width:400px;margin-top:10px;margin-bottom:10px;
@@ -286,6 +291,7 @@ div.container {overflow: auto;}
  position:relative;
  top:20px;
  left:10px;
+ font-size: 1em;
  overflow:hidden;
 }
 

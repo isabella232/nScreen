@@ -251,9 +251,10 @@ var opts = {
 };
 
 
-//display suggestions based on id
+//display suggestions based on id 
+// RECENTLY VIEWED !!
 
-function insert_suggest2(id) {
+function insert_suggest2(id,tag) {
 
       if(update_list(id,list_recently_viewed) == false){ //this means that the element IS already in the list
         $('#history').find("#"+id).remove();
@@ -270,9 +271,9 @@ function insert_suggest2(id) {
       var img = div.find(".img").attr("src");
 
       html = [];
-      html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
-      html.push("<img class=\"img\" src=\""+img+"\" />");
-      html.push("<span class=\"p_title\">"+title+"</span>");
+      html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+","+tag+");return true\">");
+      html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+      html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
       html.push("<p class=\"description large\">"+description+"</p>");
       html.push("</div>");
       $('#history').prepend(html.join(''));
@@ -291,7 +292,7 @@ function insert_suggest2(id) {
 */
 
       html2.push("<div class='close_button'><img src='images/close.png' width='30px' onclick='javascript:hide_overlay();'/></div>");
-      html2.push("<div id=\""+id+"_overlay\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog\">");
+      html2.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog\">");
       html2.push("<div style='float:left;'> <img class=\"img\" src=\""+img+"\" />");
       html2.push("<div class=\"play_button\"><img src=\"images/play.png\" /></a></div></div>");
       html2.push("<div style='padding-left:20px;padding-right:20px;'>");
@@ -327,23 +328,26 @@ function insert_suggest2(id) {
       }).addTouch();
 
 
-      $('#new_overlay').append("<div class='dotted_spacer2'></div><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span>");
+      $('#new_overlay').append("<span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span>");
       // $('#new_overlay').append("<br clear=\"both\"/>");
       $('#new_overlay').append("<div id='spinner'></div>");
       // var target = document.getElementById('spinner');//??
       // var spinner = new Spinner(opts).spin(target);
 
-//       $.ajax({
-//        url: get_related_url(pid),
-//        dataType: "json",
-//          success: function(data){
-//            recommendations(data,"spinner",false,title);
-// //           recommendations(data,"new_overlay",false,title);
-//          },
-//          error: function(jqXHR, textStatus, errorThrown){
-//          //alert("oh dear "+textStatus);
-//          }
-//       });
+      $.ajax({
+       url: "get_tedtalks_related.php",
+       data: {tag : tag},
+       type: 'POST',
+       dataType: "json",
+         success: function(data){
+          var related = changeData(data);
+           recommendations(related,"spinner",false,title);
+//           recommendations(data,"new_overlay",false,title);
+         },
+         error: function(jqXHR, textStatus, errorThrown){
+         //alert("oh dear "+textStatus);
+         }
+      });
 
 }
 
@@ -368,10 +372,10 @@ function get_roster(blink){
 
      html.push("<h3 class=\"contrast\">SHARE WITH</h3>");
 
-    // html.push("<div class='snaptarget_group person' id='group'>");
-    // html.push("<img class='img_person' src='images/group.png'  />");
-    // html.push("<div class='friend_name' id='grp'>Group #"+my_group+"</div>");
-    // html.push("</div>");
+    html.push("<div class='snaptarget_group person' id='group'>");
+    html.push("<img class='img_person' src='images/group.png'  />");
+    html.push("<div class='friend_name' id='grp'>Group #"+my_group+"</div>");
+    html.push("</div>");
 
     // html.push("<br clear=\"both\" />");
 
@@ -816,6 +820,7 @@ function recommendations(result,el,add_stream,stream_title){
      el = "progs";
    }
    if(result){
+
           var suggestions = result["suggestions"];
           var pid_title = result["title"];
           if(suggestions.length==0){
@@ -896,7 +901,6 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
           var s ="";
           var html = [];
           suggestions = result;
-          console.log("THIS IS THE RESULT OF RESULT VAR");
           console.log(result);
 
           if (suggestions && suggestions.length>0){
@@ -910,6 +914,9 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 if(!title){
                   title = suggestions[r]["title"];
                 }
+                var tags = Object.keys(suggestions[r]["tags"]);
+                var tag = (/[^,]*/.exec(tags)[0]);
+                console.log("THIS IS TAG!!!!!!! " + tag);
                 var desc="";
                 var desc = suggestions[r]["description"];
 //                desc = desc.replace(/\"/g,"'");
@@ -917,7 +924,6 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 if(!id){
                   id = suggestions[r]["pid"];
                 }
-
                 var img = suggestions[r]["image"];
 
                 var channel = suggestions[r]["channel"];
@@ -930,7 +936,10 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
 
                 var program_id = id.toString();
 
-                var string = "<div id=\""+id+"\" pid=\""+id+"\" class=\"ui-widget-content button programme ui-draggable\" " + " onclick= \"javascript:insert_suggest2("+program_id+");return true\">";
+                var string = "<div id=\""+id+"\" pid=\""+id+"\" class=\"ui-widget-content button programme ui-draggable\" " ;
+                string += " onclick= \"javascript:insert_suggest2(";
+                string += program_id+", \'"+tag+"\');return true\">";
+                console.log(string);
 
 /*
                 var vid = suggestions[r]["media"]["swf"]["uri"];
@@ -953,13 +962,14 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 if(id){
                   if(pid_title){
                     
-                    console.log(string);
+                     console.log(string);
                      html.push(string);
                   }else{
                      html.push(string);
                   }
-                  html.push("<div><img class=\"img\" src=\""+img+"\" /></div>");
-                  html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
+                  html.push("<div><img class=\"img img_small\" src=\""+img+"\" /></div>");
+                  //html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
+                  html.push("<span class=\"p_title p_title_small\"><a >"+title+"</a></span>");
                   // html.push("<div clear=\"both\"></div>");
                   if(desc && desc!=""){
                     html.push("<span class=\"large description\">"+desc+"</span>");
