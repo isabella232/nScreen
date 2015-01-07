@@ -1,7 +1,8 @@
 <?php
   //Start session
   session_start();
-  $watch_later = $_POST['data'];
+  $watch_later = mysql_real_escape_string($_POST['data']);
+  $channel = $_POST['channel'];
 	ini_set( 'default_charset', 'UTF-8' );
 	
 	//Include database connection details
@@ -20,6 +21,6 @@
 	}
 	$member_id = $_SESSION['SESS_MEMBER_ID'];
 
-	mysql_query("UPDATE content SET watch_later = '$watch_later' WHERE member_id = '$member_id'");
+	mysql_query("UPDATE content SET $channel = '$watch_later' WHERE member_id = '$member_id'");
 
 ?>

@@ -88,7 +88,9 @@ var server = "localhost";
 var interval = null;
 
 
-var list = new Array(); //initialazing array
+//var list = new Array(); //initialazing array
+
+// Set of local variables that help us to store later (if so)
 
 var list_watch_later = [];
 var watch_later_json = {};
@@ -98,6 +100,11 @@ var recently_viewed_json = {};
 
 var list_shared_by_friends = [];
 var shared_by_friends_json = {};
+
+var random_json = {};
+var recommendations_json = {};
+
+var related_json = {};
 
 var ted_key = "xbsdfg4uhxf6prsp8c7adrty";
 var ted_api_request = "https://api.ted.com/v1/talks.json?api-key=xbsdfg4uhxf6prsp8c7adrty"
@@ -250,16 +257,59 @@ var opts = {
   shadow: true // Whether to render a shadow
 };
 
+//UPDATE REGARDING COLUMN IN CONTENT DATABASE 
+// watch_later, recently_viewed, shared_by_friends....
+function update_channel(channel, data){
+  $.ajax({
+        url: "set_channel.php",
+        type: "POST",
+        data: {data : JSON.stringify(data), channel : channel},
+        dataType: "json",
+        success: function (response) {
+            console.log("Correct " + channel + " updated");
+        }
+      });
+}
 
 //display suggestions based on id 
 // RECENTLY VIEWED !!
 
 function insert_suggest2(id,tag) {
 
+      console.log(id);
+
+      var item = {};
+
       if(update_list(id,list_recently_viewed) == false){ //this means that the element IS already in the list
         $('#history').find("#"+id).remove();
+        for(var i in recently_viewed_json.suggestions){
+          if(recently_viewed_json.suggestions[i].pid == ('' + id)){
+            console.log("inside if");
+            item = recently_viewed_json.suggestions[i];
+            recently_viewed_json.suggestions.splice(i,1); //we remove the item from the local json
+          }
+        }recently_viewed_json.suggestions.splice(0,0,item);
       }
 
+      else{
+        $.ajax({
+          url: "get_tedtalks_by_id.php",
+          type: "POST",
+          async: false,
+          data: {id: id},
+          dataType: "json",
+          success: function (data) {
+              item =  changeData(data);
+              recently_viewed_json.suggestions.splice(0,0,item.suggestions[0]);
+          }
+        });
+      }
+      // console.log("THIS IS ITEM");
+      // console.log(item);
+      
+      update_channel("recently_viewed", recently_viewed_json);
+      console.log("THIS IS THE UPDATED JSON RECCENTLY VIEWED");
+      console.log(recently_viewed_json);
       var div = $("#"+id);
 
       var title = div.find(".p_title").text();
@@ -341,6 +391,7 @@ function insert_suggest2(id,tag) {
        dataType: "json",
          success: function(data){
           var related = changeData(data);
+          related_json = related;
            recommendations(related,"spinner",false,title);
 //           recommendations(data,"new_overlay",false,title);
          },
@@ -521,6 +572,7 @@ $("#addtowatchlater").live( "click", function() {
 });
 
 //FUnctin to update internal list of programmes within each section and to add properly html
+//in order to prevent duplicate items
 function update_list(pid, list){
   var not_in_the_list = true;
   for (var i = 0; i < list.length; i++){
@@ -555,9 +607,9 @@ function insert_watchlater_from_div(id){
     jsObject_json = JSON.stringify(watch_later_json);
 
     $.ajax({
-        url: "set_watch_later.php",
+        url: "set_channel.php",
         type: "POST",
-        data: {data : jsObject_json},
+        data: {data : jsObject_json, channel : "watch_later"},
         dataType: "json",
         success: function (response) {
             console.log("Correct watch_later updated");
@@ -684,6 +736,7 @@ function do_random(el){
     dataType: "json",
     success: function(data){
       var result = changeData(data);
+      random_json = result; //set global variable in order to store
       console.log(JSON.stringify(result));
       random(result,el);
     },
@@ -759,26 +812,7 @@ function do_search(txt){
 
   });
 
-}    
-
-
-//make titles look a bit more readable
-
-function capitalise(txt){
-
-  txt = txt.replace(/:/g," : ");
-  var arr = txt.split(/[.|,| |\(|\)|\[|\]]/);
-  var arr2 = [];
-  for(x in arr){
-    var str = arr[x];
-    var letter = str.substr(0,1);
-    arr2.push(letter.toUpperCase() + str.substr(1).toLowerCase());
-  }
-
-  return arr2.join(" ");
 }
-
-
 
 //called when random results are returned
 
@@ -1048,13 +1082,8 @@ function add_name(){
     var me = new Person(name,name);
     buttons.me = me;
     $(document).trigger('send_name');
-    //$("#ask_name").hide();
-    //$("#bg").hide();
 
-//get some 'personalised recommendations' 
-
-    //get some 'personalised recommendations' 
-
+    //get some 'recommendations' --> this should be rendered by a recommendation algorithm 
     $.ajax({
       type: "GET",
       url: "get_suggestions.php",
@@ -1062,6 +1091,8 @@ function add_name(){
       success: function(data){
         //console.log(data);
         //var whatever = changeData(data);
+        recommendations_json = data; //set global variable to use later if so
+        console.log(recommendations_json);
         recommendations(data,"progs");
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -1070,22 +1101,19 @@ function add_name(){
     });
 
     //Get user based content (if stored)
-
     $.ajax({
       type: "GET",
       url: "get_watch_later.php",
       dataType: "json",
       success: function(data){
-        console.log(data);
-
         watch_later_json = data;
+        console.log(watch_later_json);
         var watch_later_items = watch_later_json.suggestions;
         for(var i in watch_later_items){
-          var id = watch_later_items[i].id;
+          var pid = watch_later_items[i].pid;
           list_watch_later.push(id);
-          console.log("STORED IN WATCH LATER IDS:  " + id);
         }
-        //recommendations(data,"list_later");
+        recommendations(data,"list_later");
 
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -1102,10 +1130,12 @@ function add_name(){
         console.log(data);
         recently_viewed_json = data;
         var recently_viewed_items = recently_viewed_json.suggestions;
-        for(var i in recently_viewed_items){
-          var id = recently_viewed_items[i].id;
-          list_recently_viewed.push(id);
-          console.log("STORED IN RECENTLY VIEWED:  " + id);
+        //console.log(recently_viewed_items);
+        if(recently_viewed_items.length != 0){
+          for(var i in recently_viewed_items){
+            var pid = recently_viewed_items[i].pid;
+            list_recently_viewed.push(pid);
+          }
         }
         recommendations(data,"history");
 
@@ -1115,188 +1145,12 @@ function add_name(){
       }
 
     });
-
-    $.ajax({
-        url: 'get_tedtalks.php',
-        dataType: "json",
-        async: false,
-        success: function(data) {
-            var whatever = changeData(data);
-            console.log(whatever);
-            console.log("TED TALKS RETREIVED");
-        }
-    });
-    console.log('The name retrieved from session variable is ' + name);
-    return name;
-
-
   }
   var state = {"canBeAnything": true};
   //history.pushState(state, "N-Screen", "/N-Screen/");
   window.location.hash=my_group;
   $("#logoutspan").show();
 }
-
-//ensure the drag and drop is working
-
-$(document).bind('refresh', function () {
-                $( "#draggable" ).draggable();
-                $( ".programme" ).draggable(
-                        {
-                        opacity: 0.7,
-                        helper: "clone",
-                        zIndex: 2700,
-      start: function() {
-                          $(".snaptarget").addClass( "dd_highlight"); 
-                          $(".snaptarget_tv").addClass( "dd_highlight"); 
-                          $(".snaptarget_group").addClass( "dd_highlight"); 
-                          $(".snaptarget_bot").addClass( "dd_highlight"); 
-      },
-      drag: function() {
-                          $(".snaptarget").addClass( "dd_highlight"); 
-                          $(".snaptarget_tv").addClass( "dd_highlight"); 
-                          $(".snaptarget_group").addClass( "dd_highlight"); 
-                          $(".snaptarget_bot").addClass( "dd_highlight"); 
-      },
-      stop: function() {
-                          $(".snaptarget").removeClass( "dd_highlight"); 
-                          $(".snaptarget_tv").removeClass( "dd_highlight"); 
-                          $(".snaptarget_group").removeClass( "dd_highlight"); 
-                          $(".snaptarget_bot").removeClass( "dd_highlight"); 
-      }
-
-                }).addTouch();
-                $( ".large_prog" ).draggable(
-                        {
-                        opacity: 0.7,
-                        helper: "clone",
-                        zIndex: 2700
-                }).addTouch();
-
-                $( ".snaptarget" ).droppable({
-           
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-     
-                                var el = $(this);
-                                var jid = el.attr('id');
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-
-                                var res = get_data_from_programme_html(el3);//??
-                                var url = el3.attr('href');
-                                buttons.share(res,new Person(jid,jid));
-
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                        }, 1500 );
-
-                                });
-                        }
-
-                }).addTouch();
-                $( ".snaptarget_group" ).droppable({
-           
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-     
-                                var el = $(this);
-                                var jid = el.attr('id');
- 
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-
-                                var res = get_data_from_programme_html(el3);//??
-                                var url = el3.attr('href');
-                                buttons.share(res);
-
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                        }, 1500 );
-
-                                });
-                        }
-
-                }).addTouch();
-
-
-                $( ".snaptarget_bot" ).droppable({
-           
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-     
-                                var el = $(this);
-                                var jid = el.attr('id');
- 
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-                                var res = get_data_from_programme_html(el3);//??
-
-
-                                html3 = [];
-                                html3.push("<div id=\""+res["id"]+"_favs\" pid=\""+res["pid"]+"\" href=\""+recs["video"]+"\" class=\"ui-widget-content button programme ui-draggable open_win\">");
-                                html3.push("<img class=\"img\" src=\""+res["image"]+"\" />");
-                                html3.push("<span class=\"p_title\">"+res["title"]+"</a>");
-                                html3.push("<p class=\"description large\">"+res["description"]+"</b></p>");
-                                html3.push("</div>");
-                                $('#favs').prepend(html3.join(''));
-                                buttons.share(res,new Person(jid,jid))
-
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                        }, 1500 );
-
-                                });
-                        }
-
-                }).addTouch();
-
-                $( ".snaptarget_tv" ).droppable({  //for tvs
-
-                        hoverClass: "dd_highlight_dark",
-                        drop: function(event, ui) {
-
-                                var el = $(this);
-                                var jid = el.attr('id');
-                         
-                                var el3 = ui.helper;
-                                var el2 = el3.parent();
-
-                                var a = get_object("a1");
-                                a.play();
-
-                                var res = get_data_from_programme_html(el3);//??
-                                res["action"]="play";
-                                res["shared_by"] = buttons.me.name;
-                                var url = el3.attr('href');
-                                var name = jid;
-//go throgh the roster and send to all tvs
-                                share_to_tvs(res);
-                                $( this ).addClass( "dd_highlight",10,function() {
-                                        setTimeout(function() {
-                                                el.removeClass( "dd_highlight" ,100);
-                                
-                                        }, 1500 );
-                                
-                                });
-                        }
-                                
-                }).addTouch();
-
-});
-
 
 function share_to_tvs(res){
 ////hm this should be an ajax call
@@ -1476,7 +1330,7 @@ function changeData(data){
           },
           "tags" : item.talk.tags
       });
-  }console.log(random_ted);return random_ted;
+  }return random_ted;
 }
 
 //when the group changes, update the roster
@@ -1677,6 +1531,166 @@ $(document).bind('tv_changed', function (ev,item) {
     msg_text = "TV paused "+item.nowp["title"];
   }
   build_notification(msg_text,item.nowp, item.name);
+
+});
+
+//ensure the drag and drop is working
+
+$(document).bind('refresh', function () {
+                $( "#draggable" ).draggable();
+                $( ".programme" ).draggable(
+                        {
+                        opacity: 0.7,
+                        helper: "clone",
+                        zIndex: 2700,
+      start: function() {
+                          $(".snaptarget").addClass( "dd_highlight"); 
+                          $(".snaptarget_tv").addClass( "dd_highlight"); 
+                          $(".snaptarget_group").addClass( "dd_highlight"); 
+                          $(".snaptarget_bot").addClass( "dd_highlight"); 
+      },
+      drag: function() {
+                          $(".snaptarget").addClass( "dd_highlight"); 
+                          $(".snaptarget_tv").addClass( "dd_highlight"); 
+                          $(".snaptarget_group").addClass( "dd_highlight"); 
+                          $(".snaptarget_bot").addClass( "dd_highlight"); 
+      },
+      stop: function() {
+                          $(".snaptarget").removeClass( "dd_highlight"); 
+                          $(".snaptarget_tv").removeClass( "dd_highlight"); 
+                          $(".snaptarget_group").removeClass( "dd_highlight"); 
+                          $(".snaptarget_bot").removeClass( "dd_highlight"); 
+      }
+
+                }).addTouch();
+                $( ".large_prog" ).draggable(
+                        {
+                        opacity: 0.7,
+                        helper: "clone",
+                        zIndex: 2700
+                }).addTouch();
+
+                $( ".snaptarget" ).droppable({
+           
+                        hoverClass: "dd_highlight_dark",
+                        drop: function(event, ui) {
+     
+                                var el = $(this);
+                                var jid = el.attr('id');
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+
+                                var res = get_data_from_programme_html(el3);//??
+                                var url = el3.attr('href');
+                                buttons.share(res,new Person(jid,jid));
+
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                        }, 1500 );
+
+                                });
+                        }
+
+                }).addTouch();
+                $( ".snaptarget_group" ).droppable({
+           
+                        hoverClass: "dd_highlight_dark",
+                        drop: function(event, ui) {
+     
+                                var el = $(this);
+                                var jid = el.attr('id');
+ 
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+
+                                var res = get_data_from_programme_html(el3);//??
+                                var url = el3.attr('href');
+                                buttons.share(res);
+
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                        }, 1500 );
+
+                                });
+                        }
+
+                }).addTouch();
+
+
+                $( ".snaptarget_bot" ).droppable({
+           
+                        hoverClass: "dd_highlight_dark",
+                        drop: function(event, ui) {
+     
+                                var el = $(this);
+                                var jid = el.attr('id');
+ 
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+                                var res = get_data_from_programme_html(el3);//??
+
+
+                                html3 = [];
+                                html3.push("<div id=\""+res["id"]+"_favs\" pid=\""+res["pid"]+"\" href=\""+recs["video"]+"\" class=\"ui-widget-content button programme ui-draggable open_win\">");
+                                html3.push("<img class=\"img\" src=\""+res["image"]+"\" />");
+                                html3.push("<span class=\"p_title\">"+res["title"]+"</a>");
+                                html3.push("<p class=\"description large\">"+res["description"]+"</b></p>");
+                                html3.push("</div>");
+                                $('#favs').prepend(html3.join(''));
+                                buttons.share(res,new Person(jid,jid))
+
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                        }, 1500 );
+
+                                });
+                        }
+
+                }).addTouch();
+
+                $( ".snaptarget_tv" ).droppable({  //for tvs
+
+                        hoverClass: "dd_highlight_dark",
+                        drop: function(event, ui) {
+
+                                var el = $(this);
+                                var jid = el.attr('id');
+                         
+                                var el3 = ui.helper;
+                                var el2 = el3.parent();
+
+                                var a = get_object("a1");
+                                a.play();
+
+                                var res = get_data_from_programme_html(el3);//??
+                                res["action"]="play";
+                                res["shared_by"] = buttons.me.name;
+                                var url = el3.attr('href');
+                                var name = jid;
+//go throgh the roster and send to all tvs
+                                share_to_tvs(res);
+                                $( this ).addClass( "dd_highlight",10,function() {
+                                        setTimeout(function() {
+                                                el.removeClass( "dd_highlight" ,100);
+                                
+                                        }, 1500 );
+                                
+                                });
+                        }
+                                
+                }).addTouch();
 
 });
 
