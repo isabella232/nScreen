@@ -12,7 +12,7 @@
 
   $number_talks = "20";
 
-  $url = "http://api.ted.com/v1/talks.json?api-key=$api_key&filter=id:>$starting_id&limit=$number_talks&offset=0&fields=photo_urls";
+  $url = "http://api.ted.com/v1/talks.json?api-key=$api_key&filter=id:>$starting_id&limit=$number_talks&offset=0&fields=media_profile_uris,photo_urls,speakers,speaker_ids,tags";
 
   $json = file_get_contents($url);
 

@@ -77,7 +77,7 @@ var api_root = "data/";
 var recommendations_url=api_root+"recommendations.js"
 var channels_url=api_root+"channels.js";
 var search_url = api_root+"search.js";
-var start_url = "get_suggestions.php";
+var start_url = "get_channel.php";
 var random_url = "get_random.php"
 
 //jabber server
@@ -199,7 +199,7 @@ function add_name(){
         //console.log(data);
         //var whatever = changeData(data);
         recommendations_json = data; //set global variable to use later if so
-        console.log(recommendations_json);
+        //console.log(recommendations_json);
         recommendations(data,"progs");
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -216,7 +216,7 @@ function add_name(){
       dataType: "json",
       success: function(data){
         watch_later_json = data;
-        console.log(watch_later_json);
+        // console.log(watch_later_json);
         var watch_later_items = watch_later_json.suggestions;
         for(var i in watch_later_items){
           var pid = watch_later_items[i].pid;
@@ -240,7 +240,7 @@ function add_name(){
       data: {channel: "recently_viewed"},
       dataType: "json",
       success: function(data){
-        console.log(data);
+        //console.log(data);
         recently_viewed_json = data;
         var recently_viewed_items = recently_viewed_json.suggestions;
         //console.log(recently_viewed_items);
@@ -258,25 +258,29 @@ function add_name(){
       }
 
     });
+
+    $.ajax({
+      type: "POST",
+      url: "get_channel.php",
+      //async: false,
+      data: {channel: "shared_by_friends"},
+      dataType: "json",
+      success: function(data){
+        //console.log(data);
+        //var whatever = changeData(data);
+        shared_by_friends_json = data; //set global variable to use later if so
+        //console.log(recommendations_json);
+        recommendations(data,"results");
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nokkkk "+textStatus);
+      }
+    });
   }
   var state = {"canBeAnything": true};
   //history.pushState(state, "N-Screen", "/N-Screen/");
   window.location.hash=my_group;
   $("#logoutspan").show();
-}
-
-function show_browse_programmes(){
-  $("#main_title").html("Browse Programmes");
-  $sr=$("#search_results");
-  $sr.css("display","none");
-
-  $browse=$("#browse");
-  $browse.removeClass("grey").addClass("blue");
-
-  $random=$("#random");
-  $random.removeClass("blue").addClass("grey");
-  $container=$("#browser");
-  $container.css("display","block");
 }
 
 //creates and initialises the buttons object                              
@@ -361,16 +365,13 @@ function update_channel(channel, data){
 // RECENTLY VIEWED !!
 
 function insert_suggest2(id,tag) {
-
-      console.log(id);
-
       var item = {};
 
       if(update_list(id,list_recently_viewed) == false){ //this means that the element IS already in the list
         $('#history').find("#"+id).remove();
         for(var i in recently_viewed_json.suggestions){
           if(recently_viewed_json.suggestions[i].pid == ('' + id)){
-            console.log("inside if");
+            // console.log("inside if");
             item = recently_viewed_json.suggestions[i];
             recently_viewed_json.suggestions.splice(i,1); //we remove the item from the local json
           }
@@ -394,8 +395,6 @@ function insert_suggest2(id,tag) {
       // console.log(item);
       
       update_channel("recently_viewed", recently_viewed_json);
-      console.log("THIS IS THE UPDATED JSON RECCENTLY VIEWED");
-      console.log(recently_viewed_json);
       var div = $("#"+id);
 
       var title = div.find(".p_title").text();
@@ -492,7 +491,6 @@ function insert_suggest2(id,tag) {
 
 function get_roster(blink){
 
-  //console.log("GETTING RROOOOSSSTEERRRR")
   var roster = blink.look();
   console.log("THIS IS ROSTER === ");
   console.log(roster);
@@ -505,7 +503,6 @@ function get_roster(blink){
   var html=[];
 
   if(roster){
-    //console.log("I AM INSIDE ROSTER BECAUSE I SEE IT!")
 
      html.push("<h3 class=\"contrast\">SHARE WITH</h3>");
 
@@ -595,6 +592,23 @@ $.fn.addTouch = function() {
                 });
         }
 };
+
+
+function show_browse_programmes(){
+  $("#main_title").html("Browse Programmes");
+  $sr=$("#search_results");
+  $sr.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("grey").addClass("blue");
+
+  $random=$("#random");
+  $random.removeClass("blue").addClass("grey");
+  $container=$("#browser");
+  $container.css("display","block");
+}
+
+
 //show all recommendations
 function show_more_recommendations(){
 
@@ -827,7 +841,7 @@ function do_random(el){
       random(result,el);
     },
     error: function(jqXHR, textStatus, errorThrown){
-    //console.log("nok "+textStatus);
+    // console.log("nok "+textStatus);
     }
 
   });
@@ -849,15 +863,17 @@ function do_start(el,start_url){
   if(start_url){
 
     $.ajax({
-      url: start_url,
+      type: "POST",
+      url: "get_channel.php",
+      //async: false,
+      data: {channel: "recommendations"},
       dataType: "json",
       success: function(data){
         random(data,el);
       },
       error: function(jqXHR, textStatus, errorThrown){
-      //console.log("nok "+textStatus);
+        console.log("!!nokkkk "+textStatus);
       }
-
     });
 
   }else{
@@ -1034,9 +1050,10 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 if(!title){
                   title = suggestions[r]["title"];
                 }
+                var shared = suggestions[r]["shared"]
                 var tags = Object.keys(suggestions[r]["tags"]);
                 var tag = (/[^,]*/.exec(tags)[0]);
-                console.log("THIS IS TAG!!!!!!! " + tag);
+                // console.log("THIS IS TAG!!!!!!! " + tag);
                 var desc="";
                 var desc = suggestions[r]["description"];
 //                desc = desc.replace(/\"/g,"'");
@@ -1082,7 +1099,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 if(id){
                   if(pid_title){
                     
-                     console.log(string);
+                     // console.log(string);
                      html.push(string);
                   }else{
                      html.push(string);
@@ -1090,6 +1107,9 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                   html.push("<div><img class=\"img img_small\" src=\""+img+"\" /></div>");
                   //html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
                   html.push("<span class=\"p_title p_title_small\"><a >"+title+"</a></span>");
+                  if(shared){                    
+                    html.push("<span class=\"shared_by\">Shared by "+shared+"</span>");
+                  }
                   // html.push("<div clear=\"both\"></div>");
                   if(desc && desc!=""){
                     html.push("<span class=\"large description\">"+desc+"</span>");
@@ -1130,7 +1150,6 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
    $(document).trigger('refresh');
    $(document).trigger('refresh_buttons');
 }
-
         
 //show disconnect overlay
 
@@ -1358,7 +1377,8 @@ $(document).bind('items_changed',function(ev,blink){
 
 //creates a new id from a programme and a person name string
 function generate_new_id(j,n){
-  var i = j["pid"]+"_"+n; //not really unique enough
+  var i = j["pid"];
+  // var i = j["pid"]+"_"+n; //not really unique enough
   return i;
 }
 
@@ -1369,10 +1389,31 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
   a.play();
 
   var id = generate_new_id(programme,name);
+  // var id = programme.pid;
+  console.log("THIS IS GENERATED ID");
+  console.log(id);
 
   console.log("THE ID OF THE PROGRAM SHARED IS " + id);
   var msg_text = "";
-  var html = null
+  var html = "";
+
+  $.ajax({
+    url: "get_tedtalks_by_id.php",
+    type: "POST",
+    async: false,
+    data: {id: id},
+    dataType: "json",
+    success: function (data) {
+      item =  changeData(data);
+      item.suggestions[0].shared = name;
+      //item.suggestions[item.suggestions.length].push = "shared" : name;
+      shared_by_friends_json.suggestions.splice(0,0,item.suggestions[0]);
+      console.log("THIS IS SHARED BY FRIENDS");
+      console.log(shared_by_friends_json);
+      update_channel("shared_by_friends", shared_by_friends_json);
+      recommendations(shared_by_friends_json,"results");        
+    }
+  });
 
   if(programme.item_type=="webpage"){
     html = generate_html_for_webpage(programme,name,id);
@@ -1388,7 +1429,7 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
         msg_text = name+" shared <a onclick='show_video(\""+programme["link"]+"\")'>"+programme["title"]+"</a> with the group";
       }
     }else{
-      html = generate_html_for_programme(programme,name,id);
+      //html = generate_html_for_programme(programme,name,id);
       msg_text = name+" shared "+programme["title"]+" with you";
       if(msg_type=="groupchat"){
         msg_text = name+" shared "+programme["title"]+" with the group";
@@ -1396,7 +1437,7 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
     }
   }
 
-  $('#shared').append(html.join(''));
+  //$('#results').prepend(html.join(''));
 
 //notifications 
   build_notification(msg_text,programme,name);
@@ -1765,92 +1806,6 @@ function hide_overlay(){
           
 }
 
-//FACEBOOK SDK for JavaScript-->
-function userLogin(){
-        FB.login(function(response){
-           if (response.authResponse){
-             console.log('Welcome!  Fetching your information.... ');
-              FB.api('/me', function(response) {
-              console.log('Successful login for: ' + response.name);
-              document.forms["myname"].login.value = response.name;
-              var id = response.id;
-              var name = response.name;
-              console.log('Your id is  ' + id);
-              register(id,name);
-              });
-            } 
-           else{
-             console.log('User cancelled login or did not fully authorize.');
-           }
-         });
-  };
-
-  function register(id, name) {
-    $.ajax({
-        url: "facebook-register.php",
-        type: "POST",
-        data: "facebook_id="+id+"&firstname="+name,
-        dataType: "json",
-        success: function (response) {
-            create_buttons();
-            //add_name();
-            //SHOULD REDIRECT TO US ONLY AREA---HAVE TO WORK ON IT
-            window.location.href= "http://localhost/N-Screen/member-index.php";
-        }
-      });
-
-  }
-
-  window.fbAsyncInit = function() {
-  FB.init({
-    appId      : '710256039061787',
-    cookie     : true,  // enable cookies to allow the server to access 
-                        // the session
-    xfbml      : true,  // parse social plugins on this page
-    version    : 'v2.1' // use version 2.1
-  });
-
-  // Now that we've initialized the JavaScript SDK, we call 
-  // FB.getLoginStatus().  This function gets the state of the
-  // person visiting this page and can return one of three states to
-  // the callback you provide.  They can be:
-  //
-  // 1. Logged into your app ('connected')
-  // 2. Logged into Facebook, but not your app ('not_authorized')
-  // 3. Not logged into Facebook and can't tell if they are logged into
-  //    your app or not.
-  //
-  // These three cases are handled in the callback function.
-
-  // FB.getLoginStatus(function(response) {
-  //   statusChangeCallback(response);
-  // });
-
-  };
-
-  // Load the SDK asynchronously
-  (function(d, s, id) {
-    var js, fjs = d.getElementsByTagName(s)[0];
-    if (d.getElementById(id)) return;
-    js = d.createElement(s); js.id = id;
-    js.src = "//connect.facebook.net/en_US/sdk.js";
-    fjs.parentNode.insertBefore(js, fjs);
-  }(document, 'script', 'facebook-jssdk'));
-
-  // Logout Function
-  function Logout() {
-
-    var lalala = 'whatever';
-    $.ajax({
-       url: 'logout.php',
-       async : false,
-         success: function(){
-           window.location.href= "http://localhost/N-Screen/index.html";
-         }
-      });
-    //console.log("RESPUESTA  "+ lalala):
-    //FB.logout(function () { document.location.reload(); });
-  }
 </script>
 
   <div id="header">
