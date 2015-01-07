@@ -5,6 +5,8 @@
 	
 	//Include database connection details
 	require_once('config.php');
+
+	$channel = $_POST['channel'];
 	
 	//Connect to mysql server
 	$link = mysql_connect(DB_HOST, DB_USER, DB_PASSWORD);
@@ -28,7 +30,7 @@
 	if($result) {
 		if(mysql_num_rows($result) == 1) {
 			$member = mysql_fetch_assoc($result);
-			echo $member['watch_later'];
+			echo $member[$channel];
 		}else {
 			exit();
 		}

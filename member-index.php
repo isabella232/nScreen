@@ -179,6 +179,92 @@ function init(){
 
 }
 
+function add_name(){
+  
+  var name = get_name();
+  if(name){
+
+    var me = new Person(name,name);
+    buttons.me = me;
+    $(document).trigger('send_name');
+
+    //get some 'recommendations' --> this should be rendered by a recommendation algorithm 
+    $.ajax({
+      type: "POST",
+      url: "get_channel.php",
+      //async: false,
+      data: {channel: "recommendations"},
+      dataType: "json",
+      success: function(data){
+        //console.log(data);
+        //var whatever = changeData(data);
+        recommendations_json = data; //set global variable to use later if so
+        console.log(recommendations_json);
+        recommendations(data,"progs");
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nokkkk "+textStatus);
+      }
+    });
+
+    //Get WATCH LATER
+    $.ajax({
+      type: "POST",
+      url: "get_channel.php",
+      //async: false,
+      data: {channel: "watch_later"},
+      dataType: "json",
+      success: function(data){
+        watch_later_json = data;
+        console.log(watch_later_json);
+        var watch_later_items = watch_later_json.suggestions;
+        for(var i in watch_later_items){
+          var pid = watch_later_items[i].pid;
+          list_watch_later.push(id);
+        }
+        recommendations(data,"list_later");
+
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nok "+textStatus);
+      }
+
+    });
+
+    //GET RECENTLY VIEWED
+
+    $.ajax({
+      type: "POST",
+      url: "get_channel.php",
+      //async: false,
+      data: {channel: "recently_viewed"},
+      dataType: "json",
+      success: function(data){
+        console.log(data);
+        recently_viewed_json = data;
+        var recently_viewed_items = recently_viewed_json.suggestions;
+        //console.log(recently_viewed_items);
+        if(recently_viewed_items.length != 0){
+          for(var i in recently_viewed_items){
+            var pid = recently_viewed_items[i].pid;
+            list_recently_viewed.push(pid);
+          }
+        }
+        recommendations(data,"history");
+
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nok "+textStatus);
+      }
+
+    });
+  }
+  var state = {"canBeAnything": true};
+  //history.pushState(state, "N-Screen", "/N-Screen/");
+  window.location.hash=my_group;
+  $("#logoutspan").show();
+}
+
 function show_browse_programmes(){
   $("#main_title").html("Browse Programmes");
   $sr=$("#search_results");
@@ -1071,85 +1157,6 @@ function get_name() {
     });
     console.log('The name retrieved from session variable is ' + name);
     return name;
-}
-
-
-function add_name(){
-  
-  var name = get_name();
-  if(name){
-
-    var me = new Person(name,name);
-    buttons.me = me;
-    $(document).trigger('send_name');
-
-    //get some 'recommendations' --> this should be rendered by a recommendation algorithm 
-    $.ajax({
-      type: "GET",
-      url: "get_suggestions.php",
-      dataType: "json",
-      success: function(data){
-        //console.log(data);
-        //var whatever = changeData(data);
-        recommendations_json = data; //set global variable to use later if so
-        console.log(recommendations_json);
-        recommendations(data,"progs");
-      },
-      error: function(jqXHR, textStatus, errorThrown){
-        console.log("!!nokkkk "+textStatus);
-      }
-    });
-
-    //Get user based content (if stored)
-    $.ajax({
-      type: "GET",
-      url: "get_watch_later.php",
-      dataType: "json",
-      success: function(data){
-        watch_later_json = data;
-        console.log(watch_later_json);
-        var watch_later_items = watch_later_json.suggestions;
-        for(var i in watch_later_items){
-          var pid = watch_later_items[i].pid;
-          list_watch_later.push(id);
-        }
-        recommendations(data,"list_later");
-
-      },
-      error: function(jqXHR, textStatus, errorThrown){
-        console.log("!!nok "+textStatus);
-      }
-
-    });
-
-    $.ajax({
-      type: "GET",
-      url: "get_recently_viewed.php",
-      dataType: "json",
-      success: function(data){
-        console.log(data);
-        recently_viewed_json = data;
-        var recently_viewed_items = recently_viewed_json.suggestions;
-        //console.log(recently_viewed_items);
-        if(recently_viewed_items.length != 0){
-          for(var i in recently_viewed_items){
-            var pid = recently_viewed_items[i].pid;
-            list_recently_viewed.push(pid);
-          }
-        }
-        recommendations(data,"history");
-
-      },
-      error: function(jqXHR, textStatus, errorThrown){
-        console.log("!!nok "+textStatus);
-      }
-
-    });
-  }
-  var state = {"canBeAnything": true};
-  //history.pushState(state, "N-Screen", "/N-Screen/");
-  window.location.hash=my_group;
-  $("#logoutspan").show();
 }
 
 function share_to_tvs(res){
