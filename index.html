@@ -111,7 +111,7 @@ function init(){
           async: false,
           success: function(data) {
           starting_data = changeData(data);
-          console.log(JSON.stringify(starting_data));
+          //console.log(JSON.stringify(starting_data));
           $('#json_object').val(JSON.stringify(starting_data));
           }
       });
@@ -160,7 +160,8 @@ function changeData(data){
           },
           "tags" : item.talk.tags
       });
-  }console.log(random_ted);return random_ted;
+  }//console.log(random_ted);
+  return random_ted;
 }
 
 
@@ -282,7 +283,6 @@ function userLogin(){
               document.forms["myname"].login.value = response.name;
               var id = response.id;
               var name = response.name;
-              console.log('Your id is  ' + id);
               register(id,name);
               });
             } 

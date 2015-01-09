@@ -1050,9 +1050,20 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 if(!title){
                   title = suggestions[r]["title"];
                 }
-                var shared = suggestions[r]["shared"]
+                var shared = suggestions[r]["shared"];
                 var tags = Object.keys(suggestions[r]["tags"]);
-                var tag = (/[^,]*/.exec(tags)[0]);
+                //var tag = (/[^, ]*/.exec(tags)[0]);
+                var tags = (/[^, ]*/.exec(tags)); //array of tags
+                var tag = ""; //initialiazing
+                //check for a tag without whitespace
+                for(var i=0; i<tags.length; i++){
+                  console.log("THIS IS TAG " + tags[i]);
+                  if(tags[i].indexOf(' ') >= 0 || /^[A-Z]/.test(tags[i])){}
+                  else {
+                    tag = tags[i];
+                    break;
+                  }
+                }
                 // console.log("THIS IS TAG!!!!!!! " + tag);
                 var desc="";
                 var desc = suggestions[r]["description"];
@@ -1322,7 +1333,10 @@ function changeData(data){
   var random_ted = {
     suggestions: []
   };
-  
+
+  if(data.talks == null){
+    return random_ted;
+  }  
 
   for(var i = 0; i < data.talks.length; i++) {  var item = data.talks[i];
       for(var j = 0; j < data.talks[i].talk.photo_urls.length; j++){
