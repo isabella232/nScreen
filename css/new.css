@@ -121,7 +121,7 @@ div.container {overflow: auto;}
 }
 
 #content, #content2, #content3{
-  padding-top:2em;
+  margin-top: 3em;
   /*float: left;*/
 }
 
@@ -183,9 +183,10 @@ div.container {overflow: auto;}
 }
 
 .sub_title{
- font-size: 16px;
+ font-size: 20px;
  position:relative;
  left:20px;
+ font-weight: 900;
 }
 
 .large{
@@ -350,7 +351,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', e
 }
 
 .description{
-  font-size:14px;
+  font-size:17px;
 }
 
 .explain{
@@ -467,8 +468,8 @@ h2{
 .play_button{
 position: relative;
 float: left;
-top: 130px;
-left: 50%;
+top: -200px;
+left: 45%;
 }
 
 .notifications_red{

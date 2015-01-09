@@ -426,7 +426,7 @@ function insert_suggest2(id,tag) {
       html2.push("<div class='close_button'><img src='images/close.png' width='30px' onclick='javascript:hide_overlay();'/></div>");
       html2.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog\" style=\"position: relative;\">");
       html2.push("<div class=\"gradient_div\" style=\"text-align: center; width: 34%; margin-left: 33%; position: absolute; \"> <img class=\"img\" src=\""+img+"\" />");
-      html2.push("<div class=\"play_button\"><img src=\"images/play.png\" /></a></div></div>");
+      html2.push("<div class=\"play_button\"><img style='width: 120px;' src=\"images/play.svg\" /></a></div></div>");
       html2.push("<div style='padding-left: 20px; padding-right: 20px; width: 33%; left: 0px; position: absolute;'>");
       html2.push("<div class=\"p_title_large\">"+title+"</div>");
       html2.push("<p class=\"description\">"+description+"</p>");
@@ -810,8 +810,9 @@ function show_more(title,pid){
 
 function do_random(el){
 
-  $("#main_title").html("Random Selection");
+  $('#search_results').html(''); //clear previous display
 
+  $("#main_title").html("Random Selection");  
   $sr=$("#search_results");
   $sr.css("display","block");
   
@@ -832,6 +833,7 @@ function do_random(el){
   $.ajax({
     url: "get_random_tedtalks.php",
     dataType: "json",
+    // async: false,
     success: function(data){
       var result = changeData(data);
       random_json = result; //set global variable in order to store
