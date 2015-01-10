@@ -101,6 +101,9 @@ var recently_viewed_json = {};
 var list_shared_by_friends = [];
 var shared_by_friends_json = {};
 
+var list_likes = [];
+var list_dislikes = [];
+
 var random_json = {};
 var recommendations_json = {};
 
@@ -220,7 +223,7 @@ function add_name(){
         var watch_later_items = watch_later_json.suggestions;
         for(var i in watch_later_items){
           var pid = watch_later_items[i].pid;
-          list_watch_later.push(id);
+          list_watch_later.push(pid);
         }
         recommendations(data,"list_later");
 
@@ -412,30 +415,42 @@ function insert_suggest2(id,tag) {
 
 
       html2 = [];
-/*
-      html2.push("<div id=\""+id+"_overlay\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog\">");
-      html2.push("<img class=\"img\" src=\""+img+"\" />");
-      html2.push("<div class=\"play_button\"><img src=\"images/play.png\" /></a></div>");
-      html2.push("<span style='float:left;' class=\"p_title_large\">"+title+"</span>");
-      html2.push("<br clear=\"both\"/>");
-      html2.push("<p class=\"description\">"+description+"</p>");
-      html2.push("<p class=\"explain\">"+explanation+"</p>");
-      html2.push("</div>");
-*/
 
-      html2.push("<div class='close_button'><img src='images/close.png' width='30px' onclick='javascript:hide_overlay();'/></div>");
+      html2.push("<div class='close_button'><img src='images/icons/exit.png' width='12px' onclick='javascript:hide_overlay();'/></div>");
       html2.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog\" style=\"position: relative;\">");
-      html2.push("<div class=\"gradient_div\" style=\"text-align: center; width: 34%; margin-left: 33%; position: absolute; \"> <img class=\"img\" src=\""+img+"\" />");
-      html2.push("<div class=\"play_button\"><img style='width: 120px;' src=\"images/play.svg\" /></a></div></div>");
-      html2.push("<div style='padding-left: 20px; padding-right: 20px; width: 33%; left: 0px; position: absolute;'>");
+      html2.push("<div class=\"gradient_div\" style=\"text-align: center;  margin-left: 45%; position: absolute; \"> <img class=\"img\" src=\""+img+"\" />");
+      html2.push("<div class=\"play_button\"><img style='width: 120px;' src=\"images/icons/play.png\" /></a></div></div>");
+      html2.push("<div style='padding-left: 20px; padding-right: 20px; width: 50%; left: 0px; position: absolute;'>");
       html2.push("<div class=\"p_title_large\">"+title+"</div>");
       html2.push("<p class=\"description\">"+description+"</p>");
       // html2.push("<p class=\"explain\">"+explanation+"</p>");
 //      html2.push("<p class=\"keywords\">"+keywords+"</p>");
       html2.push("<p class=\"link\"><a href=\"http://www.ted.com/talks/view/id/"+pid+"\" target=\"_blank\">Sharable Link</a></p></div>");
+
+      html2.push("<div class='vertical_buttons' style='display:table-cell; vertical-align: middle; margin-right: 7%; position: absolute; text-align: center; right:0; top: 10px'>");
+
+      if(not_in_list(id,list_watch_later)){
+              html2.push("<div id='watchlater'class=\"interactive_icon\"><img id='addtowatchlater' style='width: 40px;' src=\"images/icons/watch_later.png\" /><span style='display: block'; class ='inter_span'>Watch Later</span></div>");      
+      }
+      else{
+              html2.push("<div id='watchlater'class=\"interactive_icon\"><img id='adeletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span></div>");      
+      }
+
+      html2.push("<div class=\"interactive_icon\"><img id='addtolike' style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span></div>");
+      html2.push("<div class=\"interactive_icon\"><img id = 'addtodislike' style='width: 40px;' src=\"images/icons/dislike.png\" /><span style='display: block'; class ='inter_span'>Dislike</span></div>");
+      html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/shared.png\" /><span style='display: block'; class ='inter_span'>Shared by friends</span></div>");
+      html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/recently_viewed.png\" /><span style='display: block'; class ='inter_span'>Recenlty Viewed</span></div></div>");
       html2.push("</div>");
-      // html2.push("<br clear=\"both\"/>");
       html2.push("</div>");
+      
+
+      //Interactive icons 
+
+      
+      
+
+      
+
 
       $('#new_overlay').html(html2.join(''));
    
@@ -460,7 +475,7 @@ function insert_suggest2(id,tag) {
       }).addTouch();
 
 
-      $('#new_overlay').append("<div class=\"more_like_this\" style=\"margin-top: 340px;\"><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span></div>");
+      $('#new_overlay').append("<div class=\"more_like_this\" style=\"margin-top: 400px;\"><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span></div>");
       // $('#new_overlay').append("<br clear=\"both\"/>");
       $('#new_overlay').append("<div id='spinner' style=\"float: left;\"></div>");
       // var target = document.getElementById('spinner');//??
@@ -650,10 +665,9 @@ function show_shared(){
   $sr.empty();
 
 //@@
-  $sr.html($("#results").clone());
+  $sr.html($("#list_later").clone());
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
-
 }
 
 //ON CLICK LISTENER TO ADD TO WATCH LATER
@@ -661,12 +675,108 @@ function show_shared(){
 $("#addtowatchlater").live( "click", function() {
   var father = $(this).parents().eq(2);
   var this_div = $(this).attr('id');
-  var the_program= $(this).parents().eq(2).attr('id');
+  var id= $(this).parents().eq(2).attr('id');
   // console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
-  insert_watchlater_from_div(the_program);
+  $.ajax({
+    url: "get_tedtalks_by_id.php",
+    type: "POST",
+    async: false,
+    data: {id: id},
+    dataType: "json",
+    success: function (data) {
+        item =  changeData(data); //JSON with suggestions format
+        // recently_viewed_json.suggestions.splice(0,0,item.suggestions[0]);
+    }
+    });
+    //recently_viewed_json.suggestions[0] is the current video now displayed   
+    // update_channel("recently_viewed", recently_viewed_json);
+    var div = $("#"+id);
+
+    var speaker = (/(.*):.*?/.exec(item.suggestions[0].title))[1];
+    var title = (/.*?:(.*)/.exec(item.suggestions[0].title))[1];
+    var description = item.suggestions[0].description;
+    // var tags = lalala **********************TO DO*********************
+    var video = item.suggestions[0].media_profile_uris.internal["950k"].uri;
+    var pid = item.suggestions[0].pid;
+    var img = item.suggestions[0].image;
+
+    var tags = Object.keys(item.suggestions[0]["tags"]);
+    //var tag = (/[^, ]*/.exec(tags)[0]);
+    var tags = (/[^, ]*/.exec(tags)); //array of tags
+    var tag = ""; //initialiazing
+    //check for a tag without whitespace
+    for(var i=0; i<tags.length; i++){
+      //console.log("THIS IS TAG " + tags[i]);
+      if(tags[i].indexOf(' ') >= 0 || /^[A-Z]/.test(tags[i])){}
+      else {
+        tag = tags[i];
+        break;
+      }
+    }
+    watch_later_json.suggestions.splice(0,0,item.suggestions[0]);
+    list_watch_later.push(id);
+    update_channel("watch_later", watch_later_json);
+
+    $("#watchlater").html("<img id='deletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span>");
+    html = [];
+    html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
+    html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+    html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
+    html.push("<p class=\"description large\">"+description+"</p>");
+    html.push("</div>");
+    $('#list_later').prepend(html.join(''));
+
+  // insert_watchlater_from_div(the_program);
   // console.log("clicked watch later");
   return false;
 });
+
+//Find and remove jquery good function
+function findAndRemove(array, property, value) {
+   $.each(array, function(index, result) {
+      if(result[property] == value) {
+          //Remove from array
+          array.splice(index, 1);
+      }    
+   });
+}
+//ON CLICK LISTENER TO ADD TO WATCH LATER
+
+$("#deletewatchlater").live( "click", function() {
+  var father = $(this).parents().eq(2);
+  var this_div = $(this).attr('id');
+  var id= $(this).parents().eq(2).attr('id');
+
+  //remove json
+  findAndRemove(watch_later_json.suggestions, 'pid', id);
+  for(var i in list_watch_later){
+        if(list_watch_later[i]==id){
+            array.splice(i,1);
+            break;
+        }
+  }
+    $("#watchlater").html("<img id='addtowatchlater' style='width: 40px;' src=\"images/icons/watch_later.png\" /><span style='display: block'; class ='inter_span'>Watch Later</span>");
+    $('#list_later #'+id).remove();
+    update_channel("watch_later", watch_later_json);
+
+    
+
+  // insert_watchlater_from_div(the_program);
+  // console.log("clicked watch later");
+  return false;
+});
+
+//FUnction to sheck whether a programme in on a personal list or not
+function not_in_list(pid, list){
+  var not_in_the_list = true;
+  for (var i = 0; i < list.length; i++){
+    if(list[i] == pid){
+      not_in_the_list = false;
+    }
+  }
+  return not_in_the_list; //returns true if element not in the list
+}
+
 
 //FUnctin to update internal list of programmes within each section and to add properly html
 //in order to prevent duplicate items
@@ -683,49 +793,49 @@ function update_list(pid, list){
   return not_in_the_list; //returns true if element not in the list
 }
 
-// list of movies ---- > HAVE TO CHANGE IT TO MAKE IT BETTER
+// // list of movies ---- > HAVE TO CHANGE IT TO MAKE IT BETTER
 
-function insert_watchlater_from_div(id){
-  var div = $("#"+id);
-  var j = get_data_from_programme_html(div);
-  var prog_id = j["pid"];
-  // console.log(j);
-  var not_in_the_list = true;
+// function insert_watchlater_from_div(id){
+//   var div = $("#"+id);
+//   var j = get_data_from_programme_html(div);
+//   var prog_id = j["pid"];
+//   // console.log(j);
+//   var not_in_the_list = true;
 
-  //checking wheter is already in the list or not
-  for (var i = 0; i < list_watch_later.length; i++){
-    if(list_watch_later[i] == prog_id) not_in_the_list = false;
-  }
-  if(not_in_the_list){ 
-    list_watch_later.push(prog_id);
-    insert_watchlater(j);
-    watch_later_json.suggestions.push(j);
+//   //checking wheter is already in the list or not
+//   for (var i = 0; i < list_watch_later.length; i++){
+//     if(list_watch_later[i] == prog_id) not_in_the_list = false;
+//   }
+//   if(not_in_the_list){ 
+//     list_watch_later.push(prog_id);
+//     insert_watchlater(j);
+//     watch_later_json.suggestions.push(j);
 
-    jsObject_json = JSON.stringify(watch_later_json);
+//     jsObject_json = JSON.stringify(watch_later_json);
 
-    $.ajax({
-        url: "set_channel.php",
-        type: "POST",
-        data: {data : jsObject_json, channel : "watch_later"},
-        dataType: "json",
-        success: function (response) {
-            console.log("Correct watch_later updated");
-        }
-      });
-  }
-}
+//     $.ajax({
+//         url: "set_channel.php",
+//         type: "POST",
+//         data: {data : jsObject_json, channel : "watch_later"},
+//         dataType: "json",
+//         success: function (response) {
+//             console.log("Correct watch_later updated");
+//         }
+//       });
+//   }
+// }
 
-// Call as
-//setUsername(3, "Thomas");
+// // Call as
+// //setUsername(3, "Thomas");
 
-function insert_watchlater(j){
-  var id = j["pid"];
-  // console.log("passing to addlater");
-  // console.log(j);
-  // console.log("passing to addlater");
-  var html3 = generate_html_for_programme(j,null,id);
-  $('#list_later').append(html3.join(''));
-}
+// function insert_watchlater(j){
+//   var id = j["pid"];
+//   // console.log("passing to addlater");
+//   // console.log(j);
+//   // console.log("passing to addlater");
+//   var html3 = generate_html_for_programme(j,null,id);
+//   $('#list_later').append(html3.join(''));
+// }
 
 function show_history(){
 
@@ -748,10 +858,9 @@ function show_history(){
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
 }
-
 function show_later(){
 
-  $("#main_title").html("Watch Later");
+  $("#main_title").html("Watch Later List");
 
   $sr=$("#search_results");
   $sr.css("display","block");
@@ -763,8 +872,9 @@ function show_later(){
   $browse.removeClass("blue").addClass("grey");
 
 
-  $sr.empty();
-  do_start("search_results",start_url);
+  $sr.html($("#results").clone());
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
 }
 
 
@@ -786,21 +896,6 @@ function show_more(title,pid){
   $random=$("#random");
   $random.removeClass("blue").addClass("grey");
 
-//@@
-//  $sr.html($("#more").clone(true));
-  //console.log("related url is "+get_related_url(pid));
-  // $("#search_results").empty();
-
-  //     $.ajax({
-  //      url: get_related_url(pid),
-  //      dataType: "json",
-  //        success: function(data){
-  //          recommendations(data,"search_results",false,title);
-  //        },
-  //        error: function(jqXHR, textStatus, errorThrown){
-  //        //alert("oh dear "+textStatus);
-  //        }
-  //     });
   recommendations(related_json, "search_results", false, title);
   hide_overlay();
 }
@@ -1875,6 +1970,14 @@ function hide_overlay(){
         <span class="sub_title">WATCH LATER</span>
         <span class="more_blue"><a onclick='show_later();'>View All</a></span>
         <div id="list_later">
+          <div class='dotted_box'> </div>
+        </div>
+      </div>
+
+      <div id="content4" class="slidey">
+        <span class="sub_title">LIKES & DISLIKES</span>
+        <span class="more_blue"><a onclick='show_likes();'>View All</a></span>
+        <div id="list_likes">
           <div class='dotted_box'> </div>
         </div>
       </div>
