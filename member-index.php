@@ -272,6 +272,13 @@ function add_name(){
         //console.log(data);
         //var whatever = changeData(data);
         shared_by_friends_json = data; //set global variable to use later if so
+        var shared_by_friends_items = shared_by_friends_json.suggestions;
+        if(shared_by_friends_json.length != 0){
+          for(var i in shared_by_friends_items){
+            var pid = shared_by_friends_items[i].pid;
+            list_shared_by_friends.push(pid);
+          }
+        }
         //console.log(recommendations_json);
         recommendations(data,"results");
       },
@@ -368,6 +375,9 @@ function update_channel(channel, data){
 // RECENTLY VIEWED !!
 
 function insert_suggest2(id,tag) {
+
+  console.log("list shared by friends");
+  console.log(list_shared_by_friends);
       var item = {};
 
       //code to check how to place the element in recently viewed 
@@ -406,7 +416,7 @@ function insert_suggest2(id,tag) {
       var img = recently_viewed_json.suggestions[0].image;
 
       html = [];
-      html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+","+tag+");return true\">");
+      html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
       html.push("<img class=\"img img_small\" src=\""+img+"\" />");
       html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
       html.push("<p class=\"description large\">"+description+"</p>");
@@ -433,13 +443,23 @@ function insert_suggest2(id,tag) {
               html2.push("<div id='watchlater'class=\"interactive_icon\"><img id='addtowatchlater' style='width: 40px;' src=\"images/icons/watch_later.png\" /><span style='display: block'; class ='inter_span'>Watch Later</span></div>");      
       }
       else{
-              html2.push("<div id='watchlater'class=\"interactive_icon\"><img id='adeletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span></div>");      
+              html2.push("<div id='watchlater'class=\"interactive_icon\"><img id='deletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span></div>");      
       }
 
       html2.push("<div class=\"interactive_icon\"><img id='addtolike' style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span></div>");
       html2.push("<div class=\"interactive_icon\"><img id = 'addtodislike' style='width: 40px;' src=\"images/icons/dislike.png\" /><span style='display: block'; class ='inter_span'>Dislike</span></div>");
-      html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/shared.png\" /><span style='display: block'; class ='inter_span'>Shared by friends</span></div>");
-      html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/recently_viewed.png\" /><span style='display: block'; class ='inter_span'>Recenlty Viewed</span></div></div>");
+      if(not_in_list(id,list_shared_by_friends)){
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/shared.png\" /><span style='display: block'; class ='inter_span'>Shared by friends</span></div>");
+      }
+      else{
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/on_shared.png\" /><span style='display: block'; class ='on_inter_span'>Shared by friends</span></div>");
+      }
+      if(not_in_list(id,list_recently_viewed)){
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/recently_viewed.png\" /><span style='display: block'; class ='inter_span'>Recenlty Viewed</span></div></div>");
+      }
+      else{
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/on_recently_viewed.png\" /><span style='display: block'; class ='on_inter_span'>Recenlty Viewed</span></div></div>");
+      }
       html2.push("</div>");
       html2.push("</div>");
       
@@ -665,7 +685,7 @@ function show_shared(){
   $sr.empty();
 
 //@@
-  $sr.html($("#list_later").clone());
+  $sr.html($("#results").clone());
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
 }
@@ -676,6 +696,9 @@ $("#addtowatchlater").live( "click", function() {
   var father = $(this).parents().eq(2);
   var this_div = $(this).attr('id');
   var id= $(this).parents().eq(2).attr('id');
+
+  $("#watchlater").html("<img id='deletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span>");
+
   // console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
   $.ajax({
     url: "get_tedtalks_by_id.php",
@@ -716,8 +739,6 @@ $("#addtowatchlater").live( "click", function() {
     watch_later_json.suggestions.splice(0,0,item.suggestions[0]);
     list_watch_later.push(id);
     update_channel("watch_later", watch_later_json);
-
-    $("#watchlater").html("<img id='deletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span>");
     html = [];
     html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
     html.push("<img class=\"img img_small\" src=\""+img+"\" />");
@@ -728,18 +749,76 @@ $("#addtowatchlater").live( "click", function() {
 
   // insert_watchlater_from_div(the_program);
   // console.log("clicked watch later");
+
+  // $(document).trigger('refresh');
+  // $(document).trigger('refresh_buttons');
   return false;
 });
 
-//Find and remove jquery good function
-function findAndRemove(array, property, value) {
-   $.each(array, function(index, result) {
-      if(result[property] == value) {
-          //Remove from array
-          array.splice(index, 1);
-      }    
-   });
-}
+//ON CLICK LISTENER TO ADD TO WATCH LATER
+
+$("#addtolike").live( "click", function() {
+  var father = $(this).parents().eq(2);
+  var this_div = $(this).attr('id');
+  var id= $(this).parents().eq(2).attr('id');
+
+  $("#watchlater").html("<img id='deletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span>");
+
+  // console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
+  $.ajax({
+    url: "get_tedtalks_by_id.php",
+    type: "POST",
+    async: false,
+    data: {id: id},
+    dataType: "json",
+    success: function (data) {
+        item =  changeData(data); //JSON with suggestions format
+        // recently_viewed_json.suggestions.splice(0,0,item.suggestions[0]);
+    }
+    });
+    //recently_viewed_json.suggestions[0] is the current video now displayed   
+    // update_channel("recently_viewed", recently_viewed_json);
+    var div = $("#"+id);
+
+    var speaker = (/(.*):.*?/.exec(item.suggestions[0].title))[1];
+    var title = (/.*?:(.*)/.exec(item.suggestions[0].title))[1];
+    var description = item.suggestions[0].description;
+    // var tags = lalala **********************TO DO*********************
+    var video = item.suggestions[0].media_profile_uris.internal["950k"].uri;
+    var pid = item.suggestions[0].pid;
+    var img = item.suggestions[0].image;
+
+    var tags = Object.keys(item.suggestions[0]["tags"]);
+    //var tag = (/[^, ]*/.exec(tags)[0]);
+    var tags = (/[^, ]*/.exec(tags)); //array of tags
+    var tag = ""; //initialiazing
+    //check for a tag without whitespace
+    for(var i=0; i<tags.length; i++){
+      //console.log("THIS IS TAG " + tags[i]);
+      if(tags[i].indexOf(' ') >= 0 || /^[A-Z]/.test(tags[i])){}
+      else {
+        tag = tags[i];
+        break;
+      }
+    }
+    watch_later_json.suggestions.splice(0,0,item.suggestions[0]);
+    list_watch_later.push(id);
+    update_channel("watch_later", watch_later_json);
+    html = [];
+    html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
+    html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+    html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
+    html.push("<p class=\"description large\">"+description+"</p>");
+    html.push("</div>");
+    $('#list_later').prepend(html.join(''));
+
+  // insert_watchlater_from_div(the_program);
+  // console.log("clicked watch later");
+
+  // $(document).trigger('refresh');
+  // $(document).trigger('refresh_buttons');
+  return false;
+});
 //ON CLICK LISTENER TO ADD TO WATCH LATER
 
 $("#deletewatchlater").live( "click", function() {
@@ -747,22 +826,30 @@ $("#deletewatchlater").live( "click", function() {
   var this_div = $(this).attr('id');
   var id= $(this).parents().eq(2).attr('id');
 
-  //remove json
-  findAndRemove(watch_later_json.suggestions, 'pid', id);
-  for(var i in list_watch_later){
-        if(list_watch_later[i]==id){
-            array.splice(i,1);
-            break;
-        }
+  //remove from json
+  for (var i = 0; i < watch_later_json.suggestions.length; i++) {
+    if (watch_later_json.suggestions[i].pid == id) {
+        watch_later_json.suggestions.splice(i, 1);
+        break;
+    }
   }
-    $("#watchlater").html("<img id='addtowatchlater' style='width: 40px;' src=\"images/icons/watch_later.png\" /><span style='display: block'; class ='inter_span'>Watch Later</span>");
-    $('#list_later #'+id).remove();
-    update_channel("watch_later", watch_later_json);
+  //remove from list
+  for (var i = 0; i < list_watch_later.length; i++) {
+    if (list_watch_later[i] == id) {
+        list_watch_later.splice(i, 1);
+        break;
+    }
+  }
 
-    
+  $("#watchlater").html("<img id='addtowatchlater' style='width: 40px;' src=\"images/icons/watch_later.png\" /><span style='display: block'; class ='inter_span'>Watch Later</span>");
+  $('#list_later').children('#'+ id).remove();
+  update_channel("watch_later", watch_later_json);
 
   // insert_watchlater_from_div(the_program);
   // console.log("clicked watch later");
+
+  // $(document).trigger('refresh');
+  // $(document).trigger('refresh_buttons');
   return false;
 });
 
@@ -872,7 +959,7 @@ function show_later(){
   $browse.removeClass("blue").addClass("grey");
 
 
-  $sr.html($("#results").clone());
+  $sr.html($("#list_later").clone());
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
 }
