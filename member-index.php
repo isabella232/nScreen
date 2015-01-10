@@ -104,6 +104,10 @@ var shared_by_friends_json = {};
 var list_likes = [];
 var list_dislikes = [];
 
+var likes_json = {};
+var real_likesdislikes_json = {}; //to update later
+var dislikes_json = {};
+
 var random_json = {};
 var recommendations_json = {};
 
@@ -273,7 +277,7 @@ function add_name(){
         //var whatever = changeData(data);
         shared_by_friends_json = data; //set global variable to use later if so
         var shared_by_friends_items = shared_by_friends_json.suggestions;
-        if(shared_by_friends_json.length != 0){
+        if(shared_by_friends_items.length != 0){
           for(var i in shared_by_friends_items){
             var pid = shared_by_friends_items[i].pid;
             list_shared_by_friends.push(pid);
@@ -281,6 +285,57 @@ function add_name(){
         }
         //console.log(recommendations_json);
         recommendations(data,"results");
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.log("!!nokkkk "+textStatus);
+      }
+    });
+
+    $.ajax({
+      type: "POST",
+      url: "get_channel.php",
+      //async: false,
+      data: {channel: "like_dislike"},
+      dataType: "json",
+      success: function(data){
+        real_likesdislikes_json = data;
+        // console.log(JSON.stringify(data));
+        //console.log(data);
+        if(data.likes.length >0){
+          // ---- LIKES ----
+          var likes_json = {
+              suggestions: []
+          };
+
+          // likes_json = data.likes;
+          likes_json.suggestions.push(data.likes);//set global variable to use later if so
+          var likes_items = likes_json.suggestions;
+          if(likes_items.length != 0){
+            for(var i in likes_items){
+              var pid = likes_items[i].pid;
+              list_likes.push(pid);
+            }
+          }
+          recommendations(likes_json,"list_likes");
+        }
+         if(data.dislikes.length >0){
+          // ---- DISLIKES ----
+          var dislikes_json = {
+              suggestions: []
+          };
+          dislikes_json.suggestions.push(data.dislikes);//set global variable to use later if so
+          var dislikes_items = dislikes_json.suggestions;
+          if(dislikes_items.length != 0){
+            for(var i in dislikes_items){
+              var pid = dislikes_items[i].pid;
+              list_dislikes.push(pid);
+            }
+          }
+          console.log(likes_json);
+          //console.log(recommendations_json);
+        
+          recommendations(dislikes_json,"list_dislikes");
+        }
       },
       error: function(jqXHR, textStatus, errorThrown){
         console.log("!!nokkkk "+textStatus);
@@ -360,6 +415,9 @@ var opts = {
 //UPDATE REGARDING COLUMN IN CONTENT DATABASE 
 // watch_later, recently_viewed, shared_by_friends....
 function update_channel(channel, data){
+  if(channel == "like_dislike"){
+
+  }
   $.ajax({
         url: "set_channel.php",
         type: "POST",
@@ -446,8 +504,8 @@ function insert_suggest2(id,tag) {
               html2.push("<div id='watchlater'class=\"interactive_icon\"><img id='deletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span></div>");      
       }
 
-      html2.push("<div class=\"interactive_icon\"><img id='addtolike' style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span></div>");
-      html2.push("<div class=\"interactive_icon\"><img id = 'addtodislike' style='width: 40px;' src=\"images/icons/dislike.png\" /><span style='display: block'; class ='inter_span'>Dislike</span></div>");
+      html2.push("<div id='like' class=\"interactive_icon\"><img id='addtolike' style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span></div>");
+      html2.push("<div id='dislike' class=\"interactive_icon\"><img id = 'addtodislike' style='width: 40px;' src=\"images/icons/dislike.png\" /><span style='display: block'; class ='inter_span'>Dislike</span></div>");
       if(not_in_list(id,list_shared_by_friends)){
         html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/shared.png\" /><span style='display: block'; class ='inter_span'>Shared by friends</span></div>");
       }
@@ -762,7 +820,7 @@ $("#addtolike").live( "click", function() {
   var this_div = $(this).attr('id');
   var id= $(this).parents().eq(2).attr('id');
 
-  $("#watchlater").html("<img id='deletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span>");
+  $("#like").html("<img id='deletelike' style='width: 40px;' src=\"images/icons/on_like.png\" /><span style='display: block'; class ='on_inter_span'>Like</span>");
 
   // console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
   $.ajax({
@@ -801,16 +859,16 @@ $("#addtolike").live( "click", function() {
         break;
       }
     }
-    watch_later_json.suggestions.splice(0,0,item.suggestions[0]);
-    list_watch_later.push(id);
-    update_channel("watch_later", watch_later_json);
+    likes_json.suggestions.splice(0,0,item.suggestions[0]);
+    list_likes.push(id);
+    update_channel("like_dislike", likes_json);
     html = [];
     html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
     html.push("<img class=\"img img_small\" src=\""+img+"\" />");
     html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
     html.push("<p class=\"description large\">"+description+"</p>");
     html.push("</div>");
-    $('#list_later').prepend(html.join(''));
+    $('#list_likes').prepend(html.join(''));
 
   // insert_watchlater_from_div(the_program);
   // console.log("clicked watch later");
@@ -2062,9 +2120,17 @@ function hide_overlay(){
       </div>
 
       <div id="content4" class="slidey">
-        <span class="sub_title">LIKES & DISLIKES</span>
+        <span class="sub_title">LIKES</span>
         <span class="more_blue"><a onclick='show_likes();'>View All</a></span>
         <div id="list_likes">
+          <div class='dotted_box'> </div>
+        </div>
+      </div>
+
+      <div id="content5" class="slidey">
+        <span class="sub_title">DISLIKES</span>
+        <span class="more_blue"><a onclick='show_dislikes();'>View All</a></span>
+        <div id="list_dislikes">
           <div class='dotted_box'> </div>
         </div>
       </div>
