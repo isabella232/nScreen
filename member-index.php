@@ -301,14 +301,17 @@ function add_name(){
         real_likesdislikes_json = data;
         // console.log(JSON.stringify(data));
         //console.log(data);
+        likes_json = {
+              suggestions: []
+        };
+
+        dislikes_json = {
+              suggestions: []
+         };
         if(data.likes.length >0){
           // ---- LIKES ----
-          var likes_json = {
-              suggestions: []
-          };
-
           // likes_json = data.likes;
-          likes_json.suggestions.push(data.likes);//set global variable to use later if so
+          likes_json.suggestions = JSON.parse(JSON.stringify(data.likes));//set global variable to use later if so
           var likes_items = likes_json.suggestions;
           if(likes_items.length != 0){
             for(var i in likes_items){
@@ -316,14 +319,15 @@ function add_name(){
               list_likes.push(pid);
             }
           }
+          console.log(likes_json);
           recommendations(likes_json,"list_likes");
         }
          if(data.dislikes.length >0){
           // ---- DISLIKES ----
-          var dislikes_json = {
+          dislikes_json = {
               suggestions: []
           };
-          dislikes_json.suggestions.push(data.dislikes);//set global variable to use later if so
+          dislikes_json.suggestions = JSON.parse(JSON.stringify(data.dislikes));//set global variable to use later if so
           var dislikes_items = dislikes_json.suggestions;
           if(dislikes_items.length != 0){
             for(var i in dislikes_items){
@@ -331,9 +335,10 @@ function add_name(){
               list_dislikes.push(pid);
             }
           }
-          console.log(likes_json);
+          
           //console.log(recommendations_json);
-        
+          console.log(likes_json);
+          console.log(dislikes_json);
           recommendations(dislikes_json,"list_dislikes");
         }
       },
@@ -415,18 +420,33 @@ var opts = {
 //UPDATE REGARDING COLUMN IN CONTENT DATABASE 
 // watch_later, recently_viewed, shared_by_friends....
 function update_channel(channel, data){
-  if(channel == "like_dislike"){
 
+  if(channel == "like_dislike"){
+    console.log(JSON.stringify(real_likesdislikes_json));
+    real_likesdislikes_json.likes = likes_json.suggestions;
+    real_likesdislikes_json.dislikes = dislikes_json.suggestions;
+    console.log(JSON.stringify(real_likesdislikes_json));
+    $.ajax({
+      url: "set_channel.php",
+      type: "POST",
+      data: {data : JSON.stringify(real_likesdislikes_json), channel : channel},
+      dataType: "json",
+      success: function (response) {
+          console.log("Correct " + channel + " updated");
+      }
+    });
   }
-  $.ajax({
-        url: "set_channel.php",
-        type: "POST",
-        data: {data : JSON.stringify(data), channel : channel},
-        dataType: "json",
-        success: function (response) {
-            console.log("Correct " + channel + " updated");
-        }
-      });
+  else{
+    $.ajax({
+      url: "set_channel.php",
+      type: "POST",
+      data: {data : JSON.stringify(data), channel : channel},
+      dataType: "json",
+      success: function (response) {
+          console.log("Correct " + channel + " updated");
+      }
+    });
+  }
 }
 
 //display suggestions based on id 
@@ -504,8 +524,18 @@ function insert_suggest2(id,tag) {
               html2.push("<div id='watchlater'class=\"interactive_icon\"><img id='deletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span></div>");      
       }
 
-      html2.push("<div id='like' class=\"interactive_icon\"><img id='addtolike' style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span></div>");
+      if(not_in_list(id,list_likes)){
+        html2.push("<div id='like' class=\"interactive_icon\"><img id='addtolike' style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span></div>");
+      }
+      else{
+        html2.push("<div id='like' class=\"interactive_icon\"><img id='deletelike' style='width: 40px;' src=\"images/icons/on_like.png\" /><span style='display: block'; class ='on_inter_span'>Like</span></div>");
+      }
+      if(not_in_list(id,list_dislikes)){
       html2.push("<div id='dislike' class=\"interactive_icon\"><img id = 'addtodislike' style='width: 40px;' src=\"images/icons/dislike.png\" /><span style='display: block'; class ='inter_span'>Dislike</span></div>");
+      }
+      else{
+      html2.push("<div id='dislike' class=\"interactive_icon\"><img id = 'deletedislike' style='width: 40px;' src=\"images/icons/on_dislike.png\" /><span style='display: block'; class ='on_inter_span'>Dislike</span></div>");
+      }
       if(not_in_list(id,list_shared_by_friends)){
         html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/shared.png\" /><span style='display: block'; class ='inter_span'>Shared by friends</span></div>");
       }
@@ -813,7 +843,7 @@ $("#addtowatchlater").live( "click", function() {
   return false;
 });
 
-//ON CLICK LISTENER TO ADD TO WATCH LATER
+//ON CLICK LISTENER TO ADD TO LIKES
 
 $("#addtolike").live( "click", function() {
   var father = $(this).parents().eq(2);
@@ -877,7 +907,73 @@ $("#addtolike").live( "click", function() {
   // $(document).trigger('refresh_buttons');
   return false;
 });
-//ON CLICK LISTENER TO ADD TO WATCH LATER
+
+//ON CLICK LISTENER TO ADD TO DISLIKES
+$("#addtodislike").live( "click", function() {
+  var father = $(this).parents().eq(2);
+  var this_div = $(this).attr('id');
+  var id= $(this).parents().eq(2).attr('id');
+
+  $("#dislike").html("<img id='deletedislike' style='width: 40px;' src=\"images/icons/on_dislike.png\" /><span style='display: block'; class ='on_inter_span'>Dislike</span>");
+
+  // console.log('THE DIV ID OF THE PROGRAM IS   ' + the_program );
+  $.ajax({
+    url: "get_tedtalks_by_id.php",
+    type: "POST",
+    async: false,
+    data: {id: id},
+    dataType: "json",
+    success: function (data) {
+        item =  changeData(data); //JSON with suggestions format
+        // recently_viewed_json.suggestions.splice(0,0,item.suggestions[0]);
+    }
+    });
+    //recently_viewed_json.suggestions[0] is the current video now displayed   
+    // update_channel("recently_viewed", recently_viewed_json);
+    var div = $("#"+id);
+
+    var speaker = (/(.*):.*?/.exec(item.suggestions[0].title))[1];
+    var title = (/.*?:(.*)/.exec(item.suggestions[0].title))[1];
+    var description = item.suggestions[0].description;
+    // var tags = lalala **********************TO DO*********************
+    var video = item.suggestions[0].media_profile_uris.internal["950k"].uri;
+    var pid = item.suggestions[0].pid;
+    var img = item.suggestions[0].image;
+
+    var tags = Object.keys(item.suggestions[0]["tags"]);
+    //var tag = (/[^, ]*/.exec(tags)[0]);
+    var tags = (/[^, ]*/.exec(tags)); //array of tags
+    var tag = ""; //initialiazing
+    //check for a tag without whitespace
+    for(var i=0; i<tags.length; i++){
+      //console.log("THIS IS TAG " + tags[i]);
+      if(tags[i].indexOf(' ') >= 0 || /^[A-Z]/.test(tags[i])){}
+      else {
+        tag = tags[i];
+        break;
+      }
+    }
+    dislikes_json.suggestions.splice(0,0,item.suggestions[0]);
+    list_dislikes.push(id);
+    update_channel("like_dislike", dislikes_json);
+    html = [];
+    html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
+    html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+    html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
+    html.push("<p class=\"description large\">"+description+"</p>");
+    html.push("</div>");
+    $('#list_dislikes').prepend(html.join(''));
+
+  // insert_watchlater_from_div(the_program);
+  // console.log("clicked watch later");
+
+  // $(document).trigger('refresh');
+  // $(document).trigger('refresh_buttons');
+  return false;
+});
+
+
+//ON CLICK LISTENER TO DELETE FROM WATCH LATER IST
 
 $("#deletewatchlater").live( "click", function() {
   var father = $(this).parents().eq(2);
@@ -908,6 +1004,73 @@ $("#deletewatchlater").live( "click", function() {
 
   // $(document).trigger('refresh');
   // $(document).trigger('refresh_buttons');
+  return false;
+});
+
+//ON CLICK LISTENER TO DELETE FROM LIKES LIST
+
+$("#deletelike").live( "click", function() {
+  var father = $(this).parents().eq(2);
+  var this_div = $(this).attr('id');
+  var id= $(this).parents().eq(2).attr('id');
+
+  //remove from json
+  for (var i = 0; i < likes_json.suggestions.length; i++) {
+    if (likes_json.suggestions[i].pid == id) {
+        likes_json.suggestions.splice(i, 1);
+        break;
+    }
+  }
+  //remove from list
+  for (var i = 0; i < list_likes.length; i++) {
+    if (list_likes[i] == id) {
+        list_likes.splice(i, 1);
+        break;
+    }
+  }
+
+  $("#like").html("<img id='addtolike' style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span>");
+  $('#list_likes').children('#'+ id).remove();
+  update_channel("like_dislike", likes_json);
+  return false;
+});
+
+//FUnction to sheck whether a programme in on a personal list or not
+function not_in_list(pid, list){
+  var not_in_the_list = true;
+  for (var i = 0; i < list.length; i++){
+    if(list[i] == pid){
+      not_in_the_list = false;
+    }
+  }
+  return not_in_the_list; //returns true if element not in the list
+}
+
+//ON CLICK LISTENER TO DELETE FROM LIKES LIST
+
+$("#deletedislike").live( "click", function() {
+  var father = $(this).parents().eq(2);
+  var this_div = $(this).attr('id');
+  var id= $(this).parents().eq(2).attr('id');
+
+  //remove from json
+  for (var i = 0; i < dislikes_json.suggestions.length; i++) {
+    if (dislikes_json.suggestions[i].pid == id) {
+        dislikes_json.suggestions.splice(i, 1);
+        break;
+    }
+  }
+  //remove from list
+  for (var i = 0; i < list_dislikes.length; i++) {
+    if (list_dislikes[i] == id) {
+        list_dislikes.splice(i, 1);
+        break;
+    }
+  }
+
+  $("#dislike").html("<img id='addtodislike' style='width: 40px;' src=\"images/icons/dislike.png\" /><span style='display: block'; class ='inter_span'>Dislike</span>");
+  $('#list_dislikes').children('#'+ id).remove();
+  update_channel("like_dislike", dislikes_json);
   return false;
 });
 
@@ -1018,6 +1181,43 @@ function show_later(){
 
 
   $sr.html($("#list_later").clone());
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+}
+function show_likes(){
+
+  $("#main_title").html("Likes List");
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+  
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+
+  $sr.html($("#list_likes").clone());
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+}
+
+function show_dislikes(){
+
+  $("#main_title").html("Dislikes List");
+
+  $sr=$("#search_results");
+  $sr.css("display","block");
+  
+  $container=$("#browser");
+  $container.css("display","none");
+
+  $browse=$("#browse");
+  $browse.removeClass("blue").addClass("grey");
+
+
+  $sr.html($("#list_dislikes").clone());
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
 }
