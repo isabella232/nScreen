@@ -74,7 +74,7 @@ function init(){
   show_message("Welcome to Simple TV<br /><small>Group is "+my_group+"</small>");
 
   var pr = tmp_name();
-  buttons = new ButtonsLink({"server":"jabber.notu.be"});
+  buttons = new ButtonsLink({"server":"localhost"});
   me = new TV(pr,pr);
   buttons.connect(me,my_group,blink_callback);
 
@@ -107,11 +107,97 @@ function makePlayer(){
 
 }
 
+//Adapt ted-talks http requesst to our ow data format
 
+function changeData(data){
+
+  var random_ted = {
+    suggestions: []
+  };
+
+  if(data.talks == null){
+    return random_ted;
+  }  
+
+  for(var i = 0; i < data.talks.length; i++) {  var item = data.talks[i];
+      for(var j = 0; j < data.talks[i].talk.photo_urls.length; j++){
+        if(data.talks[i].talk.photo_urls[j].size == "240x180"){
+          var image = data.talks[i].talk.photo_urls[j].url;
+        }
+      } 
+
+      if(item.talk.media_profile_uris["internal"]){
+
+      random_ted.suggestions.push({ 
+          "pid"   : item.talk.id,
+          "title" : item.talk.name,          
+          "description" : item.talk.description,
+          "date_time" : item.talk.published_at,
+          "media_profile_uris" : item.talk.media_profile_uris,
+          "url" : item.talk.media_profile_uris["internal"]["950k"].uri, //TODO CHANGE THIS
+          "video" : item.talk.media_profile_uris["internal"]["950k"].uri,
+          "speaker" : item.talk.speakers,
+          "image" : image,
+          "manifest" : {
+              "pid"   : item.talk.id,
+              "id" : item.talk.id,          
+              "title" : item.talk.name,
+              "image" : image,
+              "provider" : "ted",
+              "duration" : 1750,
+              "media": {
+                "mp4": {
+                  // "type": "video/x-swf",
+                  "uri": item.talk.media_profile_uris["internal"]["950k"].uri,
+                  "is_live": "false"
+                }
+              },
+              "type": "video/mp4"
+          },
+          "tags" : item.talk.tags
+      });
+
+      }
+      else{
+
+        random_ted.suggestions.push({ 
+          "pid"   : item.talk.id,
+          "title" : item.talk.name,          
+          "description" : item.talk.description,
+          "date_time" : item.talk.published_at,
+          "media_profile_uris" : item.talk.media_profile_uris,
+          "url" : "", //TODO CHANGE THIS
+          "video" : "",
+          "speaker" : item.talk.speakers,
+          "image" : image,
+          "manifest" : {
+              "pid"   : item.talk.id,
+              "id" : item.talk.id,          
+              "title" : item.talk.name,
+              "image" : image,
+              "provider" : "ted",
+              "duration" : 1750,
+              "media": {
+                "mp4": {
+                  // "type": "video/x-swf",
+                  "uri": "",
+                  "is_live": "false"
+                }
+              },
+              "type": "video/mp4"
+          },
+          "tags" : item.talk.tags
+      });
+
+      }
+      
+  }return random_ted; 
+}
 
 $(document).bind('tv_changed', function (e,item) {
   console.log(item);
   var programme = item.nowp;
+  var id =  item.nowp.id;
   me.nowp = item.nowp;
   $("#title").html(programme["title"]);
 
@@ -123,30 +209,46 @@ $(document).bind('tv_changed', function (e,item) {
 
   if(action=="Play"){
 
+    $.ajax({
+          url: "get_tedtalks_by_id.php",
+          type: "POST",
+          async: false,
+          data: {id: id},
+          dataType: "json",
+          success: function (data) {
+              item =  changeData(data); //JSON with suggestions format
+
+              var manifest = item.suggestions[0].manifest;
+              process_manifest(manifest,programme);
+          }
+  });
+
   //pretty much everything should have a manifest
-    var manifest = programme["manifest"];
-    if(manifest){
-      console.log("manifest is "+manifest);
+    // var manifest = programme["manifest"];
+    // var manifest = item.manifest;
+    // if(manifest){
+    //   console.log("manifest is "+manifest);
   
-        $.ajax({
-        url: manifest,
-        dataType: "json",
-        success: function(data){
-         process_manifest(data,programme);
-         },
-         error: function(jqXHR, textStatus, errorThrown){
-         console.log("oh dear[1] "+textStatus);
-         }
-        }); 
+    //     $.ajax({
+    //     url: manifest,
+    //     dataType: "json",
+    //     success: function(data){
+    //      process_manifest(data,programme);
+    //      },
+    //      error: function(jqXHR, textStatus, errorThrown){
+    //      console.log("oh dear[1] "+textStatus);
+    //      }
+    //     }); 
    }else{
      alert("no manifest");
    }
-  }
 });
 
 
 
 function process_manifest(manifest_data,programme){
+
+  console.log("inside process_manifest");
 
    if(manifest_data && manifest_data["limo"]){
        //two kinds of manifest - one with events and one not
@@ -198,6 +300,65 @@ function process_manifest(manifest_data,programme){
     }
 
 }
+
+function process_video(programme,formats,provider,width,height){
+
+  console.log("indise process_video");
+  if(!width){
+     width="760";
+  }
+  if(!height){
+     height = "400";
+  }
+
+  var swf = formats["swf"];
+  var mp4 = formats["mp4"];
+
+
+     if(mp4){
+       var uri = mp4["uri"];
+       $("#player").html("<video id='myvid' width=\"100%\" controls ><source src=\""+uri+"\"></video>");
+
+       //events
+       var myvid = document.getElementById("myvid");
+       if(myvid){
+           myvid.addEventListener('timeupdate',function(){
+
+           if(events_list.length>0){
+              var z = parseInt(myvid.currentTime)+'';//int isn;t really precise enough
+              if(events_list[z] && (!events_list_sent[z])){
+                events_list_sent[z]=true;
+                console.log(events_list_sent);
+                console.log("found event and triggering");
+                console.log(events_list[z]);
+
+                var item = events_list[z];
+                if(item["format"].match("video")){
+////                   item["item_type"]="video";
+                }else{
+                   item["item_type"]="webpage";
+                }
+                if(buttons){
+                  buttons.share(item);
+                }
+              }
+           }else{
+              console.log( "no events");
+           }
+         });
+       }
+
+     }else{
+      if(swf){
+        var uri = swf["uri"];
+        console.log("playing swf "+uri);
+        //pick your swf player here
+        alert("no swf player specififed");
+      }
+
+   }//end else
+
+}//end method
 
 
 

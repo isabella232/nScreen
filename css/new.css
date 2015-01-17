@@ -74,10 +74,10 @@ a:hover{
  width:50px;
 }
 
-#tv{
+/*#tv{
  height:200px;
 }
-
+*/
 #container{
  position: absolute;
  overflow: scroll;
@@ -483,10 +483,13 @@ h2{
 
 }
 .play_button{
+cursor: pointer;
 position: relative;
 float: left;
 top: -240px;
 left: 45%;
+z-index: 11;
+cursor: pointer;
 }
 
 .notifications_red{

@@ -449,6 +449,7 @@ function update_channel(channel, data){
   }
 }
 
+
 //display suggestions based on id 
 // RECENTLY VIEWED !!
 
@@ -550,37 +551,46 @@ function insert_suggest2(id,tag) {
       }
       html2.push("</div>");
       html2.push("</div>");
-      
 
-      //Interactive icons 
+      if(recently_viewed_json.suggestions[0].manifest){
+      var manifest = recently_viewed_json.suggestions[0].manifest;
+      var data =  recently_viewed_json.suggestions[0].manifest; 
+      set_playable(data);
+
+      // $.ajax({
+      //  url: recently_viewed_json.suggestions[0].manifest,
+      //  dataType: "json",
+      //    success: function(data){
+      //      set_playable(data);
+      //    },
+      //    error: function(jqXHR, textStatus, errorThrown){
+      //      alert("oh dear "+textStatus);
+      //    }
+      // });
+    }
 
       
-      
-
-      
-
 
       $('#new_overlay').html(html2.join(''));
    
       $('#new_overlay').show();  
       show_grey_bg();
 
+      // $(".play_button").live( "click", function() {
 
-      // FIXXXX PLAY BUTTON!!!!! ??????????? **************************************************
+      // console.log("PLAY PRESSED!!!");
+      //   var res = {};
+      //   // res["id"]=id;
+      //   res["pid"]=pid;
+      //   res["title"]=title;
+      //   res["video"]=video;
+      //   res["description"]=description;
+      //   // res["explanation"]=explanation;
+      //   res["img"]=id;
+      //   sendProgrammeTVs(res,my_tv); 
+      //   return false;
 
-      $('.play_button').click(function(){
-              var res = {};
-              res["id"]=id;
-              res["pid"]=pid;
-              res["title"]=title;
-              res["video"]=video;
-              res["description"]=description;
-              res["explanation"]=explanation;
-              res["img"]=id;
-              sendProgrammeTVs(res,my_tv); 
-              return false;
-
-      }).addTouch();
+      // });
 
 
       $('#new_overlay').append("<div class=\"more_like_this\" style=\"margin-top: 400px;\"><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span></div>");
@@ -607,6 +617,88 @@ function insert_suggest2(id,tag) {
 
 }
 
+function test_for_playability(formats, provider){
+console.log("formats");
+console.log(formats);
+  //@@tmp - for ipads etc should say no for flash
+  //might want also to exclude some providers
+  if(navigator.platform.indexOf("iPad") != -1 || navigator.platform.indexOf("iPhone") !=-1){
+    if(formats["mp4"]){
+      return true;
+    }else{
+      return false;
+    }
+  }else{
+    return true;
+  }
+}
+
+function set_playable(manifest_data){
+
+    if(manifest_data && manifest_data["limo"]){
+       //two kinds of manifest - one with events and one not
+       // this is the events one
+
+       if(manifest_data["limo"]["event-resources"][0]["link"]){
+
+         $.ajax({
+           url: manifest_data["limo"]["event-resources"][0]["link"],
+           dataType: "json",
+           success: function(data){
+           process_events(data);
+           },
+           error: function(jqXHR, textStatus, errorThrown){
+           console.log("oh dear2 "+textStatus);
+           }
+         });
+
+       }
+
+       if(manifest_data["limo"]["media-resources"][0]["link"]){
+
+        $.ajax({
+         url: manifest_data["limo"]["media-resources"][0]["link"],
+         dataType: "json",
+           success: function(data){
+             set_playable(data);
+           },
+           error: function(jqXHR, textStatus, errorThrown){
+             alert("oh dear "+textStatus);
+           }
+        });
+          
+       }else{
+         console.log("broken manifest limo file");
+       }
+
+    }else{
+
+      var locally_playable = false;
+
+      if(manifest_data && manifest_data["media"]){
+         var swf = manifest_data["media"]["swf"];
+         var mp4 = manifest_data["media"]["mp4"];
+
+         var provider = manifest_data["provider"];
+         var formats = {"swf":swf,"mp4":mp4};
+         locally_playable = test_for_playability(formats, provider);
+         if(locally_playable){
+           // $(".play_button").show();
+           // $(".play_button").unbind('click');
+           $(".play_button").live( "click", function() {
+                      //get the prpgramme
+                      var el = $( this ).parent().parent();
+                      var programme = get_data_from_programme_html(el);
+                      $("#new_overlay").html("<div class='close_button'><img src='images/icons/exit.png' width='12px' onclick='javascript:hide_overlay();'/></div><div id='player'></div>");
+                      process_video(programme,formats,provider);
+                      return false;
+
+           });
+         }
+      }
+   }
+}
+
 //print out who is in the group and what sort of thing they are
 
 function get_roster(blink){
@@ -617,6 +709,7 @@ function get_roster(blink){
 
    if(roster["me"]){
      $("#title").html(roster["me"].name);
+     $("#small_title").html("<a href='player.html#"+my_group+"' target='_blank'>Open Virtual TV</a>");
    }
   $("#roster").empty();
 
@@ -666,8 +759,8 @@ function get_roster(blink){
             var html_tv = [];
             html_tv.push("<div class='snaptarget_tv telly' id='tv_title'>");
             
-            html_tv.push("<div id='tv_name' style='float:right;font-size:16px;padding-top:10px;padding-right:40px;'>My TV</div>");
-            html_tv.push("<div style='float:left'><img class='img_tv' src='images/tiny_tv.png' /></div>");
+            html_tv.push("<div id='tv_name' style='font-size:16px;padding-top:10px;padding-right:40px;'>My TV</div>");
+            html_tv.push("<div style='float: left; margin-right: 15px; margin-top: 30px;'><img class='img_tv' src='images/tiny_tv.png' /></div>");
             
             // html_tv.push("<br clear=\"both\" />");
     
@@ -1783,14 +1876,17 @@ function changeData(data){
           var image = data.talks[i].talk.photo_urls[j].url;
         }
       } 
+
+      if(item.talk.media_profile_uris["internal"]){
+
       random_ted.suggestions.push({ 
           "pid"   : item.talk.id,
           "title" : item.talk.name,          
           "description" : item.talk.description,
           "date_time" : item.talk.published_at,
           "media_profile_uris" : item.talk.media_profile_uris,
-          "url" : item.talk.media_profile_uris, //TODO CHANGE THIS
-          "video" : item.talk.media_profile_uris,
+          "url" : item.talk.media_profile_uris["internal"]["950k"].uri, //TODO CHANGE THIS
+          "video" : item.talk.media_profile_uris["internal"]["950k"].uri,
           "speaker" : item.talk.speakers,
           "image" : image,
           "manifest" : {
@@ -1801,14 +1897,51 @@ function changeData(data){
               "provider" : "ted",
               "duration" : 1750,
               "media": {
-                "swf": {
-                  "type": "video/x-swf",
-                  "uri": item.talk.media_profile_uris
+                "mp4": {
+                  // "type": "video/x-swf",
+                  "uri": item.talk.media_profile_uris["internal"]["950k"].uri,
+                  "is_live": "false"
                 }
-              }
+              },
+              "type": "video/mp4"
           },
           "tags" : item.talk.tags
       });
+
+      }
+      else{
+
+        random_ted.suggestions.push({ 
+          "pid"   : item.talk.id,
+          "title" : item.talk.name,          
+          "description" : item.talk.description,
+          "date_time" : item.talk.published_at,
+          "media_profile_uris" : item.talk.media_profile_uris,
+          "url" : "", //TODO CHANGE THIS
+          "video" : "",
+          "speaker" : item.talk.speakers,
+          "image" : image,
+          "manifest" : {
+              "pid"   : item.talk.id,
+              "id" : item.talk.id,          
+              "title" : item.talk.name,
+              "image" : image,
+              "provider" : "ted",
+              "duration" : 1750,
+              "media": {
+                "mp4": {
+                  // "type": "video/x-swf",
+                  "uri": "",
+                  "is_live": "false"
+                }
+              },
+              "type": "video/mp4"
+          },
+          "tags" : item.talk.tags
+      });
+
+      }
+      
   }return random_ted; 
 }
 
@@ -1892,6 +2025,8 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
 
 //notifications 
   build_notification(msg_text,programme,name);
+  $(document).trigger('refresh');
+   $(document).trigger('refresh_buttons');
 
   // $(document).trigger('refresh_group');
   // $(document).trigger('refresh_buttons');
@@ -2251,9 +2386,19 @@ function show_grey_bg(){
  $("#bg").show();
 }
 
+
 function hide_overlay(){
+$("#new_overlay").children().filter("video").each(function(){
+    this.pause();
+    this.remove();
+});
+$("#new_overlay").empty();
+ // $("#new_overlay").get(0).pause();
+ // $("#new_overlay")[0].pause();
  $("#bg").hide();
+ $("#myvid").html("");
  $("#new_overlay").hide();
+
           
 }
 
@@ -2261,7 +2406,7 @@ function hide_overlay(){
 
   <div id="header">
     <span id='main_title'>Browse Programmes</span>
-    <span id='small_title'><a target='_blank' href='player.html'>Open player in new window</a></span>
+    <span id='small_title'></span>
     <span class="form" >
       <form onsubmit='javascript:do_search(this.search_text.value);return false;'>
         <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
@@ -2374,7 +2519,7 @@ function hide_overlay(){
 
 <!-- overlays -->
 
-<div id='new_overlay' style='display:none;'><div class='close_button'><img src='images/close.png'/></div></div>
+<div id='new_overlay' style='display:none;'><div class='close_button'><img width="12px" onclick="javascript:hide_overlay();" src="images/icons/exit.png"/></div></div>
 <div id='bg' style='display:none;' onclick='javascript:hide_overlay()'></div>
 
 

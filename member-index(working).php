@@ -875,8 +875,6 @@ function set_playable(manifest_data){
                       return false;
 
            });
-
-
          }
       }
    }
