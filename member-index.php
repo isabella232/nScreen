@@ -2488,11 +2488,20 @@ $("#new_overlay").empty();
   <div id="header">
     <span id='main_title'>Browse Programmes</span>
     <span id='small_title'></span>
-    <span class="form" >
+
+    <!-- NOT WORKING BY NOW -->
+
+        <span class="form" >
+      <form >
+        <input type="text" id="search_text" name="search_text" value="search programmes" />
+      </form>
+    </span>
+
+<!--     <span class="form" >
       <form onsubmit='javascript:do_search(this.search_text.value);return false;'>
         <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
       </form>
-    </span>
+    </span> -->
     <div id="title"></div>
 
   </div>
