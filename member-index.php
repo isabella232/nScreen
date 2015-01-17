@@ -459,8 +459,11 @@ function insert_suggest2(id,tag) {
   console.log(list_shared_by_friends);
       var item = {};
 
+      var flag = false //to set recently viewed icon or not
+
       //code to check how to place the element in recently viewed 
       if(update_list(id,list_recently_viewed) == false){ //this means that the element IS already in the list
+        flag = true;
         $('#history').find("#"+id).remove();
         for(var i in recently_viewed_json.suggestions){
           if(recently_viewed_json.suggestions[i].pid == ('' + id)){
@@ -494,6 +497,9 @@ function insert_suggest2(id,tag) {
       var pid = recently_viewed_json.suggestions[0].pid;
       var img = recently_viewed_json.suggestions[0].image;
 
+      var tags = Object.keys(recently_viewed_json.suggestions[0]["tags"]);
+      // var tags = (/[^,]*/.exec(tags));
+      // tags = (/[^, ]*/.exec(tags)); //array of tags
       html = [];
       html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
       html.push("<img class=\"img img_small\" src=\""+img+"\" />");
@@ -510,8 +516,18 @@ function insert_suggest2(id,tag) {
       html2.push("<div class=\"gradient_div\" style=\"text-align: center;  margin-left: 45%; position: absolute; \"> <img class=\"img\" src=\""+img+"\" />");
       html2.push("<div class=\"play_button\"><img style='width: 120px;' src=\"images/icons/play.png\" /></a></div></div>");
       html2.push("<div style='padding-left: 20px; padding-right: 20px; width: 50%; left: 0px; position: absolute;'>");
+      html2.push("<div class=\"p_title_large_speaker\">"+speaker+':'+"</div>");
       html2.push("<div class=\"p_title_large\">"+title+"</div>");
       html2.push("<p class=\"description\">"+description+"</p>");
+      html2.push("<div class=\"list_tags\" style='display:inline;'>");
+      for(var i=0; i<tags.length; i++){
+        if(tags[i].indexOf(' ') >= 0 || /^[A-Z]/.test(tags[i])){ }
+        else{
+          html2.push("<span class=\"item_tag\" onclick=\"javascript:insert_suggest_by_tag('"+tags[i]+"');return true\">#"+tags[i]+"</span>");
+        }
+        
+      }
+      html2.push("</div>");
       // html2.push("<p class=\"explain\">"+explanation+"</p>");
 //      html2.push("<p class=\"keywords\">"+keywords+"</p>");
       html2.push("<p class=\"link\"><a href=\"http://www.ted.com/talks/view/id/"+pid+"\" target=\"_blank\">Sharable Link</a></p></div>");
@@ -543,7 +559,7 @@ function insert_suggest2(id,tag) {
       else{
         html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/on_shared.png\" /><span style='display: block'; class ='on_inter_span'>Shared by friends</span></div>");
       }
-      if(not_in_list(id,list_recently_viewed)){
+      if(flag == false){
         html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/recently_viewed.png\" /><span style='display: block'; class ='inter_span'>Recenlty Viewed</span></div></div>");
       }
       else{
@@ -616,6 +632,71 @@ function insert_suggest2(id,tag) {
       });
 
 }
+
+function insert_suggest_by_tag(tag) {
+
+      html2 = [];
+
+      html2.push("<div class='close_button'><img src='images/icons/exit.png' width='12px' onclick='javascript:hide_overlay();'/></div>");
+      html2.push("<div class=\"p_title_large\" style='text-align:center;'>"+tag+"</div>");
+
+      // $.ajax({
+      //  url: recently_viewed_json.suggestions[0].manifest,
+      //  dataType: "json",
+      //    success: function(data){
+      //      set_playable(data);
+      //    },
+      //    error: function(jqXHR, textStatus, errorThrown){
+      //      alert("oh dear "+textStatus);
+      //    }
+      // });
+      $('#new_overlay').html(html2.join(''));
+   
+      $('#new_overlay').show();  
+      show_grey_bg();
+
+      // $(".play_button").live( "click", function() {
+
+      // console.log("PLAY PRESSED!!!");
+      //   var res = {};
+      //   // res["id"]=id;
+      //   res["pid"]=pid;
+      //   res["title"]=title;
+      //   res["video"]=video;
+      //   res["description"]=description;
+      //   // res["explanation"]=explanation;
+      //   res["img"]=id;
+      //   sendProgrammeTVs(res,my_tv); 
+      //   return false;
+
+      // });
+
+      $('#new_overlay').append("<div class=\"more_like_this_tag\" style=\"margin-top: 40px;\"></div>");
+      // $('#new_overlay').append("<br clear=\"both\"/>");
+      $('#new_overlay').append("<div id='spinner' style=\"float: left;\"></div>");
+      // var target = document.getElementById('spinner');//??
+      // var spinner = new Spinner(opts).spin(target);
+
+      $.ajax({
+       url: "get_tedtalks_related.php",
+       data: {tag : tag},
+       type: 'POST',
+       dataType: "json",
+         success: function(data){
+          var related = changeData(data);
+          related_json = related;
+           recommendations(related,"spinner",false,title);
+//           recommendations(data,"new_overlay",false,title);
+         },
+         error: function(jqXHR, textStatus, errorThrown){
+         //alert("oh dear "+textStatus);
+         }
+      });
+}
+
+
+
+
 
 function test_for_playability(formats, provider){
 console.log("formats");
@@ -720,7 +801,7 @@ function get_roster(blink){
      html.push("<h3 class=\"contrast\">SHARE WITH</h3>");
 
     html.push("<div class='snaptarget_group person' id='group'>");
-    html.push("<img class='img_person' src='images/group.png'  />");
+    html.push("<img class='img_person'  src='images/icons/group.png'  />");
     html.push("<div class='friend_name' id='grp'>Group #"+my_group+"</div>");
     html.push("</div>");
 
@@ -738,7 +819,7 @@ function get_roster(blink){
         // if a person
         if(item.obj_type=="person"){
           html.push("<div class='snaptarget person ui-droppable' id='"+item.name+"'>");
-          html.push("<img class='img_person' src='images/person.png'  />");
+          html.push("<img class='img_person'  src='images/icons/user.png'  />");
           html.push("<div class='friend_name'>"+item.name+"</div>");
           html.push("</div>");
           // html.push("<br clear=\"both\" />");
