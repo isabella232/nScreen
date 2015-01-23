@@ -1,6 +1,6 @@
 <snippet>
 <content><![CDATA[
-# ${1:Prototyping of a Browser-Based Social N-Screen Platform - Master Thesis}
+# Prototyping of a Browser-Based Social N-Screen Platform - Master Thesis
 This is a web-based application that allows multiple people to go to a URL in a browser, drag and drop 
 programmes between each other, and drag and drop programmes to a ' VirtualTV' to play them. 
 It can be used to find and watch on-demand TV when 'together but apart'.
