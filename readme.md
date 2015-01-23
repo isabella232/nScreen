@@ -1,5 +1,5 @@
 <snippet>
-<content><![CDATA[
+<content>
 # Prototyping of a Browser-Based Social N-Screen Platform - Master Thesis
 This is a web-based application that allows multiple people to go to a URL in a browser, drag and drop 
 programmes between each other, and drag and drop programmes to a ' VirtualTV' to play them. 
@@ -21,8 +21,6 @@ This is only possible because of the great open source libraries available:
 * XBMC: http://xbmc.org/
 
 And the great content from http://ted.com 
-
-]]></content>
-<tabTrigger>readme</tabTrigger>
+></content>
 </snippet> 
 
