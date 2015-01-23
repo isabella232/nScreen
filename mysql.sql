@@ -2,17 +2,25 @@
 # Table structure for table 'members'
 #
 
-CREATE TABLE `members` (
-  `member_id` int(11) unsigned NOT NULL auto_increment,
-  `firstname` varchar(100) default NULL,
-  `lastname` varchar(100) default NULL,
-  `login` varchar(100) NOT NULL default '',
-  `passwd` varchar(32) NOT NULL default '',
-  PRIMARY KEY  (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
+CREATE TABLE IF NOT EXISTS `members` (
+  `member_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `firstname` varchar(100) DEFAULT NULL,
+  `lastname` varchar(100) DEFAULT NULL,
+  `login` varchar(100) NOT NULL DEFAULT '',
+  `passwd` varchar(32) NOT NULL DEFAULT '',
+  `facebook_id` bigint(11) DEFAULT NULL,
+  PRIMARY KEY (`member_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
-#
-# Dumping data for table 'members'
-#
 
-INSERT INTO `members` (`member_id`, `firstname`, `lastname`, `login`, `passwd`) VALUES("1", "Begona", "Alvarez", "begona.alvarezd", "ba018360fc26e0cc2e929b8e071f052d");
+CREATE TABLE IF NOT EXISTS `content` (
+  `member_id` int(11) NOT NULL AUTO_INCREMENT,
+  `recommendations` longtext NOT NULL,
+  `recently_viewed` longtext NOT NULL,
+  `watch_later` longtext NOT NULL,
+  `like_dislike` longtext NOT NULL,
+  `shared_by_friends` longtext NOT NULL,
+  PRIMARY KEY (`member_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+

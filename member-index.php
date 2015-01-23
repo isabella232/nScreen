@@ -2023,7 +2023,7 @@ function changeData(data){
 
       }
       
-  }return random_ted; 
+  }console.log(JSON.stringify(random_ted));return random_ted; 
 }
 
 //when the group changes, update the roster
