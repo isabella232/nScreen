@@ -1,10 +1,8 @@
-==N-screen==
+==Begoña Álvarez de la Cruz Master Thesis==
 
 This is a web-based application that allows multiple people to go to a URL in a browser, drag and drop 
-programmes between each other, and drag and drop programmes to a 'TV' (XBMC installation) to play them. 
+programmes between each other, and drag and drop programmes to a ' VirtualTV' to play them. 
 It can be used to find and watch on-demand TV when 'together but apart'. You can see a video here:
-
-http://www.flickr.com/photos/nicecupoftea/5758350110/
 
 The setup requires an EJabberd installation with Bosh enabled, and various simple APIs to the data. The 
 actual client is very simple - javascript and HTML with strophe and jquery - it works in modern 
@@ -25,5 +23,5 @@ This is only possible because of the great open source libraries available:
 * XMPP4R ruby gem http://home.gna.org/xmpp4r/
 * XBMC: http://xbmc.org/
 
-And the great content from http://archive.org and http://ted.com and http://www.bigbuckbunny.org/
+And the great content from http://ted.com 
 
