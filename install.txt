@@ -5,7 +5,8 @@
 
 [2] Create MySQL database, see structure mysql.sql Change config.php to your own database. 
 
-[3] Get API Key & API ID for Facebook Javascript SDK --> create your own web service through Facebook Developers. Insert API ID in index.html as follows:
+[3] Get API Key & API ID for Facebook Javascript SDK --> create your own web service through Facebook Developers. 
+Insert API ID in index.html as follows:
 
 window.fbAsyncInit = function() {
   FB.init({
@@ -16,13 +17,21 @@ window.fbAsyncInit = function() {
     version    : 'v2.1' // use version 2.1
   });
 
-[4] If working with Ted Talks API, get API key using http://developer.ted.com/ and insert it get_random_tedtalks.php, get_tedtalks.php, get_tedtalks_by_id.php and get_tedtalks_related.php.
+[4] If working with Ted Talks API, get API key using http://developer.ted.com/ and 
+insert it get_random_tedtalks.php, get_tedtalks.php, get_tedtalks_by_id.php and get_tedtalks_related.php.
 
-[5] If working with another data, take into account that it needs to be able to extract dataset using HTTP-Request, JSON structure if possible, otherwise it will be more tedious. In this case, working with another dataset, change php scripts realted to TED tals as get_random_tedtalks.php, get_tedtalks.php, get_tedtalks_by_id.php and get_tedtalks_related.php, and insert your own http-request query with the correct API Key. --> Use in member-indez.php the function changeData(data) to set up your JSON prefered structure. ---> Additionally include HTML code to visualize it.  
+[5] If working with another data, take into account that it needs to be able to extract dataset using 
+HTTP-Request, JSON structure if possible, otherwise it will be more tedious. In this case, 
+working with another dataset, change php scripts realted to TED tals as get_random_tedtalks.php, 
+get_tedtalks.php, get_tedtalks_by_id.php and get_tedtalks_related.php, 
+and insert your own http-request query with the correct API Key. 
+--> Use in member-indez.php the function changeData(data) to set up your JSON prefered structure. 
+---> Additionally include HTML code to visualize it.  
 
 ******* IMPORTANT *******
 
-If the platform is developed with a different url than http://localhost/N-Screen/ change it in index.html and member-index.php like this (for example):
+If the platform is developed with a different url than http://localhost/N-Screen/ change it 
+in index.html and member-index.php like this (for example):
 
 from--> history.pushState(state, "N-Screen", "http://localhost/N-Screen/");
 to -->  history.pushState(state, "N-Screen", "http://begona-nscreen.crowdtruth.org/"); //for remote server
