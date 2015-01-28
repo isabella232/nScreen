@@ -1,5 +1,5 @@
 
----- INSTALATION GUIDELINES FOR LOCALHOST DEPLOYMENT -----
+---- INSTALATION GUIDELINES -----
 
 [1] Install Ejabberd, see ejabberd_setup.text
 
