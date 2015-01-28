@@ -1,6 +1,25 @@
-* install ejabberd (see ejabberd_setup.txt)
-* create apis to your content (see data/*.js for examples)
-* edit index.html and player.html to point to your data and jabber server
-* put index.html in one browser and player.html in another
+
+---- INSTALATION GUIDELINES FOR LOCALHOST DEPLOYMENT -----
+
+[1] Install Ejabberd, see ejabberd_setup.text
+
+[2] Create MySQL database, see structure mysql.sql Change config.php to your own database. 
+
+[3] Get API Key & API ID for Facebook Javascript SDK --> create your own web service through Facebook Developers. Insert API ID in index.html as follows:
+
+window.fbAsyncInit = function() {
+  FB.init({
+    appId      : 'YOUR OWN APID',
+    cookie     : true,  // enable cookies to allow the server to access 
+                        // the session
+    xfbml      : true,  // parse social plugins on this page
+    version    : 'v2.1' // use version 2.1
+  });
+
+[4] If working with Ted Talks API, get API key using http://developer.ted.com/ and insert it get_random_tedtalks.php, get_tedtalks.php, get_tedtalks_by_id.php and get_tedtalks_related.php. 
+
+[5] If working with Ted Talks API, get API key using http://developer.ted.com/ and insert it get_random_tedtalks.php, get_tedtalks.php, get_tedtalks_by_id.php and get_tedtalks_related.php. 
+
+[6] If working with another data, take into account that it needs to be able to extract dataset using HTTP-Request, JSON structure if possible, otherwise it will be more tedious. In this case, working with another dataset, change php scripts realted to TED tals as get_random_tedtalks.php, get_tedtalks.php, get_tedtalks_by_id.php and get_tedtalks_related.php, and insert your own http-request query with the correct API Key. 
 
 

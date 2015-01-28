@@ -19,13 +19,13 @@ See install.txt and ejabberd_setup.txt
 This is only possible because of the great open source libraries available:
 
 * jquery drag and drop http://jqueryui.com/demos/draggable/
-* touch jquery addon http://code.google.com/p/jquery-ui-for-ipad-and-iphone/
+* jQuery UI Touch Punch http://touchpunch.furf.com/
 * strophe XMPP over HTTP http://strophe.im/
 * eJabberd XMPP server http://www.ejabberd.im/
-* XMPP4R ruby gem http://home.gna.org/xmpp4r/
+* icons supported by http://thenounproject.com/
 * XBMC: http://xbmc.org/
 
-And the great content from http://ted.com 
+And the great content from http://ted.com through http://developer.ted.com/API_Docs  
 ></content>
 </snippet> 
 
