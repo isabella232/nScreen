@@ -113,8 +113,106 @@ var ted_api_filter_id= "filter=id:>"; //Remember to make "&" between them and pr
 var ted_api_filter_limit = "limit=";
 var ted_api_filter_offset = "offset=";
 var local_search = false;
-var suggestions = null;
-   
+var suggestions = null;   
+
+$.fn.hasOverflow = function() {
+    var $this = $(this);
+    var $children = $this.find('*');
+    var len = $children.length;
+
+    if (len) {
+        var maxWidth = 0;
+        var maxHeight = 0
+        $children.map(function(){
+            maxWidth = Math.max(maxWidth, $(this).outerWidth(true));
+            maxHeight = Math.max(maxHeight, $(this).outerHeight(true));
+        });
+
+        return maxWidth > $this.width() || maxHeight > $this.height();
+    }
+
+    return false;
+};
+
+window.onresize = function(event) {
+
+   if ($("#side-b")[0].scrollHeight > $("#side-b").innerHeight()) {
+     $('#moreblue1').show();
+   }
+   else{
+    $('#moreblue1').hide();
+   }
+   if ($("#content")[0].scrollHeight > $("#content").innerHeight()) {
+     $('#moreblue2').show();
+   }
+   else{
+    $('#moreblue2').hide();
+   }
+   if ($("#content2")[0].scrollHeight > $("#content2").innerHeight()) {    
+     $('#moreblue3').show();
+   }
+   else{
+    $('#moreblue3').hide();
+   }
+   if ($("#content3")[0].scrollHeight > $("#content").innerHeight()) {
+      $('#moreblue4').show();
+   }
+   else{
+    $('#moreblue4').hide();
+   }
+   if ($("#content4")[0].scrollHeight > $("#content2").innerHeight()) {    
+      $('#moreblue5').show();
+   }
+   else{
+    $('#moreblue5').hide();
+   }
+  if ($("#content5")[0].scrollHeight > $("#content2").innerHeight()) {    
+    $('#moreblue6').show();
+  }
+  else{
+    $('#moreblue6').hide();
+  }
+    
+};
+
+function check_overflow(){
+   if ($("#side-b")[0].scrollHeight > $("#side-b").innerHeight()) {
+     $('#moreblue1').show();
+   }
+   else{
+    $('#moreblue1').hide();
+   }
+   if ($("#content")[0].scrollHeight > $("#content").innerHeight()) {
+     $('#moreblue2').show();
+   }
+   else{
+    $('#moreblue2').hide();
+   }
+   if ($("#content2")[0].scrollHeight > $("#content2").innerHeight()) {    
+     $('#moreblue3').show();
+   }
+   else{
+    $('#moreblue3').hide();
+   }
+   if ($("#content3")[0].scrollHeight > $("#content").innerHeight()) {
+      $('#moreblue4').show();
+   }
+   else{
+    $('#moreblue4').hide();
+   }
+   if ($("#content4")[0].scrollHeight > $("#content2").innerHeight()) {    
+      $('#moreblue5').show();
+   }
+   else{
+    $('#moreblue5').hide();
+   }
+  if ($("#content5")[0].scrollHeight > $("#content2").innerHeight()) {    
+    $('#moreblue6').show();
+  }
+  else{
+    $('#moreblue6').hide();
+  }
+}
 
 function init(){
 
@@ -156,7 +254,8 @@ function init(){
         async: false,
         success: function (response) {
             console.log("Th group is = " + response);
-            my_group = response;
+            if(response == null || response == ""){my_group = Math.floor(Math.random()*9999)} //prevent cookie problems
+            else{my_group = response;}
             //$("#header").show();
             //$("#roster_wrapper").show();
         }
@@ -169,6 +268,7 @@ function init(){
    // $("#grp_link").html(clean_loc+"#"+my_group);
    // $("#grp_link").attr("href",clean_loc+"#"+my_group);
    var state = {"canBeAnything": true};
+   $(".more_blue").hide();
    add_name();
 
    //load the start url or random if no start_url (see conf.js)
@@ -202,6 +302,7 @@ function add_name(){
         recommendations_json = data; //set global variable to use later if so
         //console.log(recommendations_json);
         recommendations(data,"progs");
+        check_overflow(); 
       },
       error: function(jqXHR, textStatus, errorThrown){
         console.log("!!nokkkk "+textStatus);
@@ -226,6 +327,7 @@ function add_name(){
               list_watch_later.push(pid);
             }
             recommendations(data,"list_later");
+            check_overflow();
         }
         else{
          watch_later_json = {
@@ -263,6 +365,7 @@ function add_name(){
           }
         }
         recommendations(data,"history");
+        check_overflow();
         }
         else{
          recently_viewed_json = {
@@ -299,6 +402,7 @@ function add_name(){
         }
         //console.log(recommendations_json);
         recommendations(data,"results");
+        check_overflow();
       }
       else{
          shared_by_friends_json = {
@@ -343,6 +447,7 @@ function add_name(){
           }
           console.log(likes_json);
           recommendations(likes_json,"list_likes");
+          check_overflow();
         }
          if(data.dislikes.length >0){
           // ---- DISLIKES ----
@@ -362,6 +467,7 @@ function add_name(){
           console.log(likes_json);
           console.log(dislikes_json);
           recommendations(dislikes_json,"list_dislikes");
+          check_overflow();
         }
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -646,6 +752,7 @@ function insert_suggest2(id) {
       // $('#new_overlay').append("<br clear=\"both\"/>");
       $('#new_overlay').append("<div id='spinner' style=\"float: left;\"></div>");
       $('#new_overlay').append("<div class='clear'></div>");
+      check_overflow();
       
       // var target = document.getElementById('spinner');//??
       // var spinner = new Spinner(opts).spin(target);
@@ -906,6 +1013,7 @@ function insert_suggest_by_tag(tag) {
       $('#new_overlay').append("<div id='spinner_tag' style=\"float: left; height:'100%';\"></div>");
       // var target = document.getElementById('spinner');//??
       // var spinner = new Spinner(opts).spin(target);
+      check_overflow();
 
       $.ajax({
        url: "get_tedtalks_related.php",
@@ -1226,6 +1334,7 @@ function get_roster(blink){
     }
     $('#roster').html(html.join(''));
     $(document).trigger('refresh');
+    check_overflow();
 
 }
 
@@ -1433,6 +1542,7 @@ $("#addtowatchlater").live( "click", function() {
 
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
+  check_overflow();
   return false;
 });
 
@@ -1492,6 +1602,7 @@ $("#addtolike").live( "click", function() {
     html.push("<p class=\"description large\">"+description+"</p>");
     html.push("</div>");
     $('#list_likes').prepend(html.join(''));
+    check_overflow();
 
   // insert_watchlater_from_div(the_program);
   // console.log("clicked watch later");
@@ -1562,6 +1673,7 @@ $("#addtodislike").live( "click", function() {
 
   // $(document).trigger('refresh');
   // $(document).trigger('refresh_buttons');
+  check_overflow();
   return false;
 });
 
@@ -1597,6 +1709,7 @@ $("#deletewatchlater").live( "click", function() {
 
   // $(document).trigger('refresh');
   // $(document).trigger('refresh_buttons');
+  check_overflow();
   return false;
 });
 
@@ -1625,6 +1738,7 @@ $("#deletelike").live( "click", function() {
   $("#like").html("<img id='addtolike' style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span>");
   $('#list_likes').children('#'+ id).remove();
   update_channel("like_dislike", likes_json);
+  check_overflow();
   return false;
 });
 
@@ -1664,19 +1778,9 @@ $("#deletedislike").live( "click", function() {
   $("#dislike").html("<img id='addtodislike' style='width: 40px;' src=\"images/icons/dislike.png\" /><span style='display: block'; class ='inter_span'>Dislike</span>");
   $('#list_dislikes').children('#'+ id).remove();
   update_channel("like_dislike", dislikes_json);
+  check_overflow();
   return false;
 });
-
-//FUnction to sheck whether a programme in on a personal list or not
-function not_in_list(pid, list){
-  var not_in_the_list = true;
-  for (var i = 0; i < list.length; i++){
-    if(list[i] == pid){
-      not_in_the_list = false;
-    }
-  }
-  return not_in_the_list; //returns true if element not in the list
-}
 
 
 //FUnctin to update internal list of programmes within each section and to add properly html
@@ -1803,6 +1907,7 @@ function do_start(el,start_url){
       dataType: "json",
       success: function(data){
         random(data,el);
+        check_overflow();
       },
       error: function(jqXHR, textStatus, errorThrown){
         console.log("!!nokkkk "+textStatus);
@@ -1878,6 +1983,7 @@ function random(result,el){
   }
 
   process_json_results(suggestions,el,null,true);
+  check_overflow();
 }
 
 
@@ -1907,6 +2013,7 @@ function recommendations(result,el,add_stream,stream_title){
             }
 //            process_json_results(suggestions,el,pid_title,null,add_stream,stream_title);
             process_json_results(suggestions,el,pid_title,true,add_stream,stream_title);
+            check_overflow();
           }
     }else{
 //tmp@@ for when offline
@@ -2013,7 +2120,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                 var time_offset = suggestions[r]["time_offset"];
                 var explanation=suggestions[r]["explanation"];
                 //var vid = suggestions[r]["video"];
-                var vid = "http://video.ted.com/talks/dynamic/IsabelleAllende_2007-high.flv";  //*************************TODO
+                // var vid = "http://video.ted.com/talks/dynamic/IsabelleAllende_2007-high.flv";  //*************************TODO
 
                 var program_id = id.toString();
 
@@ -2090,8 +2197,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
           }else{
             $("#"+ele).append('');
           }
-
-
+   check_overflow();
    $(document).trigger('refresh');
    $(document).trigger('refresh_buttons');
 }
@@ -2438,6 +2544,7 @@ $(document).bind('shared_changed', function (e,programme,name,msg_type) {
   // //my new channels
   // $(document).trigger('refresh_later');
   // $(document).trigger('refresh_ld');
+  check_overflow();
 
 });
 
@@ -2855,7 +2962,7 @@ $("#new_overlay").empty();
     <div id="browser">
       <div id="side-b" class="slidey">
         <span class="sub_title">SUGGESTIONS FOR YOU</span> 
-        <span class="more_blue"><a id="moreprogs" onclick='show_more_recommendations();'>View All &triangledown;</a></span>
+        <span class="more_blue" id="moreblue1"><a id="moreprogs" onclick='show_more_recommendations();'>View All &triangledown;</a></span>
         <div id="progs"> </div>
         <div class="clear"></div>
       </div>
@@ -2864,7 +2971,7 @@ $("#new_overlay").empty();
 
       <div id="content" class="slidey">
         <span class="sub_title">SHARED BY FRIENDS</span>
-        <span class="more_blue"><a id='moreshared' onclick='show_shared();'>View All &triangledown;</a></span>
+        <span class="more_blue" id="moreblue2"><a id='moreshared' onclick='show_shared();'>View All &triangledown;</a></span>
         <div id="results">
          <div class='dotted_box'> </div>
         </div>
@@ -2875,7 +2982,7 @@ $("#new_overlay").empty();
 
       <div id="content2" class="slidey">
         <span class="sub_title">RECENTLY VIEWED</span>
-        <span  class="more_blue"><a id="morerecently" onclick='show_history();'>View All &triangledown;</a></span>
+        <span  class="more_blue" id="moreblue3"><a id="morerecently" onclick='show_history();'>View All &triangledown;</a></span>
         <div id="history">
           <div class='dotted_box'> </div>
         </div>
@@ -2886,7 +2993,7 @@ $("#new_overlay").empty();
       
       <div id="content3" class="slidey">
         <span class="sub_title">WATCH LATER</span>
-        <span  class="more_blue"><a id="morelater" onclick='show_later();'>View All &triangledown;</a></span>
+        <span  class="more_blue" id="moreblue4"><a id="morelater" onclick='show_later();'>View All &triangledown;</a></span>
         <div id="list_later">
           <div class='dotted_box'> </div>
         </div>
@@ -2896,7 +3003,7 @@ $("#new_overlay").empty();
 
       <div id="content4" class="slidey">
         <span class="sub_title">LIKES</span>
-        <span  class="more_blue"><a id="morelikes" onclick='show_likes();'>View All &triangledown;</a></span>
+        <span  class="more_blue" id="moreblue5"><a id="morelikes" onclick='show_likes();'>View All &triangledown;</a></span>
         <div id="list_likes">
           <div class='dotted_box'> </div>
         </div>
@@ -2906,7 +3013,7 @@ $("#new_overlay").empty();
 
       <div id="content5" class="slidey">
         <span class="sub_title">DISLIKES</span>
-        <span  class="more_blue"><a id="moredislikes" onclick='show_dislikes();'>View All &triangledown;</a></span>
+        <span  class="more_blue" id="moreblue6"><a id="moredislikes" onclick='show_dislikes();'>View All &triangledown;</a></span>
         <div id="list_dislikes">
           <div class='dotted_box'> </div>
         </div>
