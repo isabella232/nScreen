@@ -25,9 +25,8 @@
   <title>N-Screen</title>
     
     <script type="text/javascript" src="lib/jquery-1.4.4.min.js"></script>
-    <script type="text/javascript" src="lib/jquery-ui-1.8.10.custom.min.js"></script>    
-    <script type="text/javascript" src="lib/jquery.ui.touch.js"></script>
-    
+    <script type="text/javascript" src="lib/jquery-ui-1.8.10.custom.min.js"></script>
+    <script type="text/javascript" src="lib/jquery.ui.touch-punch.min.js"></script> 
 
     <script type="text/javascript" src="lib/strophe.js"></script>
     <script type="text/javascript" src="lib/buttons.js"></script>
@@ -36,15 +35,7 @@
 
   <link type="text/css" rel="stylesheet" href="css/new.css" />
 
-<!-- workaround - http://stackoverflow.com/questions/2894230/fake-user-initiated-audio-tag-on-ipad -->
 
-  <script type="text/javascript">
-        document.onclick = function(){
-          document.getElementById("a1").load();
-          document.getElementById("a2").load();
-        }
-
-  </script>
  </head>
 
 
@@ -81,12 +72,15 @@ var start_url = "get_channel.php";
 var random_url = "get_random.php"
 
 //jabber server
-var server = "localhost";
+var server = "jabber.notu.be";
 //var server = "jabber.notu.be";
 
 //polling interval (for changes to channels)
 var interval = null;
 
+//handle back and forward navigating
+var overlay_navigation = [];
+var overlaycounter = null;
 
 //var list = new Array(); //initialazing array
 
@@ -136,7 +130,7 @@ function init(){
 
    create_buttons();
 
-   $("#main_title").html("Browse Programmes");
+   // $("#main_title").html("N-SCREEN");
 
    $sr=$("#search_results");
    $sr.css("display","none");
@@ -168,7 +162,7 @@ function init(){
         }
       });
    }
-   history.pushState(state, "N-Screen", "/N-Screen/");
+   history.pushState(state, "N-Screen", "http://localhost/N-Screen/");
    clean_loc = String(window.location);
    window.location.hash=my_group;
    //$("#group_name").html(my_group);
@@ -222,14 +216,24 @@ function add_name(){
       data: {channel: "watch_later"},
       dataType: "json",
       success: function(data){
-        watch_later_json = data;
-        // console.log(watch_later_json);
-        var watch_later_items = watch_later_json.suggestions;
-        for(var i in watch_later_items){
-          var pid = watch_later_items[i].pid;
-          list_watch_later.push(pid);
+        if(data!= null){
+
+            watch_later_json = data;
+            // console.log(watch_later_json);
+            var watch_later_items = watch_later_json.suggestions;
+            for(var i in watch_later_items){
+              var pid = watch_later_items[i].pid;
+              list_watch_later.push(pid);
+            }
+            recommendations(data,"list_later");
         }
-        recommendations(data,"list_later");
+        else{
+         watch_later_json = {
+              suggestions: []
+          };
+         list_watch_later = [];
+
+        }
 
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -247,6 +251,7 @@ function add_name(){
       data: {channel: "recently_viewed"},
       dataType: "json",
       success: function(data){
+        if(data!= null){
         //console.log(data);
         recently_viewed_json = data;
         var recently_viewed_items = recently_viewed_json.suggestions;
@@ -258,6 +263,14 @@ function add_name(){
           }
         }
         recommendations(data,"history");
+        }
+        else{
+         recently_viewed_json = {
+              suggestions: []
+          };
+         list_recently_viewed = [];
+
+        }
 
       },
       error: function(jqXHR, textStatus, errorThrown){
@@ -273,6 +286,7 @@ function add_name(){
       data: {channel: "shared_by_friends"},
       dataType: "json",
       success: function(data){
+        if(data!= null){
         //console.log(data);
         //var whatever = changeData(data);
         shared_by_friends_json = data; //set global variable to use later if so
@@ -285,6 +299,14 @@ function add_name(){
         }
         //console.log(recommendations_json);
         recommendations(data,"results");
+      }
+      else{
+         shared_by_friends_json = {
+              suggestions: []
+          };
+         list_shared_by_friends = [];
+        }
+
       },
       error: function(jqXHR, textStatus, errorThrown){
         console.log("!!nokkkk "+textStatus);
@@ -453,10 +475,20 @@ function update_channel(channel, data){
 //display suggestions based on id 
 // RECENTLY VIEWED !!
 
-function insert_suggest2(id,tag) {
+function insert_suggest2(id) {
 
-  console.log("list shared by friends");
-  console.log(list_shared_by_friends);
+  // console.log("list shared by friends");
+  // console.log(list_shared_by_friends);
+      if (overlaycounter == null){
+        overlaycounter = 0;
+      }
+      else{
+        overlaycounter ++;
+      }
+      overlay_navigation.splice(overlaycounter, 0, id);
+      for (var i= overlay_navigation.length - 1; i > overlaycounter ; i--){
+        overlay_navigation.splice(i, 1);
+      }
       var item = {};
 
       var flag = false //to set recently viewed icon or not
@@ -493,7 +525,7 @@ function insert_suggest2(id,tag) {
       var title = (/.*?:(.*)/.exec(recently_viewed_json.suggestions[0].title))[1];
       var description = recently_viewed_json.suggestions[0].description;
       // var tags = lalala **********************TO DO*********************
-      var video = recently_viewed_json.suggestions[0].media_profile_uris.internal["950k"].uri;
+      var video = recently_viewed_json.suggestions[0].video;
       var pid = recently_viewed_json.suggestions[0].pid;
       var img = recently_viewed_json.suggestions[0].image;
 
@@ -501,7 +533,7 @@ function insert_suggest2(id,tag) {
       // var tags = (/[^,]*/.exec(tags));
       // tags = (/[^, ]*/.exec(tags)); //array of tags
       html = [];
-      html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
+      html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
       html.push("<img class=\"img img_small\" src=\""+img+"\" />");
       html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
       html.push("<p class=\"description large\">"+description+"</p>");
@@ -512,7 +544,8 @@ function insert_suggest2(id,tag) {
       html2 = [];
 
       html2.push("<div class='close_button'><img src='images/icons/exit.png' width='12px' onclick='javascript:hide_overlay();'/></div>");
-      html2.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"ui-widget-content large_prog\" style=\"position: relative;\">");
+      html2.push("<div class='navigation_buttons'><img onclick='javascript:navigation(-1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='back' src='images/icons/backward.png' width='30'/><img onclick='javascript:navigation(+1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='forward' src='images/icons/forward.png' width='30'/></div>");
+      html2.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"large_prog\" style=\"position: relative;\">");
       html2.push("<div class=\"gradient_div\" style=\"text-align: center;  margin-left: 45%; position: absolute; \"> <img class=\"img\" src=\""+img+"\" />");
       html2.push("<div class=\"play_button\"><img style='width: 120px;' src=\"images/icons/play.png\" /></a></div></div>");
       html2.push("<div style='padding-left: 20px; padding-right: 20px; width: 50%; left: 0px; position: absolute;'>");
@@ -588,8 +621,8 @@ function insert_suggest2(id,tag) {
       
 
       $('#new_overlay').html(html2.join(''));
-   
-      $('#new_overlay').show();  
+    
+      $('#new_overlay').show();
       show_grey_bg();
 
       // $(".play_button").live( "click", function() {
@@ -609,11 +642,194 @@ function insert_suggest2(id,tag) {
       // });
 
 
-      $('#new_overlay').append("<div class=\"more_like_this\" style=\"margin-top: 400px;\"><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a onclick=\"show_more('"+title+"','"+pid+"');\">View All</a></span></div>");
+      $('#new_overlay').append("<div id=\"more_like_this\" class=\"more_like_this\" style=\"margin-top: 400px;\"><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a id ='more_related' onclick='show_related();''>View All &triangledown;</a></span></div>");
       // $('#new_overlay').append("<br clear=\"both\"/>");
       $('#new_overlay').append("<div id='spinner' style=\"float: left;\"></div>");
+      $('#new_overlay').append("<div class='clear'></div>");
+      
       // var target = document.getElementById('spinner');//??
       // var spinner = new Spinner(opts).spin(target);
+
+      for(var i=0; i<tags.length; i++){
+      //console.log("THIS IS TAG " + tags[i]);
+      if(tags[i].indexOf(' ') >= 0 || /^[A-Z]/.test(tags[i])){}
+      else {
+        tag = tags[i];
+        break;
+        }
+      }
+
+      $.ajax({
+       url: "get_tedtalks_related.php",
+       data: {tag : tag},
+       type: 'POST',
+       dataType: "json",
+         success: function(data){
+          var related = changeData(data);
+          related_json = related;
+           recommendations(related,"spinner",false,title);
+//           recommendations(data,"new_overlay",false,title);
+         },
+         error: function(jqXHR, textStatus, errorThrown){
+         //alert("oh dear "+textStatus);
+         }
+      });
+
+}
+
+function navigate_by_id(id) {
+      var item = {};
+
+      var flag = false //to set recently viewed icon or not
+      $.ajax({
+        url: "get_tedtalks_by_id.php",
+        type: "POST",
+        async: false,
+        data: {id: id},
+        dataType: "json",
+        success: function (data) {
+            item =  changeData(data); //JSON with suggestions format
+        }
+      });  
+      var div = $("#"+id);
+
+      var speaker = (/(.*):.*?/.exec(item.suggestions[0].title))[1];
+      var title = (/.*?:(.*)/.exec(item.suggestions[0].title))[1];
+      var description = item.suggestions[0].description;
+      // var tags = lalala **********************TO DO*********************
+      var video = item.suggestions[0].video;
+      var pid = item.suggestions[0].pid;
+      var img = item.suggestions[0].image;
+
+      var tags = Object.keys(item.suggestions[0]["tags"]);
+      // var tags = (/[^,]*/.exec(tags));
+      // tags = (/[^, ]*/.exec(tags)); //array of tags
+      html = [];
+      html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
+      html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+      html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
+      html.push("<p class=\"description large\">"+description+"</p>");
+      html.push("</div>");
+      $('#history').prepend(html.join(''));
+
+
+      html2 = [];
+
+      html2.push("<div class='close_button'><img src='images/icons/exit.png' width='12px' onclick='javascript:hide_overlay();'/></div>");
+      html2.push("<div class='navigation_buttons'><img onclick='javascript:navigation(-1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='back' src='images/icons/backward.png' width='30'/><img onclick='javascript:navigation(+1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='forward' src='images/icons/forward.png' width='30'/></div>");
+      html2.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"large_prog\" style=\"position: relative;\">");
+      html2.push("<div class=\"gradient_div\" style=\"text-align: center;  margin-left: 45%; position: absolute; \"> <img class=\"img\" src=\""+img+"\" />");
+      html2.push("<div class=\"play_button\"><img style='width: 120px;' src=\"images/icons/play.png\" /></a></div></div>");
+      html2.push("<div style='padding-left: 20px; padding-right: 20px; width: 50%; left: 0px; position: absolute;'>");
+      html2.push("<div class=\"p_title_large_speaker\">"+speaker+':'+"</div>");
+      html2.push("<div class=\"p_title_large\">"+title+"</div>");
+      html2.push("<p class=\"description\">"+description+"</p>");
+      html2.push("<div class=\"list_tags\" style='display:inline;'>");
+      for(var i=0; i<tags.length; i++){
+        if(tags[i].indexOf(' ') >= 0 || /^[A-Z]/.test(tags[i])){ }
+        else{
+          html2.push("<span class=\"item_tag\" onclick=\"javascript:insert_suggest_by_tag('"+tags[i]+"');return true\">#"+tags[i]+"</span>");
+        }
+        
+      }
+      html2.push("</div>");
+      // html2.push("<p class=\"explain\">"+explanation+"</p>");
+//      html2.push("<p class=\"keywords\">"+keywords+"</p>");
+      html2.push("<p class=\"link\"><a href=\"http://www.ted.com/talks/view/id/"+pid+"\" target=\"_blank\">Sharable Link</a></p></div>");
+
+      html2.push("<div class='vertical_buttons' style='display:table-cell; vertical-align: middle; margin-right: 7%; position: absolute; text-align: center; right:0; top: 10px'>");
+
+      if(not_in_list(id,list_watch_later)){
+              html2.push("<div id='watchlater'class=\"interactive_icon\"><img id='addtowatchlater' style='width: 40px;' src=\"images/icons/watch_later.png\" /><span style='display: block'; class ='inter_span'>Watch Later</span></div>");      
+      }
+      else{
+              html2.push("<div id='watchlater'class=\"interactive_icon\"><img id='deletewatchlater' style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span></div>");      
+      }
+
+      if(not_in_list(id,list_likes)){
+        html2.push("<div id='like' class=\"interactive_icon\"><img id='addtolike' style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span></div>");
+      }
+      else{
+        html2.push("<div id='like' class=\"interactive_icon\"><img id='deletelike' style='width: 40px;' src=\"images/icons/on_like.png\" /><span style='display: block'; class ='on_inter_span'>Like</span></div>");
+      }
+      if(not_in_list(id,list_dislikes)){
+      html2.push("<div id='dislike' class=\"interactive_icon\"><img id = 'addtodislike' style='width: 40px;' src=\"images/icons/dislike.png\" /><span style='display: block'; class ='inter_span'>Dislike</span></div>");
+      }
+      else{
+      html2.push("<div id='dislike' class=\"interactive_icon\"><img id = 'deletedislike' style='width: 40px;' src=\"images/icons/on_dislike.png\" /><span style='display: block'; class ='on_inter_span'>Dislike</span></div>");
+      }
+      if(not_in_list(id,list_shared_by_friends)){
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/shared.png\" /><span style='display: block'; class ='inter_span'>Shared by friends</span></div>");
+      }
+      else{
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/on_shared.png\" /><span style='display: block'; class ='on_inter_span'>Shared by friends</span></div>");
+      }
+      if(flag == false){
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/recently_viewed.png\" /><span style='display: block'; class ='inter_span'>Recenlty Viewed</span></div></div>");
+      }
+      else{
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/on_recently_viewed.png\" /><span style='display: block'; class ='on_inter_span'>Recenlty Viewed</span></div></div>");
+      }
+      html2.push("</div>");
+      html2.push("</div>");
+
+      if(item.suggestions[0].manifest){
+      var manifest = item.suggestions[0].manifest;
+      var data =  item.suggestions[0].manifest; 
+      set_playable(data);
+
+      // $.ajax({
+      //  url: recently_viewed_json.suggestions[0].manifest,
+      //  dataType: "json",
+      //    success: function(data){
+      //      set_playable(data);
+      //    },
+      //    error: function(jqXHR, textStatus, errorThrown){
+      //      alert("oh dear "+textStatus);
+      //    }
+      // });
+    }
+
+      
+
+      $('#new_overlay').html(html2.join(''));
+    
+      $('#new_overlay').show();
+      show_grey_bg();
+
+      // $(".play_button").live( "click", function() {
+
+      // console.log("PLAY PRESSED!!!");
+      //   var res = {};
+      //   // res["id"]=id;
+      //   res["pid"]=pid;
+      //   res["title"]=title;
+      //   res["video"]=video;
+      //   res["description"]=description;
+      //   // res["explanation"]=explanation;
+      //   res["img"]=id;
+      //   sendProgrammeTVs(res,my_tv); 
+      //   return false;
+
+      // });
+
+
+      $('#new_overlay').append("<div id=\"more_like_this\" class=\"more_like_this\" style=\"margin-top: 400px;\"><span class=\"sub_title\">MORE LIKE THIS</span><span class=\"more_blue\"><a id ='more_related' onclick='show_related();''>View All &triangledown;</a></span></div>");
+      // $('#new_overlay').append("<br clear=\"both\"/>");
+      $('#new_overlay').append("<div id='spinner' style=\"float: left;\"></div>");
+      $('#new_overlay').append("<div class='clear'></div>");
+      
+      // var target = document.getElementById('spinner');//??
+      // var spinner = new Spinner(opts).spin(target);
+
+      for(var i=0; i<tags.length; i++){
+      //console.log("THIS IS TAG " + tags[i]);
+      if(tags[i].indexOf(' ') >= 0 || /^[A-Z]/.test(tags[i])){}
+      else {
+        tag = tags[i];
+        break;
+        }
+      }
 
       $.ajax({
        url: "get_tedtalks_related.php",
@@ -635,9 +851,23 @@ function insert_suggest2(id,tag) {
 
 function insert_suggest_by_tag(tag) {
 
+      // console.log("list shared by friends");
+      // console.log(list_shared_by_friends);
+      if (overlaycounter == null){
+        overlaycounter = 0;
+      }
+      else{
+        overlaycounter ++;
+      }
+      overlay_navigation.splice(overlaycounter, 0, tag);
+      for (var i= overlay_navigation.length - 1; i > overlaycounter; i--){
+        overlay_navigation.splice(i, 1);
+      }
       html2 = [];
 
       html2.push("<div class='close_button'><img src='images/icons/exit.png' width='12px' onclick='javascript:hide_overlay();'/></div>");
+      html2.push("<div class='navigation_buttons'><img onclick='javascript:navigation(-1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='back' src='images/icons/backward.png' width='30'/><img onclick='javascript:navigation(+1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='forward' src='images/icons/forward.png' width='30'/></div>");
+
       html2.push("<div class=\"p_title_large\" style='text-align:center;'>"+tag+"</div>");
 
       // $.ajax({
@@ -673,7 +903,7 @@ function insert_suggest_by_tag(tag) {
 
       $('#new_overlay').append("<div class=\"more_like_this_tag\" style=\"margin-top: 40px;\"></div>");
       // $('#new_overlay').append("<br clear=\"both\"/>");
-      $('#new_overlay').append("<div id='spinner' style=\"float: left;\"></div>");
+      $('#new_overlay').append("<div id='spinner_tag' style=\"float: left; height:'100%';\"></div>");
       // var target = document.getElementById('spinner');//??
       // var spinner = new Spinner(opts).spin(target);
 
@@ -685,7 +915,7 @@ function insert_suggest_by_tag(tag) {
          success: function(data){
           var related = changeData(data);
           related_json = related;
-           recommendations(related,"spinner",false,title);
+           recommendations(related,"spinner_tag",false,title);
 //           recommendations(data,"new_overlay",false,title);
          },
          error: function(jqXHR, textStatus, errorThrown){
@@ -694,8 +924,106 @@ function insert_suggest_by_tag(tag) {
       });
 }
 
+function navigate_by_tag(tag) {
 
+      html2 = [];
 
+      html2.push("<div class='close_button'><img src='images/icons/exit.png' width='12px' onclick='javascript:hide_overlay();'/></div>");
+      html2.push("<div class='navigation_buttons'><img onclick='javascript:navigation(-1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='back' src='images/icons/backward.png' width='30'/><img onclick='javascript:navigation(+1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='forward' src='images/icons/forward.png' width='30'/></div>");
+
+      html2.push("<div class=\"p_title_large\" style='text-align:center;'>"+tag+"</div>");
+
+      // $.ajax({
+      //  url: recently_viewed_json.suggestions[0].manifest,
+      //  dataType: "json",
+      //    success: function(data){
+      //      set_playable(data);
+      //    },
+      //    error: function(jqXHR, textStatus, errorThrown){
+      //      alert("oh dear "+textStatus);
+      //    }
+      // });
+      $('#new_overlay').html(html2.join(''));
+   
+      $('#new_overlay').show();  
+      show_grey_bg();
+
+      // $(".play_button").live( "click", function() {
+
+      // console.log("PLAY PRESSED!!!");
+      //   var res = {};
+      //   // res["id"]=id;
+      //   res["pid"]=pid;
+      //   res["title"]=title;
+      //   res["video"]=video;
+      //   res["description"]=description;
+      //   // res["explanation"]=explanation;
+      //   res["img"]=id;
+      //   sendProgrammeTVs(res,my_tv); 
+      //   return false;
+
+      // });
+
+      $('#new_overlay').append("<div class=\"more_like_this_tag\" style=\"margin-top: 40px;\"></div>");
+      // $('#new_overlay').append("<br clear=\"both\"/>");
+      $('#new_overlay').append("<div id='spinner_tag' style=\"float: left; height:'100%';\"></div>");
+      // var target = document.getElementById('spinner');//??
+      // var spinner = new Spinner(opts).spin(target);
+
+      $.ajax({
+       url: "get_tedtalks_related.php",
+       data: {tag : tag},
+       type: 'POST',
+       dataType: "json",
+         success: function(data){
+          var related = changeData(data);
+          related_json = related;
+           recommendations(related,"spinner_tag",false,title);
+//           recommendations(data,"new_overlay",false,title);
+         },
+         error: function(jqXHR, textStatus, errorThrown){
+         //alert("oh dear "+textStatus);
+         }
+      });
+}
+
+//Function to show navigation backward and forward 
+
+function navigation(data){
+  //backwards
+  if(data == -1){
+    
+    //not the end
+    if((overlaycounter -1) > -1){
+      overlaycounter = overlaycounter -1; 
+      if (overlay_navigation[overlaycounter].substring) { //if tag or metadata 
+        navigate_by_tag(overlay_navigation[overlaycounter]);
+      // do string thing
+      } 
+      else{ //if programme directly
+        navigate_by_id(overlay_navigation[overlaycounter]);
+      // do other thing
+      }
+    }
+  }
+  //forwards ---> +1
+  else{
+    //not the end
+    if((overlaycounter+1) <= (overlay_navigation.length -1)){
+      overlaycounter = overlaycounter +1; 
+      if (overlay_navigation[overlaycounter].substring) { //if tag or metadata 
+        navigate_by_tag(overlay_navigation[overlaycounter]);
+      // do string thing
+      } 
+      else{ //if programme directly
+        navigate_by_id(overlay_navigation[overlaycounter]);
+      // do other thing
+      }
+    }
+
+  }
+
+}
 
 
 function test_for_playability(formats, provider){
@@ -810,6 +1138,7 @@ function get_roster(blink){
     for(r in roster){
 
       item = roster[r];
+      var video;
       // console.log("printing roster[r]")
       // console.log(roster[r]);
 
@@ -862,9 +1191,33 @@ function get_roster(blink){
             $("#tv").click(function() {
                var pid = $("#tv").attr("pid");
                if(pid && pid!=""){
-                 insert_suggest_from_prog_id(pid,true);
+                 $.ajax({
+                    url: "get_tedtalks_by_id.php",
+                    type: "POST",
+                    async: false,
+                    data: {id: pid},
+                    dataType: "json",
+                    success: function (data) {
+                        video =  changeData(data); //JSON with suggestions format
+                        // recently_viewed_json.suggestions.splice(0,0,item.suggestions[0]);
+                    }
+                    });
+                    var tags = Object.keys(video.suggestions[0]["tags"]);
+                    //var tag = (/[^, ]*/.exec(tags)[0]);
+                    var tags = (/[^, ]*/.exec(tags)); //array of tags
+                    var tag = ""; //initialiazing
+                    //check for a tag without whitespace
+                    for(var i=0; i<tags.length; i++){
+                      //console.log("THIS IS TAG " + tags[i]);
+                      if(tags[i].indexOf(' ') >= 0 || /^[A-Z]/.test(tags[i])){}
+                      else {
+                        tag = tags[i];
+                        break;
+                      }
+                    }
+                 insert_suggest2(pid);
                }
-            }).addTouch();
+            })
 
          }
         }
@@ -872,24 +1225,13 @@ function get_roster(blink){
 
     }
     $('#roster').html(html.join(''));
+    $(document).trigger('refresh');
 
 }
 
-// Hook up touch events
-$.fn.addTouch = function() {
-        if ($.support.touch) {
-                this.each(function(i,el){
-                        el.addEventListener("touchstart", iPadTouchHandler, false);
-                        el.addEventListener("touchmove", iPadTouchHandler, false);
-                        el.addEventListener("touchend", iPadTouchHandler, false);
-                        el.addEventListener("touchcancel", iPadTouchHandler, false);
-                });
-        }
-};
-
 
 function show_browse_programmes(){
-  $("#main_title").html("Browse Programmes");
+  // $("#main_title").html("N-SCREEN");
   $sr=$("#search_results");
   $sr.css("display","none");
 
@@ -900,58 +1242,135 @@ function show_browse_programmes(){
   $random.removeClass("blue").addClass("grey");
   $container=$("#browser");
   $container.css("display","block");
+  $(document).trigger('refresh');
+   $(document).trigger('refresh_buttons');
 }
 
-
-//show all recommendations
 function show_more_recommendations(){
 
-  $("#main_title").html("Suggestions For You");
+  var content = $('#side-b');
+  //if expanded-->contract
+  if (content[0].style.height == '100%'){
+     //jquery bug animayion pertentage
+     // content.animate(content.height()*.100,400);
+      content.css('height','293px');
+     $('a#moreprogs').html('View All &triangledown;');
+     $('#lessprogs').remove();
 
-  $sr=$("#search_results");
-  $sr.css("display","block");
-  
-  $container=$("#browser");
-  $container.css("display","none");
+  }
+  else{
+    // content.animate({height:'100%'},400);
+    content.css('height','100%');
+    $('a#moreprogs').html('View Less &utri;');
+    content.append("<span id='lessprogs' class='more_blue'><a onclick='show_more_recommendations();'>View Less &utri;</a></span>");
 
-  $browse=$("#browse");
-  $browse.removeClass("blue").addClass("grey");
-
-  $random=$("#random");
-  $random.removeClass("blue").addClass("grey");
-
-
-  $sr.empty();
-
-  //do_start("search_results",start_url);
-  do_start("search_results","get_suggestions.php");
-
-}
-
-function show_shared(){
-
-  $("#main_title").html("Shared By Friends");
-
-  $sr=$("#search_results");
-  $sr.css("display","block");
-  
-  $container=$("#browser");
-  $container.css("display","none");
-
-  $browse=$("#browse");
-  $browse.removeClass("blue").addClass("grey");
-
-  $random=$("#random");
-  $random.removeClass("blue").addClass("grey");
-
-  $sr.empty();
-
-//@@
-  $sr.html($("#results").clone());
+  }
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
 }
 
+function show_shared(){
+
+  var content = $('#content');
+  //if expanded-->contract
+  if (content[0].style.height == '100%'){
+    content.css('height','293px');
+    $('a#moreshared').html('View All &triangledown;');
+    $('#lessshared').remove();
+  }
+  else{
+    content.css('height','100%');
+    $('a#moreshared').html('View Less &triangle;');
+    content.append("<span id='lessshared' class='more_blue'><a onclick='show_shared();'>View Less &utri;</a></span>");
+  }
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+}
+
+function show_history(){
+  var content = $('#content2');
+  //if expanded-->contract
+  if (content[0].style.height == '100%'){
+    content.css('height','293px');
+    $('a#morerecently').html('View All &triangledown;');
+    $('#lessrecently').remove();
+  }
+  else{
+    content.css('height','100%');
+    $('a#morerecently').html('View Less &utri;');
+    content.append("<span id='lessrecently' class='more_blue'><a onclick='show_history();'>View Less &utri;</a></span>");
+  }
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+
+}
+function show_later(){
+  var content = $('#content3');
+  //if expanded-->contract
+  if (content[0].style.height == '100%'){
+    content.css('height','293px');
+    $('a#morelater').html('View All &triangledown;');
+    $('#lesslater').remove();
+  }
+  else{
+    content.css('height','100%');
+    $('a#morelater').html('View Less &utri;');
+    content.append("<span id='lesslater' class='more_blue'><a onclick='show_later();'>View Less &utri;</a></span>");
+  }
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+}
+function show_likes(){
+  var content = $('#content4');
+  //if expanded-->contract
+  if (content[0].style.height == '100%'){
+    content.css('height','293px');
+    $('a#morelikes').html('View All &triangledown;');
+    $('#lesslikes').remove();
+  }
+  else{
+    content.css('height','100%');
+    $('a#morelikes').html('View Less &utri;');
+    content.append("<span id='lesslikes' class='more_blue'><a onclick='show_likes();'>View Less &utri;</a></span>");
+  }
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+
+}
+function show_dislikes(){
+  var content = $('#content5');
+  //if expanded-->contract
+  if (content[0].style.height == '100%'){
+    content.css('height','293px');
+    $('a#moredislikes').html('View All &triangledown;');
+    $('#lessdislikes').remove();
+  }
+  else{
+    content.css('height','100%');
+    $('a#moredislikes').html('View Less ' + '&utri;');
+    content.append("<span id='lessdislikes' class='more_blue'><a onclick='show_dislikes();'>View Less &utri;</a></span>");
+  }
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+}
+
+function show_related(){
+  var content = $('#spinner');
+  //if expanded-->contract
+  if (content[0].style.height == '100%'){
+    content.css('height','268px');
+    $('a#more_related').html('View All &triangledown;');
+    $('#lessrelated').remove();
+  }
+  else{
+    content.css('height','100%');
+    $('a#more_related').html('View Less ' + '&utri;');
+    $('#new_overlay').append("<span id='lessrelated' class='more_blue'><a onclick='show_related();'>View Less &utri;</a></span>");
+    // content.append("<span id='lessrelated' class='more_blue'><a onclick='show_related();'>View Less &utri;</a></span>");
+  }
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
+}
 //ON CLICK LISTENER TO ADD TO WATCH LATER
 
 $("#addtowatchlater").live( "click", function() {
@@ -981,7 +1400,7 @@ $("#addtowatchlater").live( "click", function() {
     var title = (/.*?:(.*)/.exec(item.suggestions[0].title))[1];
     var description = item.suggestions[0].description;
     // var tags = lalala **********************TO DO*********************
-    var video = item.suggestions[0].media_profile_uris.internal["950k"].uri;
+    var video = item.suggestions[0].video;
     var pid = item.suggestions[0].pid;
     var img = item.suggestions[0].image;
 
@@ -1002,7 +1421,7 @@ $("#addtowatchlater").live( "click", function() {
     list_watch_later.push(id);
     update_channel("watch_later", watch_later_json);
     html = [];
-    html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
+    html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
     html.push("<img class=\"img img_small\" src=\""+img+"\" />");
     html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
     html.push("<p class=\"description large\">"+description+"</p>");
@@ -1012,8 +1431,8 @@ $("#addtowatchlater").live( "click", function() {
   // insert_watchlater_from_div(the_program);
   // console.log("clicked watch later");
 
-  // $(document).trigger('refresh');
-  // $(document).trigger('refresh_buttons');
+  $(document).trigger('refresh');
+  $(document).trigger('refresh_buttons');
   return false;
 });
 
@@ -1046,7 +1465,7 @@ $("#addtolike").live( "click", function() {
     var title = (/.*?:(.*)/.exec(item.suggestions[0].title))[1];
     var description = item.suggestions[0].description;
     // var tags = lalala **********************TO DO*********************
-    var video = item.suggestions[0].media_profile_uris.internal["950k"].uri;
+    var video = item.suggestions[0].video;
     var pid = item.suggestions[0].pid;
     var img = item.suggestions[0].image;
 
@@ -1067,7 +1486,7 @@ $("#addtolike").live( "click", function() {
     list_likes.push(id);
     update_channel("like_dislike", likes_json);
     html = [];
-    html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
+    html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
     html.push("<img class=\"img img_small\" src=\""+img+"\" />");
     html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
     html.push("<p class=\"description large\">"+description+"</p>");
@@ -1110,7 +1529,7 @@ $("#addtodislike").live( "click", function() {
     var title = (/.*?:(.*)/.exec(item.suggestions[0].title))[1];
     var description = item.suggestions[0].description;
     // var tags = lalala **********************TO DO*********************
-    var video = item.suggestions[0].media_profile_uris.internal["950k"].uri;
+    var video = item.suggestions[0].video;
     var pid = item.suggestions[0].pid;
     var img = item.suggestions[0].image;
 
@@ -1131,7 +1550,7 @@ $("#addtodislike").live( "click", function() {
     list_dislikes.push(id);
     update_channel("like_dislike", dislikes_json);
     html = [];
-    html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+",'"+tag+"');return true\">");
+    html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
     html.push("<img class=\"img img_small\" src=\""+img+"\" />");
     html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
     html.push("<p class=\"description large\">"+description+"</p>");
@@ -1319,106 +1738,6 @@ function update_list(pid, list){
 //   $('#list_later').append(html3.join(''));
 // }
 
-function show_history(){
-
-  $("#main_title").html("Recently Viewed");
-
-  $sr=$("#search_results");
-  $sr.css("display","block");
-  
-  $container=$("#browser");
-  $container.css("display","none");
-
-  $browse=$("#browse");
-  $browse.removeClass("blue").addClass("grey");
-
-
-  $sr.empty();
-
-//@@
-  $sr.html($("#history").clone());
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-}
-function show_later(){
-
-  $("#main_title").html("Watch Later List");
-
-  $sr=$("#search_results");
-  $sr.css("display","block");
-  
-  $container=$("#browser");
-  $container.css("display","none");
-
-  $browse=$("#browse");
-  $browse.removeClass("blue").addClass("grey");
-
-
-  $sr.html($("#list_later").clone());
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-}
-function show_likes(){
-
-  $("#main_title").html("Likes List");
-
-  $sr=$("#search_results");
-  $sr.css("display","block");
-  
-  $container=$("#browser");
-  $container.css("display","none");
-
-  $browse=$("#browse");
-  $browse.removeClass("blue").addClass("grey");
-
-
-  $sr.html($("#list_likes").clone());
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-}
-
-function show_dislikes(){
-
-  $("#main_title").html("Dislikes List");
-
-  $sr=$("#search_results");
-  $sr.css("display","block");
-  
-  $container=$("#browser");
-  $container.css("display","none");
-
-  $browse=$("#browse");
-  $browse.removeClass("blue").addClass("grey");
-
-
-  $sr.html($("#list_dislikes").clone());
-  $(document).trigger('refresh');
-  $(document).trigger('refresh_buttons');
-}
-
-
-function show_more(title,pid){
-
-//console.log("[1] "+pid);
-
-  $("#main_title").html("Related to "+title);
-
-  $sr=$("#search_results");
-  $sr.css("display","block");
-  
-  $container=$("#browser");
-  $container.css("display","none");
-
-  $browse=$("#browse");
-  $browse.removeClass("blue").addClass("grey");
-
-  $random=$("#random");
-  $random.removeClass("blue").addClass("grey");
-
-  recommendations(related_json, "search_results", false, title);
-  hide_overlay();
-}
-
 
 //get a random selection
 
@@ -1426,7 +1745,7 @@ function do_random(el){
 
   $('#search_results').html(''); //clear previous display
 
-  $("#main_title").html("Random Selection");  
+  // $("#main_title").html("Random Selection");  
   $sr=$("#search_results");
   $sr.css("display","block");
   
@@ -1501,7 +1820,7 @@ function do_start(el,start_url){
 function do_search(txt){
 
   txt = txt.toLowerCase();
-  $('#main_title').html("Search for '"+txt+"'");
+  // $('#main_title').html("Search for '"+txt+"'");
 
   $sr=$("#search_results");
   $sr.css("display","block");
@@ -1647,7 +1966,7 @@ function search_results(result,current_query,el){
 //process the results for displaying (small display) welcome page
 
 function process_json_results(result,ele,pid_title,replace_content,add_stream,stream_title){
-          var max = 12
+          var max = 100;
           var s ="";
           var html = [];
           suggestions = result;
@@ -1700,7 +2019,7 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
 
                 var string = "<div id=\""+id+"\" pid=\""+id+"\" class=\"ui-widget-content button programme ui-draggable\" " ;
                 string += " onclick= \"javascript:insert_suggest2(";
-                string += program_id+", \'"+tag+"\');return true\">";
+                string += program_id+");return true\">";
                 //console.log(string);
 
 /*
@@ -1732,7 +2051,8 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                   html.push("<div><img class=\"img img_small\" src=\""+img+"\" /></div>");
                   //html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
                   html.push("<span class=\"p_title p_title_small\"><a >"+title+"</a></span>");
-                  if(shared){                    
+                  if(shared){     
+                    list_shared_by_friends.push(id);              
                     html.push("<span class=\"shared_by\">Shared by "+shared+"</span>");
                   }
                   // html.push("<div clear=\"both\"></div>");
@@ -1965,7 +2285,7 @@ function changeData(data){
           "title" : item.talk.name,          
           "description" : item.talk.description,
           "date_time" : item.talk.published_at,
-          "media_profile_uris" : item.talk.media_profile_uris,
+          // "media_profile_uris" : item.talk.media_profile_uris,
           "url" : item.talk.media_profile_uris["internal"]["950k"].uri, //TODO CHANGE THIS
           "video" : item.talk.media_profile_uris["internal"]["950k"].uri,
           "speaker" : item.talk.speakers,
@@ -1997,7 +2317,7 @@ function changeData(data){
           "title" : item.talk.name,          
           "description" : item.talk.description,
           "date_time" : item.talk.published_at,
-          "media_profile_uris" : item.talk.media_profile_uris,
+          // "media_profile_uris" : item.talk.media_profile_uris,
           "url" : "", //TODO CHANGE THIS
           "video" : "",
           "speaker" : item.talk.speakers,
@@ -2023,7 +2343,7 @@ function changeData(data){
 
       }
       
-  }console.log(JSON.stringify(random_ted));return random_ted; 
+  }return random_ted; 
 }
 
 //when the group changes, update the roster
@@ -2031,7 +2351,7 @@ function changeData(data){
 $(document).bind('items_changed',function(ev,blink){
     get_roster(blink);
      $(document).trigger('refresh');
-     $(document).trigger('refresh_buttons');
+     // $(document).trigger('refresh_buttons');
      //$(document).trigger('refresh_group');
     // $(document).trigger('refresh_history');
     // $(document).trigger('refresh_recs');
@@ -2255,6 +2575,8 @@ $(document).bind('refresh', function () {
                 $( "#draggable" ).draggable();
                 $( ".programme" ).draggable(
                         {
+                        appendTo: 'body',
+                        containment:"#container",
                         opacity: 0.7,
                         helper: "clone",
                         zIndex: 2700,
@@ -2277,14 +2599,7 @@ $(document).bind('refresh', function () {
                           $(".snaptarget_bot").removeClass( "dd_highlight"); 
       }
 
-                }).addTouch();
-                $( ".large_prog" ).draggable(
-                        {
-                        opacity: 0.7,
-                        helper: "clone",
-                        zIndex: 2700
-                }).addTouch();
-
+                });
                 $( ".snaptarget" ).droppable({
            
                         hoverClass: "dd_highlight_dark",
@@ -2310,7 +2625,7 @@ $(document).bind('refresh', function () {
                                 });
                         }
 
-                }).addTouch();
+                });
                 $( ".snaptarget_group" ).droppable({
            
                         hoverClass: "dd_highlight_dark",
@@ -2337,7 +2652,7 @@ $(document).bind('refresh', function () {
                                 });
                         }
 
-                }).addTouch();
+                });
 
 
                 $( ".snaptarget_bot" ).droppable({
@@ -2373,7 +2688,7 @@ $(document).bind('refresh', function () {
                                 });
                         }
 
-                }).addTouch();
+                })
 
                 $( ".snaptarget_tv" ).droppable({  //for tvs
 
@@ -2405,7 +2720,7 @@ $(document).bind('refresh', function () {
                                 });
                         }
                                 
-                }).addTouch();
+                });
 
 });
 
@@ -2469,6 +2784,8 @@ function show_grey_bg(){
 
 
 function hide_overlay(){
+  overlaycounter = null;
+  overlay_navigation = [];
 $("#new_overlay").children().filter("video").each(function(){
     this.pause();
     this.remove();
@@ -2483,18 +2800,33 @@ $("#new_overlay").empty();
           
 }
 
+  // Logout Function
+  function Logout() {
+    $.ajax({
+       url: 'logout.php',
+       async : false,
+         success: function(){
+           window.location.href= "http://localhost/N-Screen/";
+         }
+      });
+    //console.log("RESPUESTA  "+ lalala):
+    //FB.logout(function () { document.location.reload(); });
+  }
+
 </script>
 
   <div id="header">
-    <span id='main_title'>Browse Programmes</span>
+    <span id='main_title'><a href="javascript:show_browse_programmes()" style='color: #FFFFFF;'>N-SCREEN</a></span>
     <span id='small_title'></span>
+
+    <!-- <span id="logoutspan" href="#" onclick="Logout();">LOGOUT</a> -->
 
     <!-- NOT WORKING BY NOW -->
 
-        <span class="form" >
+<!--         <span class="form" >
       <form >
         <input type="text" id="search_text" name="search_text" value="search programmes" />
-      </form>
+      </form> -->
     </span>
 
 <!--     <span class="form" >
@@ -2503,6 +2835,7 @@ $("#new_overlay").empty();
       </form>
     </span> -->
     <div id="title"></div>
+
 
   </div>
 
@@ -2522,53 +2855,64 @@ $("#new_overlay").empty();
     <div id="browser">
       <div id="side-b" class="slidey">
         <span class="sub_title">SUGGESTIONS FOR YOU</span> 
-        <span class="more_blue"><a onclick='show_more_recommendations();'>View All</a></span>
+        <span class="more_blue"><a id="moreprogs" onclick='show_more_recommendations();'>View All &triangledown;</a></span>
         <div id="progs"> </div>
+        <div class="clear"></div>
       </div>
+      <div class="clear"></div>
      
 
       <div id="content" class="slidey">
         <span class="sub_title">SHARED BY FRIENDS</span>
-        <span class="more_blue"><a onclick='show_shared();'>View All</a></span>
+        <span class="more_blue"><a id='moreshared' onclick='show_shared();'>View All &triangledown;</a></span>
         <div id="results">
          <div class='dotted_box'> </div>
         </div>
+         <div class="clear"></div>
       </div>
-
+       <div class="clear"></div>
       <!-- <br clear="all" /> -->
 
       <div id="content2" class="slidey">
         <span class="sub_title">RECENTLY VIEWED</span>
-        <span class="more_blue"><a onclick='show_history();'>View All</a></span>
+        <span  class="more_blue"><a id="morerecently" onclick='show_history();'>View All &triangledown;</a></span>
         <div id="history">
           <div class='dotted_box'> </div>
         </div>
+        <div class="clear"></div>
       </div>
+      <div class="clear"></div>
 
       
       <div id="content3" class="slidey">
         <span class="sub_title">WATCH LATER</span>
-        <span class="more_blue"><a onclick='show_later();'>View All</a></span>
+        <span  class="more_blue"><a id="morelater" onclick='show_later();'>View All &triangledown;</a></span>
         <div id="list_later">
           <div class='dotted_box'> </div>
         </div>
+        <div class="clear"></div>
       </div>
+      <div class="clear"></div>
 
       <div id="content4" class="slidey">
         <span class="sub_title">LIKES</span>
-        <span class="more_blue"><a onclick='show_likes();'>View All</a></span>
+        <span  class="more_blue"><a id="morelikes" onclick='show_likes();'>View All &triangledown;</a></span>
         <div id="list_likes">
           <div class='dotted_box'> </div>
         </div>
+        <div class="clear"></div>
       </div>
+      <div class="clear"></div>
 
       <div id="content5" class="slidey">
         <span class="sub_title">DISLIKES</span>
-        <span class="more_blue"><a onclick='show_dislikes();'>View All</a></span>
+        <span  class="more_blue"><a id="moredislikes" onclick='show_dislikes();'>View All &triangledown;</a></span>
         <div id="list_dislikes">
           <div class='dotted_box'> </div>
         </div>
+        <div class="clear"></div>
       </div>
+      <div class="clear"></div>
  
       <div id="side-c">
       </div>
@@ -2594,10 +2938,10 @@ $("#new_overlay").empty();
 <div id="footer">
   <div id="button_container">
 
-   <div id="browse" class="blue menu"><a href="javascript:show_browse_programmes()">BROWSE PROGRAMMES</a></div>
+   <div id="browse" class="blue menu"><a href="javascript:show_browse_programmes()">HOME</a></div>
    <div id="random" class="grey menu"><a href="javascript:do_random()">RANDOM SELECTION</a></div>
-
   </div>
+  <div id="logoutspan" onclick="Logout();" href="#"></div>
 </div>
 
 
@@ -2608,8 +2952,12 @@ $("#new_overlay").empty();
 </span></small></p>
 
 <!-- overlays -->
+<div id='new_overlay' style='display:none;'>
 
-<div id='new_overlay' style='display:none;'><div class='close_button'><img width="12px" onclick="javascript:hide_overlay();" src="images/icons/exit.png"/></div></div>
+  <div class='close_button'>
+    <img width="12px" onclick="javascript:hide_overlay();" src="images/icons/exit.png"/>
+  </div>
+</div>
 <div id='bg' style='display:none;' onclick='javascript:hide_overlay()'></div>
 
 

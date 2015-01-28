@@ -9,10 +9,16 @@ body{
  height:100%;
 }
 
-a:hover{
-  cursor: pointer; 
-  cursor: hand;
+a {  
+  text-decoration: none;
 }
+
+a:hover {
+  color:#3198C4;
+  text-decoration:none; 
+  cursor:pointer;  
+}
+
 
 .telly{
  background:#5F6C72;
@@ -54,7 +60,7 @@ a:hover{
 }
 
 .inner_scroll{
- width:12000px;
+ width: 100%;
  height:100%;
 }
 
@@ -89,7 +95,7 @@ a:hover{
  position:fixed;
  right:0px;
  top:0px;
- width:320px;
+ width: 320px;
  height:100%;
  z-index:1;
  background: url("../images/roster_bg2.png") repeat-y;
@@ -107,10 +113,15 @@ a:hover{
 }
 
 .slidey{
-  height:250px;  
-  /*border-bottom-style: dotted ; */
-  /*border-bottom-color: #2B383F; 
-  border-bottom-width: 1px;*/
+  height:250px; 
+/* border-bottom-style: dotted; */
+position: relative;
+width: 85%;
+/* background-color: red; */
+clear: both; 
+/*border-bottom-style: dotted ; */
+/*border-bottom-color: #2B383F; 
+border-bottom-width: 1px;*/
 }
 
 div.container {overflow: auto;}
@@ -159,7 +170,7 @@ div.container {overflow: auto;}
   background: url(../images/search.png) no-repeat scroll 7px 7px;
   padding-left:30px;
   background-color: black;  
-  font-size: 14px;
+  font-size: 14px;   
   margin-top:8px;
   color: #5F6C72;
   height:30px;
@@ -177,6 +188,7 @@ div.container {overflow: auto;}
 }
 
 #main_title{
+  color: #FFFFFF;
  position:absolute;
  left:7px;
  top:12px;
@@ -307,8 +319,13 @@ div.container {overflow: auto;}
   background: linear-gradient(to right, rgba(0,0,0,0) 70%,rgba(0,0,0,0.07) 72%,rgba(0,0,0,1) 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#000000',GradientType=1 ); /* IE6-9 */
 }
-
+/*
 .interactive_icon:hover{
+  cursor: pointer; 
+  cursor: hand;
+}*/
+
+#watchlater:hover, #like:hover, #dislike:hover{
   cursor: pointer; 
   cursor: hand;
 }
@@ -410,8 +427,21 @@ div.container {overflow: auto;}
 
 #footer #button_container{
   position:absolute;
-  left:28%;
+  left:40%;
 }
+
+#logoutspan {
+    display: none;
+    position: absolute;
+    left: 50px;
+    top: 12px;
+}
+
+#logoutspan:hover{
+  cursor:auto;
+}
+
+
  
 .menu{
   height:30px;
@@ -436,6 +466,7 @@ div.container {overflow: auto;}
 #browse{
   float:left;
   padding-right:10px;
+  font-weight: 900;
 }
 #random{
   float:left;
@@ -652,3 +683,29 @@ cursor: pointer;
 #small_title a{
  color:white;
 }
+
+#side-b, #content, #content2, #content3, #content4,#content5,{
+  /*background-color: yellow;*/
+  height: 293px;
+  float:left;
+  width: 80%;
+  overflow: hidden;
+}
+#spinner{
+  height: 268px;
+  float:left;
+  width: 100%;
+  overflow: hidden;
+}
+
+.navigation_buttons{
+  width: 100px;
+  top: 10px;
+}
+
+#lessrelated{
+  position: relative;
+  bottom: 0;
+
+}
+.clear{clear:both;}
