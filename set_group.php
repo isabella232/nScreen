@@ -4,6 +4,5 @@
   $group = $_POST['group'];
   $_SESSION['SESS_GROUP'] = $group;
   echo $group;
-  exit();
 
 ?>

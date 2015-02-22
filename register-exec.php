@@ -85,7 +85,7 @@
 	//Check whether the query was successful or not
 	if($result && $result2) {
 		$_SESSION['SESS_MEMBER_ID'] = $login; //set for login
-		header("location: login-exec.php");
+		header("location: login-exec_from_register.php");
 		exit();
 	}else {
 		die("Query failed at registration with some result");

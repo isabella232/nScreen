@@ -60,6 +60,8 @@ var server = "jabber.notu.be";
 //polling interval (for changes to channels)
 var interval = null;
 
+var starting_data = {};
+
 //handle group names
 //if no group name, show the intro text
 
@@ -67,7 +69,7 @@ function init(){
 
   var grp = window.location.hash;
   var state = {"canBeAnything": true};
-  history.pushState(state, "N-Screen", "/N-Screen/");
+  history.pushState(state, "N-Screen", "http://localhost/N-Screen/");
 
   if(grp){
      my_group = grp.substring(1);
@@ -85,7 +87,21 @@ function init(){
         }
       });create_buttons();
    }
-   history.pushState(state, "N-Screen", "/N-Screen/");
+      //getting a possible initialization set of videos
+
+   $(document).ready(function() { 
+     $.ajax({
+          url: 'get_tedtalks.php',
+          dataType: "json",
+          async: false,
+          success: function(data) {
+          starting_data = changeData(data);
+          //console.log(JSON.stringify(starting_data));
+          $('#json_object').val(JSON.stringify(starting_data));
+          }
+      });
+  })
+   history.pushState(state, "N-Screen", "http://localhost/N-Screen/");
    clean_loc = String(window.location);
    window.location.hash=my_group;
    $("#group_name").html(my_group);
@@ -94,6 +110,92 @@ function init(){
    var state = {"canBeAnything": true};
 }
 
+//Adapt ted-talks http requesst to our ow data format
+
+function changeData(data){
+
+  var random_ted = {
+    suggestions: []
+  };
+
+  if(data.talks == null){
+    return random_ted;
+  }  
+
+  for(var i = 0; i < data.talks.length; i++) {  var item = data.talks[i];
+      for(var j = 0; j < data.talks[i].talk.photo_urls.length; j++){
+        if(data.talks[i].talk.photo_urls[j].size == "240x180"){
+          var image = data.talks[i].talk.photo_urls[j].url;
+        }
+      } 
+
+      if(item.talk.media_profile_uris["internal"]){
+
+      random_ted.suggestions.push({ 
+          "pid"   : item.talk.id,
+          "title" : item.talk.name,          
+          "description" : item.talk.description,
+          "date_time" : item.talk.published_at,
+          // "media_profile_uris" : item.talk.media_profile_uris,
+          "url" : item.talk.media_profile_uris["internal"]["950k"].uri, //TODO CHANGE THIS
+          "video" : item.talk.media_profile_uris["internal"]["950k"].uri,
+          "speaker" : item.talk.speakers,
+          "image" : image,
+          "manifest" : {
+              "pid"   : item.talk.id,
+              "id" : item.talk.id,          
+              "title" : item.talk.name,
+              "image" : image,
+              "provider" : "ted",
+              "duration" : 1750,
+              "media": {
+                "mp4": {
+                  // "type": "video/x-swf",
+                  "uri": item.talk.media_profile_uris["internal"]["950k"].uri,
+                  "is_live": "false"
+                }
+              },
+              "type": "video/mp4"
+          },
+          "tags" : item.talk.tags
+      });
+
+      }
+      else{
+
+        random_ted.suggestions.push({ 
+          "pid"   : item.talk.id,
+          "title" : item.talk.name,          
+          "description" : item.talk.description,
+          "date_time" : item.talk.published_at,
+          // "media_profile_uris" : item.talk.media_profile_uris,
+          "url" : "", //TODO CHANGE THIS
+          "video" : "",
+          "speaker" : item.talk.speakers,
+          "image" : image,
+          "manifest" : {
+              "pid"   : item.talk.id,
+              "id" : item.talk.id,          
+              "title" : item.talk.name,
+              "image" : image,
+              "provider" : "ted",
+              "duration" : 1750,
+              "media": {
+                "mp4": {
+                  // "type": "video/x-swf",
+                  "uri": "",
+                  "is_live": "false"
+                }
+              },
+              "type": "video/mp4"
+          },
+          "tags" : item.talk.tags
+      });
+
+      }
+      
+  }return random_ted; 
+}
 
 // utility function create a temporary group name if none is set
 function tmp_group(){
@@ -221,20 +323,20 @@ function userLogin(){
          });
   };
 
-  function register(id, name) {
+function register(id, name) {
     $.ajax({
         url: "facebook-register.php",
         type: "POST",
-        data: "facebook_id="+id+"&firstname="+name,
+        data: {facebook_id: id, firstname: name, recommendations : JSON.stringify(starting_data)},
+        // data: "facebook_id="+id+"&firstname="+name+"&recommendations="+JSON.stringify(starting_data),
         dataType: "json",
         success: function (response) {
             create_buttons();
             //add_name();
             //SHOULD REDIRECT TO US ONLY AREA---HAVE TO WORK ON IT
-            window.location.href= "http://localhost/N-Screen/member-index.php";
+            window.location.href= "member-index.php";
         }
       });
-
   }
 
   window.fbAsyncInit = function() {
@@ -281,7 +383,7 @@ function userLogin(){
        url: 'logout.php',
        async : false,
          success: function(){
-           window.location.href= "http://localhost/N-Screen/index.html";
+           window.location.href= "http://localhost/N-Screen/";
          }
       });
     //console.log("RESPUESTA  "+ lalala):
@@ -326,13 +428,13 @@ the internet. <br /> <br />
 
   <div id="header" style="display:none;">
    <span id='title'></span>
-    <span class="form" >
+<!--     <span class="form" >
       <form onsubmit='javascript:do_search(this.search_text.value);return false;'>
 
         <input type="text" id="search_text" name="search_text" value="search programmes" onclick="javascript:remove_search_text();return false;"/>
 
       </form>
-     </span>
+     </span> -->
   </div>
 
 <br clear="both"/>
@@ -377,8 +479,8 @@ the internet. <br /> <br />
         
 <div id="roster_wrapper" style="display:none;">
 <div id="aboutlink">
-<a target="_blank" href="about.html">About N-Screen</a>
-<a id="logoutspan" href="#" onclick="Logout();">LOGOUT</a>
+<!-- <a target="_blank" href="about.html">About N-Screen</a> -->
+<!-- <a id="logoutspan" href="#" onclick="Logout();">LOGOUT</a> -->
 </div>
 
   <div class="notifications_red" id="notify"></div>
@@ -414,6 +516,7 @@ the internet. <br /> <br />
                   <div class="formRegistration">
 
                     <form id="loginForm" name="loginForm" method="post" action="register-exec.php">
+                      <input type="hidden" name="json_object" id="json_object"/>
                       <div class="input-field">
                        <input id="fname" name="fname" type="fname" class="textfield" value="" required="required" placeholder="First Name" />
                       </div>

@@ -72,7 +72,7 @@ var start_url = "get_channel.php";
 var random_url = "get_random.php"
 
 //jabber server
-var server = "jabber.notu.be";
+var server = "localhost";
 //var server = "jabber.notu.be";
 
 //polling interval (for changes to channels)
@@ -271,6 +271,7 @@ function init(){
    $(".more_blue").hide();
    add_name();
 
+
    //load the start url or random if no start_url (see conf.js)
    //get a random set of starting points
 
@@ -293,16 +294,17 @@ function add_name(){
     $.ajax({
       type: "POST",
       url: "get_channel.php",
-      //async: false,
+      async: false,
       data: {channel: "recommendations"},
       dataType: "json",
       success: function(data){
         //console.log(data);
         //var whatever = changeData(data);
         recommendations_json = data; //set global variable to use later if so
-        //console.log(recommendations_json);
+        console.log("THIS IS RECOMM")
+        console.log(recommendations_json);
         recommendations(data,"progs");
-        check_overflow(); 
+        // check_overflow(); 
       },
       error: function(jqXHR, textStatus, errorThrown){
         console.log("!!nokkkk "+textStatus);
@@ -313,7 +315,7 @@ function add_name(){
     $.ajax({
       type: "POST",
       url: "get_channel.php",
-      //async: false,
+      async: false,
       data: {channel: "watch_later"},
       dataType: "json",
       success: function(data){
@@ -349,7 +351,7 @@ function add_name(){
     $.ajax({
       type: "POST",
       url: "get_channel.php",
-      //async: false,
+      async: false,
       data: {channel: "recently_viewed"},
       dataType: "json",
       success: function(data){
@@ -385,7 +387,7 @@ function add_name(){
     $.ajax({
       type: "POST",
       url: "get_channel.php",
-      //async: false,
+      async: false,
       data: {channel: "shared_by_friends"},
       dataType: "json",
       success: function(data){
@@ -420,7 +422,7 @@ function add_name(){
     $.ajax({
       type: "POST",
       url: "get_channel.php",
-      //async: false,
+      async: false,
       data: {channel: "like_dislike"},
       dataType: "json",
       success: function(data){
@@ -474,6 +476,15 @@ function add_name(){
         console.log("!!nokkkk "+textStatus);
       }
     });
+
+    
+    recommendations(recommendations_json,"progs");
+    recommendations(watch_later_json,"list_later");
+    recommendations(recently_viewed_json,"history");
+    recommendations(shared_by_friends_json,"results");
+    recommendations(likes_json,"list_likes");
+    recommendations(dislikes_json,"list_dislikes");
+
   }
   var state = {"canBeAnything": true};
   //history.pushState(state, "N-Screen", "/N-Screen/");
@@ -634,13 +645,51 @@ function insert_suggest2(id) {
       var video = recently_viewed_json.suggestions[0].video;
       var pid = recently_viewed_json.suggestions[0].pid;
       var img = recently_viewed_json.suggestions[0].image;
+      var speaker_id = recently_viewed_json.suggestions[0].speaker[0].speaker.id;
+      console.log("THIS IS SPEKAER ID");
+      console.log(speaker_id);
 
       var tags = Object.keys(recently_viewed_json.suggestions[0]["tags"]);
       // var tags = (/[^,]*/.exec(tags));
       // tags = (/[^, ]*/.exec(tags)); //array of tags
       html = [];
       html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
+      
       html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+      html.push("<div style='margin-top:-54px;'>");
+      if(not_in_list(id,list_watch_later)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/watch_later.png\"/>");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_watch_later.png\"/>");
+      }
+            if(not_in_list(id,list_likes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/like.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_like.png\" />");      
+      }
+      if(not_in_list(id,list_dislikes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/dislike.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_dislike.png\" />");      
+      }
+      if(not_in_list(id,list_recently_viewed)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/recently_viewed.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_recently_viewed.png\" />");      
+      }
+      if(not_in_list(id,list_shared_by_friends)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/shared.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_shared.png\" />");      
+      }
+
+    html.push("</div>");
+
       html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
       html.push("<p class=\"description large\">"+description+"</p>");
       html.push("</div>");
@@ -655,7 +704,7 @@ function insert_suggest2(id) {
       html2.push("<div class=\"gradient_div\" style=\"text-align: center;  margin-left: 45%; position: absolute; \"> <img class=\"img\" src=\""+img+"\" />");
       html2.push("<div class=\"play_button\"><img style='width: 120px;' src=\"images/icons/play.png\" /></a></div></div>");
       html2.push("<div style='padding-left: 20px; padding-right: 20px; width: 50%; left: 0px; position: absolute;'>");
-      html2.push("<div class=\"p_title_large_speaker\">"+speaker+':'+"</div>");
+      html2.push("<div style ='cursor: pointer;'class=\"p_title_large_speaker\" onclick=\"javascript:insert_speaker("+speaker_id+");return true\">"+speaker+':'+"</div>");
       html2.push("<div class=\"p_title_large\">"+title+"</div>");
       html2.push("<p class=\"description\">"+description+"</p>");
       html2.push("<div class=\"list_tags\" style='display:inline;'>");
@@ -784,6 +833,207 @@ function insert_suggest2(id) {
 
 }
 
+function insert_speaker(id) {
+
+  // console.log("list shared by friends");
+  // console.log(list_shared_by_friends);
+  // var item;
+      // if (overlaycounter == null){
+      //   overlaycounter = 0;
+      // }
+      // else{
+      //   overlaycounter ++;
+      // }
+  //     overlay_navigation.splice(overlaycounter, 0, id);
+  //     for (var i= overlay_navigation.length - 1; i > overlaycounter ; i--){
+  //       overlay_navigation.splice(i, 1);
+  //     }
+      var item = {};
+
+      var flag = false //to set recently viewed icon or not
+        $.ajax({
+          url: "get_speaker.php",
+          type: "POST",
+          async: false,
+          data: {id: id},
+          dataType: "json",
+          success: function (data) {
+              item =  data; //JSON with suggestions format
+          }
+        });
+
+      var div = $("#"+id);
+      var speaker = item["speakers"][0].speaker.firstname + " " + item.speakers[0].speaker.lastname;
+      var title = item.speakers[0].speaker.description;
+      var description = item.speakers[0].speaker.whylisten;
+      // var tags = lalala **********************TO DO*********************
+      var video = item.speakers[0].speaker.photo_url;
+      var pid = item.speakers[0].speaker.id;
+      var img = item.speakers[0].speaker.photo_url;
+
+      html = [];
+      html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_speaker("+id+");return true\">");
+      html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+            html.push("<div style='margin-top:-54px;'>");
+      if(not_in_list(id,list_watch_later)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/watch_later.png\"/>");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_watch_later.png\"/>");
+      }
+            if(not_in_list(id,list_likes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/like.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_like.png\" />");      
+      }
+      if(not_in_list(id,list_dislikes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/dislike.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_dislike.png\" />");      
+      }
+      if(not_in_list(id,list_recently_viewed)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/recently_viewed.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_recently_viewed.png\" />");      
+      }
+      if(not_in_list(id,list_shared_by_friends)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/shared.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_shared.png\" />");      
+      }
+
+    html.push("</div>");
+      html.push("<span class=\"p_title p_title_small\"><a>"+speaker+"</a></span>");
+      html.push("<p class=\"description large\">"+title+"</p>");
+      html.push("</div>");
+      $('#history').prepend(html.join(''));
+
+
+      html2 = [];
+
+      html2.push("<div class='close_button'><img src='images/icons/exit.png' width='12px' onclick='javascript:hide_overlay();'/></div>");
+      html2.push("<div class='navigation_buttons'><img onclick='javascript:navigation(-1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='back' src='images/icons/backward.png' width='30'/><img onclick='javascript:navigation(+1);' style='display: inline; margin: 0 5px; cursor:pointer;' title='forward' src='images/icons/forward.png' width='30'/></div>");
+      html2.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\"  class=\"large_prog\" style=\"position: relative;\">");
+      html2.push("<div class=\"gradient_div\" style=\"text-align: center;  margin-left: 59%; position: absolute; \"> <img class=\"img\" src=\""+img+"\" />");
+      html2.push("</div>");
+      html2.push("<div style='font-size: 0.9em; left: 0; padding-left: 19px; padding-right: 20px; position: absolute; width: 71%;'>");
+      html2.push("<div class=\"p_title_large_speaker\">"+speaker+':'+"</div>");
+      html2.push("<div>"+title+"</div>");
+      html2.push("<p >"+description+"</p>");
+      html2.push("<div class=\"list_tags\" style='display:inline;'>");
+      html2.push("</div>");
+      // html2.push("<p class=\"explain\">"+explanation+"</p>");
+//      html2.push("<p class=\"keywords\">"+keywords+"</p>");
+      html2.push("<p class=\"link\"><a href=\"http://www.ted.com/talks/view/id/"+pid+"\" target=\"_blank\">Sharable Link</a></p></div>");
+
+      html2.push("<div class='vertical_buttons' style='display:table-cell; vertical-align: middle; margin-right: 7%; position: absolute; text-align: center; right:0; top: 10px'>");
+
+    if(not_in_list(id,list_watch_later)){
+              html2.push("<div id='watchlater'class=\"interactive_icon\"><img  style='width: 40px;' src=\"images/icons/watch_later.png\" /><span style='display: block'; class ='inter_span'>Watch Later</span></div>");      
+      }
+      else{
+              html2.push("<div id='watchlater'class=\"interactive_icon\"><img  style='width: 40px;' src=\"images/icons/on_watch_later.png\" /><span style='display: block'; class ='on_inter_span'>Watch Later</span></div>");      
+      }
+
+      if(not_in_list(id,list_likes)){
+        html2.push("<div id='like' class=\"interactive_icon\"><img  style='width: 40px;' src=\"images/icons/like.png\" /><span style='display: block'; class ='inter_span'>Like</span></div>");
+      }
+      else{
+        html2.push("<div id='like' class=\"interactive_icon\"><img  style='width: 40px;' src=\"images/icons/on_like.png\" /><span style='display: block'; class ='on_inter_span'>Like</span></div>");
+      }
+      if(not_in_list(id,list_dislikes)){
+      html2.push("<div id='dislike' class=\"interactive_icon\"><img  style='width: 40px;' src=\"images/icons/dislike.png\" /><span style='display: block'; class ='inter_span'>Dislike</span></div>");
+      }
+      else{
+      html2.push("<div id='dislike' class=\"interactive_icon\"><img  style='width: 40px;' src=\"images/icons/on_dislike.png\" /><span style='display: block'; class ='on_inter_span'>Dislike</span></div>");
+      }
+      if(not_in_list(id,list_shared_by_friends)){
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/shared.png\" /><span style='display: block'; class ='inter_span'>Shared by friends</span></div>");
+      }
+      else{
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/on_shared.png\" /><span style='display: block'; class ='on_inter_span'>Shared by friends</span></div>");
+      }
+      if(flag == false){
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/recently_viewed.png\" /><span style='display: block'; class ='inter_span'>Recenlty Viewed</span></div></div>");
+      }
+      else{
+        html2.push("<div class=\"interactive_icon\"><img style='width: 40px;' src=\"images/icons/on_recently_viewed.png\" /><span style='display: block'; class ='on_inter_span'>Recenlty Viewed</span></div></div>");
+      }
+      html2.push("</div>");
+      html2.push("</div>");
+      
+
+      $('#new_overlay').html(html2.join(''));
+    
+      $('#new_overlay').show();
+      show_grey_bg();
+
+      // $(".play_button").live( "click", function() {
+
+      // console.log("PLAY PRESSED!!!");
+      //   var res = {};
+      //   // res["id"]=id;
+      //   res["pid"]=pid;
+      //   res["title"]=title;
+      //   res["video"]=video;
+      //   res["description"]=description;
+      //   // res["explanation"]=explanation;
+      //   res["img"]=id;
+      //   sendProgrammeTVs(res,my_tv); 
+      //   return false;
+
+      // });
+
+
+      $('#new_overlay').append("<div id=\"more_like_this\" class=\"more_like_this\" style=\"margin-top: 400px;\"><span class=\"sub_title\">" + speaker + " talks: </span><span class=\"more_blue\"><a id ='more_related' onclick='show_related();''>View All &triangledown;</a></span></div>");
+      // $('#new_overlay').append("<br clear=\"both\"/>");
+      $('#new_overlay').append("<div id='spinner' style=\"float: left;\"></div>");
+      $('#new_overlay').append("<div class='clear'></div>");
+      check_overflow();
+
+      var speaker_talks = {
+          suggestions: []
+        };
+
+  for(var i = 0; i < item.speakers[0].speaker.talks.length; i++) {  
+    var something = item.speakers[0].speaker.talks[i];
+    var talk_id = something.talk.id;
+    var talk;
+
+    $.ajax({
+        url: "get_tedtalks_by_id.php",
+        type: "POST",
+        async: false,
+        data: {id: talk_id},
+        dataType: "json",
+        success: function (data) {
+            talk =  changeData(data); //JSON with suggestions format
+        }
+      });
+    talk = talk.suggestions[0];
+      speaker_talks.suggestions.push({ 
+          "pid"   : talk.pid,
+          "title" : talk.title,          
+          "description" : talk.description,
+          "date_time" : talk.date_time,
+          // "media_profile_uris" : item.talk.media_profile_uris,
+          "url" : talk.url, //TODO CHANGE THIS
+          "video" : talk.video,
+          "speaker" : talk.speaker,
+          "image" : talk.image,
+          "manifest" : talk.manifest,
+          "tags" : talk.tags,
+      });
+
+      recommendations(speaker_talks,"spinner",false,title);
+
+}
+}
+
 function navigate_by_id(id) {
       var item = {};
 
@@ -807,13 +1057,15 @@ function navigate_by_id(id) {
       var video = item.suggestions[0].video;
       var pid = item.suggestions[0].pid;
       var img = item.suggestions[0].image;
+    var speaker_id = item.suggestions[0].speaker[0].speaker.id;
+
+
 
       var tags = Object.keys(item.suggestions[0]["tags"]);
       // var tags = (/[^,]*/.exec(tags));
       // tags = (/[^, ]*/.exec(tags)); //array of tags
       html = [];
       html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
-      html.push("<img class=\"img img_small\" src=\""+img+"\" />");
       html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
       html.push("<p class=\"description large\">"+description+"</p>");
       html.push("</div>");
@@ -828,7 +1080,7 @@ function navigate_by_id(id) {
       html2.push("<div class=\"gradient_div\" style=\"text-align: center;  margin-left: 45%; position: absolute; \"> <img class=\"img\" src=\""+img+"\" />");
       html2.push("<div class=\"play_button\"><img style='width: 120px;' src=\"images/icons/play.png\" /></a></div></div>");
       html2.push("<div style='padding-left: 20px; padding-right: 20px; width: 50%; left: 0px; position: absolute;'>");
-      html2.push("<div class=\"p_title_large_speaker\">"+speaker+':'+"</div>");
+      html2.push("<div style ='cursor: pointer;'class=\"p_title_large_speaker\" onclick=\"javascript:insert_speaker("+speaker_id+");return true\">"+speaker+':'+"</div>");
       html2.push("<div class=\"p_title_large\">"+title+"</div>");
       html2.push("<p class=\"description\">"+description+"</p>");
       html2.push("<div class=\"list_tags\" style='display:inline;'>");
@@ -1353,6 +1605,8 @@ function show_browse_programmes(){
   $container.css("display","block");
   $(document).trigger('refresh');
    $(document).trigger('refresh_buttons');
+   check_overflow();
+
 }
 
 function show_more_recommendations(){
@@ -1376,6 +1630,7 @@ function show_more_recommendations(){
   }
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
+  check_overflow();
 }
 
 function show_shared(){
@@ -1394,6 +1649,7 @@ function show_shared(){
   }
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
+  check_overflow();
 }
 
 function show_history(){
@@ -1411,6 +1667,7 @@ function show_history(){
   }
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
+  check_overflow();
 
 }
 function show_later(){
@@ -1428,6 +1685,7 @@ function show_later(){
   }
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
+  check_overflow();
 }
 function show_likes(){
   var content = $('#content4');
@@ -1444,6 +1702,7 @@ function show_likes(){
   }
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
+  check_overflow();
 
 }
 function show_dislikes(){
@@ -1461,6 +1720,7 @@ function show_dislikes(){
   }
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
+  check_overflow();
 }
 
 function show_related(){
@@ -1479,6 +1739,7 @@ function show_related(){
   }
   $(document).trigger('refresh');
   $(document).trigger('refresh_buttons');
+  check_overflow();
 }
 //ON CLICK LISTENER TO ADD TO WATCH LATER
 
@@ -1531,7 +1792,46 @@ $("#addtowatchlater").live( "click", function() {
     update_channel("watch_later", watch_later_json);
     html = [];
     html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
-    html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+     html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+    html.push("<div style='margin-top:-54px;'>");
+      if(not_in_list(id,list_watch_later)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/watch_later.png\"/>");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_watch_later.png\"/>");
+      }
+            if(not_in_list(id,list_likes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/like.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_like.png\" />");      
+      }
+      if(not_in_list(id,list_dislikes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/dislike.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_dislike.png\" />");      
+      }
+      if(not_in_list(id,list_dislikes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/dislike.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_dislike.png\" />");      
+      }
+      if(not_in_list(id,list_recently_viewed)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/recently_viewed.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_recently_viewed.png\" />");      
+      }
+      if(not_in_list(id,list_shared_by_friends)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/shared.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_shared.png\" />");      
+      }
+
+    html.push("</div>");
     html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
     html.push("<p class=\"description large\">"+description+"</p>");
     html.push("</div>");
@@ -1598,6 +1898,39 @@ $("#addtolike").live( "click", function() {
     html = [];
     html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
     html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+    html.push("<div style='margin-top:-54px;'>");
+      if(not_in_list(id,list_watch_later)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/watch_later.png\"/>");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_watch_later.png\"/>");
+      }
+            if(not_in_list(id,list_likes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/like.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_like.png\" />");      
+      }
+      if(not_in_list(id,list_dislikes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/dislike.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_dislike.png\" />");      
+      }
+      if(not_in_list(id,list_recently_viewed)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/recently_viewed.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_recently_viewed.png\" />");      
+      }
+      if(not_in_list(id,list_shared_by_friends)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/shared.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_shared.png\" />");      
+      }
+
+    html.push("</div>");
     html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
     html.push("<p class=\"description large\">"+description+"</p>");
     html.push("</div>");
@@ -1663,6 +1996,39 @@ $("#addtodislike").live( "click", function() {
     html = [];
     html.push("<div id=\""+id+"\" pid=\""+pid+"\" href=\""+video+"\" class=\"ui-widget-content button programme ui-draggable\"" + "onclick=\"javascript:insert_suggest2("+pid+");return true\">");
     html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+    html.push("<div style='margin-top:-54px;'>");
+      if(not_in_list(id,list_watch_later)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/watch_later.png\"/>");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_watch_later.png\"/>");
+      }
+            if(not_in_list(id,list_likes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/like.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_like.png\" />");      
+      }
+      if(not_in_list(id,list_dislikes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/dislike.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_dislike.png\" />");      
+      }
+      if(not_in_list(id,list_recently_viewed)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/recently_viewed.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_recently_viewed.png\" />");      
+      }
+      if(not_in_list(id,list_shared_by_friends)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/shared.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_shared.png\" />");      
+      }
+
+    html.push("</div>");
     html.push("<span class=\"p_title p_title_small\"><a>"+title+"</a></span>");
     html.push("<p class=\"description large\">"+description+"</p>");
     html.push("</div>");
@@ -2155,7 +2521,40 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
                   }else{
                      html.push(string);
                   }
-                  html.push("<div><img class=\"img img_small\" src=\""+img+"\" /></div>");
+      html.push("<img class=\"img img_small\" src=\""+img+"\" />");
+      html.push("<div class = 'gradient_div_icons' style='margin-top:-54px;'>");
+      if(not_in_list(id,list_watch_later)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/watch_later.png\"/>");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_watch_later.png\"/>");
+      }
+            if(not_in_list(id,list_likes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/like.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_like.png\" />");      
+      }
+      if(not_in_list(id,list_dislikes)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/dislike.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_dislike.png\" />");      
+      }
+      if(not_in_list(id,list_recently_viewed)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/recently_viewed.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_recently_viewed.png\" />");      
+      }
+      if(not_in_list(id,list_shared_by_friends)){
+        html.push("<img class=\"overlapicon\" src=\"images/icons/shared.png\" />");
+      }
+      else{
+        html.push("<img class=\"overlapicon\" src=\"images/icons/on_shared.png\" />");      
+      }
+
+    html.push("</div>");
                   //html.push("<span class=\"p_title p_title_small\"><a href=''>"+title+"</a></span>");
                   html.push("<span class=\"p_title p_title_small\"><a >"+title+"</a></span>");
                   if(shared){     
@@ -2197,9 +2596,10 @@ function process_json_results(result,ele,pid_title,replace_content,add_stream,st
           }else{
             $("#"+ele).append('');
           }
-   check_overflow();
+   
    $(document).trigger('refresh');
    $(document).trigger('refresh_buttons');
+   check_overflow();
 }
         
 //show disconnect overlay
@@ -2457,6 +2857,7 @@ function changeData(data){
 $(document).bind('items_changed',function(ev,blink){
     get_roster(blink);
      $(document).trigger('refresh');
+     check_overflow();
      // $(document).trigger('refresh_buttons');
      //$(document).trigger('refresh_group');
     // $(document).trigger('refresh_history');
@@ -3025,7 +3426,7 @@ $("#new_overlay").empty();
       </div>
     </div>
 
-      <div id="search_results"></div>
+      <div id="search_results" style='width: 80%;'></div><div class="clear"></div>
     <!-- <br clear="both" /> -->
 
   </div>

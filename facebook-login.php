@@ -30,7 +30,7 @@
 	}
 	
 	// ### LOGIN ###
-	$qry="SELECT * FROM members WHERE facebook_id='$facebook_id'";
+	$qry="SELECT * FROM members WHERE facebook_id='$facebook_idr'";
 	$result=mysql_query($qry);
 	//Check whether the query was successful or not
 	if($result) {

@@ -26,6 +26,35 @@
 		return mysql_real_escape_string($str);
 	}
 	
+	if(isset($_SESSION['SESS_MEMBER_ID_FROM_REGISTER'])){
+		$login = $_SESSION['SESS_MEMBER_ID_FROM_REGISTER'];
+		//Create query
+		$qry="SELECT * FROM members WHERE login='$login'";
+		$result=mysql_query($qry);   
+
+		//Check whether the query was successful or not
+		if($result) {
+			if(mysql_num_rows($result) == 1) {
+				//Login Successful
+				session_regenerate_id();
+				$member = mysql_fetch_assoc($result);
+				$_SESSION['SESS_MEMBER_ID'] = $member['member_id'];
+				$_SESSION['SESS_FIRST_NAME'] = utf8_decode($member['firstname']);
+				$_SESSION['SESS_LAST_NAME'] = $member['lastname'];
+				session_write_close();
+				header("location: member-index.php");
+				exit();
+			}else {
+				//Login failed
+				header("location: login-failed.php");
+				exit();
+			}
+		}else {
+			die("Query failed");
+		}
+	}
+
+	else{
 		//Sanitize the POST values
 		$username = utf8_encode($_POST['login']);
 		$password = utf8_encode($_POST['password']);
@@ -74,4 +103,5 @@
 		}else {
 			die("Query failed");
 		}
+	}
 ?>

@@ -1,7 +1,7 @@
 <?php
   //Start session
   session_start();
-  $watch_later = mysql_real_escape_string($_POST['data']);
+  $watch_later = mysql_escape_string($_POST['data']);
   $channel = $_POST['channel'];
 	ini_set( 'default_charset', 'UTF-8' );
 	

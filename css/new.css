@@ -112,18 +112,6 @@ a:hover {
   padding-top:56px;
 }
 
-.slidey{
-  height:250px; 
-/* border-bottom-style: dotted; */
-position: relative;
-width: 85%;
-/* background-color: red; */
-clear: both; 
-/*border-bottom-style: dotted ; */
-/*border-bottom-color: #2B383F; 
-border-bottom-width: 1px;*/
-}
-
 div.container {overflow: auto;}
 
 .slidey_noscroll{
@@ -274,6 +262,15 @@ div.container {overflow: auto;}
   cursor: hand;
 }
 
+.overlapicon{
+  height: 34px;
+    margin-left: 4px;
+}
+
+.gradient_div_icons{
+  
+}
+
 .large_prog {
  /*##width:500px;*/
  /*margin:10px;*/
@@ -346,7 +343,7 @@ div.container {overflow: auto;}
 }
 
 .large_prog .img{
- width: 470px;
+ width: 29em;
 }
 
 .p_title_large{
@@ -684,12 +681,11 @@ cursor: pointer;
  color:white;
 }
 
-#side-b, #content, #content2, #content3, #content4,#content5,{
-  /*background-color: yellow;*/
+#side-b, #content, #content2, #content3, #content4,#content5, #spinner{
+  overflow: hidden;
   height: 293px;
   float:left;
   width: 80%;
-  overflow: hidden;
 }
 #spinner{
   height: 268px;
