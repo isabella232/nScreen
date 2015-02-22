@@ -1,8 +1,0 @@
-RewriteEngine On
-
-RewriteBase /opt/lampp/htdocs/N-Screen
-RewriteRule http-bind http://localhost:5280/http-bind/ [P]
-RewriteRule http-bind/ http://localhost:5280/http-bind/ [P]
-RewriteRule http-poll http://localhost:5280/http-poll/ [P]
-RewriteRule http-poll/ http://localhost:5280/http-poll/ [P]
-RewriteRule admin/ http://localhost:5280/admin/ [P]
